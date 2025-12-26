@@ -1,0 +1,120 @@
+// PartyTab data model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TabStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  tabs         Tab[]         @relation("TabOwner")
+  participants Participant[]
+  invites      Invite[]      @relation("InviteSender")
+}
+
+model Tab {
+  id           String        @id @default(cuid())
+  name         String
+  status       TabStatus     @default(OPEN)
+  ownerId      String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  owner        User          @relation("TabOwner", fields: [ownerId], references: [id])
+  participants Participant[]
+  expenses     Expense[]
+  settlements  Settlement[]
+  invites      Invite[]
+}
+
+model Participant {
+  id           String         @id @default(cuid())
+  tabId        String
+  userId       String?
+  displayName  String
+  email        String?
+  createdAt    DateTime       @default(now())
+  tab          Tab            @relation(fields: [tabId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
+  expensesPaid Expense[]      @relation("ExpensePayer")
+  splits       ExpenseSplit[]
+  settlementsFrom Settlement[] @relation("SettlementFrom")
+  settlementsTo   Settlement[] @relation("SettlementTo")
+
+  @@unique([tabId, userId])
+}
+
+model Expense {
+  id               String         @id @default(cuid())
+  tabId            String
+  paidByParticipantId String
+  description      String
+  amount           Decimal        @db.Decimal(12, 2)
+  incurredAt       DateTime
+  createdAt        DateTime       @default(now())
+  tab              Tab            @relation(fields: [tabId], references: [id])
+  paidBy           Participant    @relation("ExpensePayer", fields: [paidByParticipantId], references: [id])
+  splits           ExpenseSplit[]
+}
+
+model ExpenseSplit {
+  id            String       @id @default(cuid())
+  expenseId     String
+  participantId String
+  amount        Decimal      @db.Decimal(12, 2)
+  createdAt     DateTime     @default(now())
+  expense       Expense      @relation(fields: [expenseId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id])
+
+  @@unique([expenseId, participantId])
+}
+
+model Settlement {
+  id                String         @id @default(cuid())
+  tabId             String
+  fromParticipantId String
+  toParticipantId   String
+  amount            Decimal        @db.Decimal(12, 2)
+  createdAt         DateTime       @default(now())
+  tab               Tab            @relation(fields: [tabId], references: [id])
+  fromParticipant   Participant    @relation("SettlementFrom", fields: [fromParticipantId], references: [id])
+  toParticipant     Participant    @relation("SettlementTo", fields: [toParticipantId], references: [id])
+  transfers         SettlementTransfer[]
+}
+
+model SettlementTransfer {
+  id           String      @id @default(cuid())
+  settlementId String
+  amount       Decimal     @db.Decimal(12, 2)
+  method       String?
+  reference    String?
+  createdAt    DateTime    @default(now())
+  settlement   Settlement @relation(fields: [settlementId], references: [id])
+}
+
+model Invite {
+  id         String   @id @default(cuid())
+  tabId      String
+  email      String
+  token      String   @unique
+  invitedById String?
+  createdAt  DateTime @default(now())
+  acceptedAt DateTime?
+  tab        Tab      @relation(fields: [tabId], references: [id])
+  invitedBy  User?    @relation("InviteSender", fields: [invitedById], references: [id])
+
+  @@unique([tabId, email])
+}
