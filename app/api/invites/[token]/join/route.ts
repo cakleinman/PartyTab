@@ -16,16 +16,26 @@ export async function POST(
     if (!invite || invite.revokedAt) {
       throwApiError(404, "not_found", "Invite not found");
     }
-    if (invite.tab.status === "CLOSED") {
-      throwApiError(409, "tab_closed", "Tab is closed");
-    }
-
     const body = await request.json();
     const user = await requireUser(body?.displayName, body?.pin);
 
     const existing = await prisma.participant.findUnique({
       where: { tabId_userId: { tabId: invite.tabId, userId: user.id } },
     });
+
+    // If tab is closed, only allow existing participants to re-authenticate
+    if (invite.tab.status === "CLOSED") {
+      if (!existing) {
+        throwApiError(409, "tab_closed", "This tab is closed and not accepting new participants.");
+      }
+      // Existing participant re-authenticating - redirect to settlement
+      return created({
+        joined: true,
+        tabId: invite.tabId,
+        redirectToSettlement: true,
+      });
+    }
+
     if (!existing) {
       await prisma.participant.create({
         data: { tabId: invite.tabId, userId: user.id },

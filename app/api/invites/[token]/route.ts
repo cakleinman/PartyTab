@@ -18,7 +18,7 @@ export async function GET(
 
     return ok({
       invite: { token: invite.token },
-      tab: { id: invite.tab.id, name: invite.tab.name },
+      tab: { id: invite.tab.id, name: invite.tab.name, status: invite.tab.status },
     });
   } catch (error) {
     if (isApiError(error)) {
