@@ -285,7 +285,7 @@ export default function TabDashboard() {
           </div>
         </div>
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
-          <h3 className="text-sm font-semibold text-ink-700">Quick links</h3>
+          <h3 className="text-xs uppercase tracking-[0.2em] text-ink-500">Quick links</h3>
           <div className="mt-4 grid gap-3 text-sm text-ink-500">
             <a href={`/tabs/${tabId}/participants`} className="font-medium text-ink-700">
               Participants
