@@ -61,7 +61,7 @@ export default function RootLayout({
                 PartyTab
               </a>
               <nav className="text-sm text-ink-500">
-                Track now · Settle later
+                Keep the party going.
               </nav>
             </div>
           </header>

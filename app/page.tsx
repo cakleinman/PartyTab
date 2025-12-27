@@ -8,11 +8,11 @@ export default function LandingPage() {
           Shared Tabs for <CyclingText />
         </p>
         <h1 className="text-4xl font-semibold leading-tight text-ink-900 md:text-5xl">
-          Track every group expense now. Settle later.
+          Split expenses without splitting up the group.
         </h1>
         <p className="text-lg text-ink-700">
           PartyTab keeps shared spending calm and simple for trips, dinners, or
-          any temporary group. Track now, settle later, end cleanly.
+          any temporary group. Track together, settle whenever, stay friends.
         </p>
         <div className="flex flex-wrap gap-4">
           <a
