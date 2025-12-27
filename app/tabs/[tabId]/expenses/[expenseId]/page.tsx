@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
 
@@ -16,16 +16,24 @@ type ExpenseDetail = {
   note: string | null;
   paidByParticipantId: string;
   createdAt: string;
+  createdByUserId: string;
   splits: { participantId: string; amountCents: number }[];
+};
+
+type TabInfo = {
+  status: "ACTIVE" | "CLOSED";
+  isCreator: boolean;
 };
 
 export default function ExpenseDetailPage() {
   const params = useParams<{ tabId: string; expenseId: string }>();
+  const router = useRouter();
   const tabId = params?.tabId;
   const expenseId = params?.expenseId;
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [expense, setExpense] = useState<ExpenseDetail | null>(null);
-  const [tabStatus, setTabStatus] = useState<"ACTIVE" | "CLOSED" | null>(null);
+  const [tab, setTab] = useState<TabInfo | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [paidBy, setPaidBy] = useState("");
@@ -35,6 +43,7 @@ export default function ExpenseDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [amountCents, setAmountCents] = useState(0);
   const [splitSumCents, setSplitSumCents] = useState(0);
   const { pushToast } = useToast();
@@ -45,11 +54,13 @@ export default function ExpenseDetailPage() {
       fetch(`/api/tabs/${tabId}/participants`).then((res) => res.json()),
       fetch(`/api/tabs/${tabId}/expenses/${expenseId}`).then((res) => res.json()),
       fetch(`/api/tabs/${tabId}`).then((res) => res.json()),
+      fetch(`/api/me`).then((res) => res.json()),
     ])
-      .then(([participantsData, expenseData, tabData]) => {
+      .then(([participantsData, expenseData, tabData, meData]) => {
         const loadedParticipants = participantsData.participants ?? [];
         setParticipants(loadedParticipants);
-        setTabStatus(tabData.tab?.status ?? null);
+        setTab(tabData.tab ?? null);
+        setUserId(meData?.user?.id ?? null);
         if (expenseData?.expense) {
           setExpense(expenseData.expense);
           const formattedAmount = formatCentsPlain(expenseData.expense.amountTotalCents);
@@ -101,10 +112,14 @@ export default function ExpenseDetailPage() {
     setSplitSumCents(sum);
   }, [customSplit, participants, splitAmounts]);
 
+  const tabStatus = tab?.status ?? null;
   const canSubmit =
     tabStatus !== "CLOSED" &&
     amountCents > 0 &&
     (!customSplit || (splitSumCents === amountCents && splitParticipantIds.length > 0));
+  const canDelete =
+    tabStatus === "ACTIVE" &&
+    (expense?.createdByUserId === userId || tab?.isCreator);
 
   const handleUpdate = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -170,6 +185,31 @@ export default function ExpenseDetailPage() {
     });
     setSaving(false);
     pushToast("Expense updated.");
+  };
+
+  const handleDelete = async () => {
+    if (!confirm("Delete this expense? This cannot be undone.")) return;
+    if (!tabId || !expenseId) return;
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/tabs/${tabId}/expenses/${expenseId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        pushToast(data?.error?.message ?? "Could not delete expense.");
+        setDeleting(false);
+        return;
+      }
+
+      pushToast("Expense deleted.");
+      router.push(`/tabs/${tabId}`);
+    } catch {
+      pushToast("Network error deleting expense.");
+      setDeleting(false);
+    }
   };
 
   if (loading) {
@@ -342,6 +382,17 @@ export default function ExpenseDetailPage() {
         >
           {saving ? "Saving…" : "Update expense"}
         </button>
+
+        {canDelete && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={deleting}
+            className="w-full rounded-full border border-red-300 px-6 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 disabled:opacity-50"
+          >
+            {deleting ? "Deleting…" : "Delete expense"}
+          </button>
+        )}
       </form>
     </div>
   );

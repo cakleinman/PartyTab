@@ -94,6 +94,7 @@ export async function GET(
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
         paidByParticipantId: expense.paidByParticipantId,
+        createdByUserId: expense.createdByUserId,
         createdAt: expense.createdAt.toISOString(),
         splits: expense.splits.map((split) => ({
           participantId: split.participantId,
@@ -195,6 +196,47 @@ export async function PATCH(
   }
 }
 
-export async function DELETE() {
-  return apiError(405, "forbidden", "Delete is not supported");
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ tabId: string; expenseId: string }> },
+) {
+  try {
+    const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
+    const tabId = parseUuid(rawTabId, "tabId");
+    const expenseId = parseUuid(rawExpenseId, "expenseId");
+    const user = await getUserFromSession();
+    if (!user) {
+      throwApiError(401, "unauthorized", "Unauthorized");
+    }
+    const tab = await requireTab(tabId);
+    if (tab.status === "CLOSED") {
+      throwApiError(409, "tab_closed", "Cannot delete expenses from a closed tab");
+    }
+    await requireParticipant(tabId, user.id);
+
+    const expense = await prisma.expense.findFirst({
+      where: { id: expenseId, tabId },
+    });
+    if (!expense) {
+      throwApiError(404, "not_found", "Expense not found");
+    }
+
+    // Allow deletion by expense creator or tab owner
+    if (expense.createdByUserId !== user.id && tab.createdByUserId !== user.id) {
+      throwApiError(403, "forbidden", "Only the expense creator or tab owner can delete this expense");
+    }
+
+    // Delete splits first, then expense
+    await prisma.$transaction(async (tx) => {
+      await tx.expenseSplit.deleteMany({ where: { expenseId } });
+      await tx.expense.delete({ where: { id: expenseId } });
+    });
+
+    return ok({ deleted: true });
+  } catch (error) {
+    if (isApiError(error)) {
+      return apiError(error.status, error.code, error.message);
+    }
+    return validationError(error);
+  }
 }
