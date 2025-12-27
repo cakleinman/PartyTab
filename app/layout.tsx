@@ -60,8 +60,11 @@ export default function RootLayout({
               <a href="/" className="text-lg font-semibold tracking-tight">
                 PartyTab
               </a>
-              <nav className="text-sm text-ink-500">
-                Keep the party going.
+              <nav className="flex items-center gap-4 text-sm">
+                <span className="hidden text-ink-500 sm:inline">Keep the party going.</span>
+                <a href="/signin" className="font-medium text-ink-700 hover:text-ink-900">
+                  Sign in
+                </a>
               </nav>
             </div>
           </header>
