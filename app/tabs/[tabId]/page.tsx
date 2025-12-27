@@ -176,8 +176,9 @@ export default function TabDashboard() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
-          <p className="text-xs uppercase tracking-[0.2em] text-ink-500">Total spent</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-ink-500">Group total</p>
           <p className="mt-2 text-2xl font-semibold">{formatCents(tab.totalSpentCents)}</p>
+          <p className="mt-1 text-sm text-ink-500">All expenses on this tab.</p>
         </div>
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-ink-500">Your net</p>
