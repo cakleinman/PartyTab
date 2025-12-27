@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Party hat cone -->
+  <path d="M16 2L4 28h24L16 2z" fill="#1a1a1a"/>
+  <!-- Stripes -->
+  <path d="M16 2L10 14h12L16 2z" fill="#f5f0e8"/>
+  <path d="M8 20l-2 4h20l-2-4H8z" fill="#f5f0e8"/>
+  <!-- Pom pom on top -->
+  <circle cx="16" cy="3" r="2.5" fill="#e85d4c"/>
+</svg>
