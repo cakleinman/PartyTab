@@ -5,12 +5,20 @@ import { useParams } from "next/navigation";
 import { formatCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
 
+type ExpenseSplit = {
+  participantId: string;
+  participantName: string;
+  amountCents: number;
+};
+
 type ExpenseSummary = {
   id: string;
   amountTotalCents: number;
   note: string | null;
   paidByParticipantId: string;
+  paidByName: string;
   createdAt: string;
+  splits: ExpenseSplit[];
 };
 
 type Participant = {
@@ -53,12 +61,6 @@ export default function ExpensesPage() {
       })
       .finally(() => setLoading(false));
   }, [tabId]);
-
-  const nameById = useMemo(() => {
-    const map = new Map<string, string>();
-    participants.forEach((participant) => map.set(participant.id, participant.displayName));
-    return map;
-  }, [participants]);
 
   const filteredExpenses = useMemo(() => {
     if (payerFilter === "all") return expenses;
@@ -129,23 +131,40 @@ export default function ExpensesPage() {
       )}
 
       <div className="grid gap-3">
-        {filteredExpenses.map((expense) => (
-          <a
-            key={expense.id}
-            href={`/tabs/${tabId}/expenses/${expense.id}`}
-            className="rounded-2xl border border-sand-200 bg-white/80 px-4 py-3 text-sm"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-ink-700">{expense.note || "Expense"}</p>
-                <p className="text-xs text-ink-500">
-                  Paid by {nameById.get(expense.paidByParticipantId) ?? "Someone"}
-                </p>
+        {filteredExpenses.map((expense) => {
+          // Get names of people who owe (everyone except the payer)
+          const owingPeople = expense.splits
+            .filter((split) => split.participantId !== expense.paidByParticipantId && split.amountCents > 0)
+            .map((split) => split.participantName);
+
+          // Format the "who owes whom" text
+          let owesText = "";
+          if (owingPeople.length === 0) {
+            owesText = `${expense.paidByName} paid`;
+          } else if (owingPeople.length === 1) {
+            owesText = `${owingPeople[0]} owes ${expense.paidByName}`;
+          } else if (owingPeople.length === 2) {
+            owesText = `${owingPeople[0]} and ${owingPeople[1]} owe ${expense.paidByName}`;
+          } else {
+            owesText = `${owingPeople.slice(0, -1).join(", ")} and ${owingPeople[owingPeople.length - 1]} owe ${expense.paidByName}`;
+          }
+
+          return (
+            <a
+              key={expense.id}
+              href={`/tabs/${tabId}/expenses/${expense.id}`}
+              className="rounded-2xl border border-sand-200 bg-white/80 px-4 py-3 text-sm"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-ink-700">{expense.note || "Expense"}</p>
+                  <p className="truncate text-xs text-ink-500">{owesText}</p>
+                </div>
+                <span className="flex-shrink-0 text-ink-500">{formatCents(expense.amountTotalCents)}</span>
               </div>
-              <span className="text-ink-500">{formatCents(expense.amountTotalCents)}</span>
-            </div>
-          </a>
-        ))}
+            </a>
+          );
+        })}
         {filteredExpenses.length === 0 && (
           <div className="rounded-2xl border border-dashed border-ink-300 px-4 py-3 text-sm text-ink-500">
             No expenses match this filter.
