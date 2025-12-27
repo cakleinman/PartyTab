@@ -1,65 +1,68 @@
-import Image from "next/image";
+import { CyclingText } from "@/app/components/CyclingText";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+    <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="space-y-6">
+        <p className="text-sm uppercase tracking-[0.25em] text-ink-500">
+          Shared Tabs for <CyclingText />
+        </p>
+        <h1 className="text-4xl font-semibold leading-tight text-ink-900 md:text-5xl">
+          Track every group expense now. Settle later.
+        </h1>
+        <p className="text-lg text-ink-700">
+          PartyTab keeps shared spending calm and simple for trips, dinners, or
+          any temporary group. Track now, settle later, end cleanly.
+        </p>
+        <div className="flex flex-wrap gap-4">
           <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/tabs/new"
+            className="btn-primary rounded-full px-6 py-3 text-sm font-semibold"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+            Create a tab
           </a>
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/home"
+            className="btn-secondary rounded-full px-6 py-3 text-sm font-semibold"
           >
-            Documentation
+            View my tabs
           </a>
         </div>
-      </main>
+        <div className="grid gap-4 pt-6 text-sm text-ink-500">
+          <p>Invite only · No payments · No pressure</p>
+          <p>Minimal, deterministic settlement math</p>
+        </div>
+      </section>
+      <section className="rounded-3xl border border-sand-200 bg-white/70 p-6 shadow-sm">
+        <div className="space-y-6">
+          <div className="rounded-2xl bg-sand-100 p-5">
+            <p className="text-xs uppercase tracking-[0.2em] text-ink-500">
+              This weekend
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">Lake House</h2>
+            <p className="mt-2 text-sm text-ink-500">Total so far</p>
+            <p className="text-3xl font-semibold text-ink-900">$428.20</p>
+          </div>
+          <div className="space-y-4">
+            {[
+              { label: "You", value: "Even so far" },
+              { label: "Maya", value: "You're owed $24.10" },
+              { label: "Jordan", value: "You owe $24.10" },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="flex items-center justify-between rounded-2xl border border-sand-200 bg-white px-4 py-3 text-sm"
+              >
+                <span className="font-medium text-ink-700">{item.label}</span>
+                <span className="text-ink-500">{item.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-dashed border-ink-300 px-4 py-3 text-sm text-ink-500">
+            Final amounts calculated when the tab closes.
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

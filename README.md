@@ -1,40 +1,75 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PartyTab
 
-## Getting Started
+PartyTab is a lightweight shared-expense tracker for temporary group events.
+Track expenses as they happen, and settle once at the end.
 
-First, run the development server:
+## Prerequisites
+
+- Node v24.11.1
+- npm v11.6.2
+
+## Local Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Local Database (Offline)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use the bundled Postgres container:
 
-## Learn More
+```bash
+npm run db:up
+```
 
-To learn more about Next.js, take a look at the following resources:
+Then set:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+DATABASE_URL_LOCAL="postgresql://postgres:postgres@localhost:5433/partytab"
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run migrations and seed data:
 
-## Deploy on Vercel
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Reset the DB + seed:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# PartyTab
->>>>>>> f6bc92eb87d51a572143853069519942ede015e3
+```bash
+npm run db:reset
+```
+
+## Environment Variables
+
+Create a `.env` file based on `.env.example` and set:
+
+- `DATABASE_URL`
+- `DATABASE_URL_LOCAL` (optional, local docker)
+- `SESSION_SECRET`
+- `APP_BASE_URL`
+
+`DIRECT_URL` is optional for Prisma migrations.
+
+## Testing
+
+Tests use Vitest and run in Node.
+
+```bash
+npm run test
+```
+
+## Dev Checklist
+
+- `npm run db:up`
+- `npm run db:reset`
+- `npm run dev`
+- `npm run smoke` (set `SMOKE_BASE_URL` if needed)
+
+## Demo Mode (dev-only)
+
+- Visit `/demo` to reset demo data and jump to seeded tabs.

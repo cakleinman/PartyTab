@@ -3,17 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset --force && npm run db:seed",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "^6.19.1",
     "next": "16.1.1",
-    "prisma": "^7.2.0",
+    "prisma": "^6.19.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -22,7 +33,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.19.2",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }
