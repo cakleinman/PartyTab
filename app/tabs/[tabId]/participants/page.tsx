@@ -11,6 +11,7 @@ type Participant = {
   userId: string;
   displayName: string;
   netCents: number;
+  isPlaceholder?: boolean;
 };
 
 type TabInfo = {
@@ -28,6 +29,12 @@ export default function ParticipantsPage() {
   const [loading, setLoading] = useState(true);
   const [removing, setRemoving] = useState<string | null>(null);
   const { pushToast } = useToast();
+
+  // Add person state
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!tabId) return;
@@ -72,6 +79,46 @@ export default function ParticipantsPage() {
     }
   };
 
+  const handleAddPerson = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!tabId || !newName.trim()) return;
+
+    setAdding(true);
+    try {
+      const res = await fetch(`/api/tabs/${tabId}/participants`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName: newName.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        pushToast(data?.error?.message ?? "Could not add person.");
+        return;
+      }
+
+      // Add new participant to list
+      setParticipants((prev) => [...prev, data.participant]);
+      setClaimUrl(data.claimUrl);
+      setNewName("");
+      pushToast(`${data.participant.displayName} added!`);
+    } catch {
+      pushToast("Network error adding person.");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const copyClaimUrl = async () => {
+    if (!claimUrl) return;
+    try {
+      await navigator.clipboard.writeText(claimUrl);
+      pushToast("Claim link copied!");
+    } catch {
+      pushToast("Could not copy link.");
+    }
+  };
+
   if (loading) {
     return <p className="text-sm text-ink-500">Loading participants…</p>;
   }
@@ -90,9 +137,71 @@ export default function ParticipantsPage() {
           <p className="text-sm text-ink-500">Net balances so far.</p>
         </div>
         {tab?.status === "ACTIVE" && tabId && (
-          <InviteButton tabId={tabId} />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAddForm(!showAddForm);
+                setClaimUrl(null);
+              }}
+              className="rounded-full border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-sand-100"
+            >
+              {showAddForm ? "Cancel" : "Add person"}
+            </button>
+            <InviteButton tabId={tabId} />
+          </div>
         )}
       </div>
+
+      {/* Add person form */}
+      {showAddForm && tab?.status === "ACTIVE" && (
+        <div className="rounded-2xl border border-sand-200 bg-white/80 p-4 space-y-4">
+          <form onSubmit={handleAddPerson} className="flex gap-3">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Person's name"
+              className="flex-1 rounded-xl border border-sand-200 px-4 py-2 text-sm"
+              required
+            />
+            <button
+              type="submit"
+              disabled={adding || !newName.trim()}
+              className="btn-primary rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {adding ? "Adding…" : "Add"}
+            </button>
+          </form>
+          <p className="text-xs text-ink-500">
+            Add someone who isn&apos;t here yet. They can claim their account later with a link you share.
+          </p>
+
+          {/* Claim URL display */}
+          {claimUrl && (
+            <div className="rounded-xl border border-green-200 bg-green-50 p-3 space-y-2">
+              <p className="text-sm font-medium text-green-800">
+                Person added! Share this link with them:
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={claimUrl}
+                  readOnly
+                  className="flex-1 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={copyClaimUrl}
+                  className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <p className="text-sm text-ink-500">{error}</p>}
 
@@ -111,6 +220,11 @@ export default function ParticipantsPage() {
                 {isYou && (
                   <span className="ml-2 rounded-full border border-ink-300 px-2 py-0.5 text-[10px] uppercase tracking-wide text-ink-500">
                     You
+                  </span>
+                )}
+                {participant.isPlaceholder && (
+                  <span className="ml-2 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] uppercase tracking-wide text-amber-700">
+                    Unclaimed
                   </span>
                 )}
               </span>

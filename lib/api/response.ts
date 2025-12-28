@@ -7,7 +7,8 @@ export type ErrorCode =
   | "forbidden"
   | "unauthorized"
   | "tab_closed"
-  | "not_participant";
+  | "not_participant"
+  | "already_claimed";
 
 export function error(status: number, code: ErrorCode, message: string, details?: unknown) {
   return NextResponse.json(
