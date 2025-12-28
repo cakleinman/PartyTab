@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Work_Sans } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/app/components/ToastProvider";
+import { Header } from "@/app/components/Header";
 import { getEnvStatus } from "@/lib/env";
 
 const displayFont = Space_Grotesk({
@@ -55,19 +56,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
         <div className="min-h-screen bg-sand-50 text-ink-900">
-          <header className="border-b border-ink-100 bg-sand-50/80 backdrop-blur">
-            <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
-              <a href="/" className="text-lg font-semibold tracking-tight">
-                PartyTab
-              </a>
-              <nav className="flex items-center gap-4 text-sm">
-                <span className="hidden text-ink-500 sm:inline">Keep the party going.</span>
-                <a href="/signin" className="font-medium text-ink-700 hover:text-ink-900">
-                  Sign in
-                </a>
-              </nav>
-            </div>
-          </header>
+          <Header />
           <ToastProvider>
             <main className="mx-auto w-full max-w-5xl px-6 py-10">{children}</main>
           </ToastProvider>
