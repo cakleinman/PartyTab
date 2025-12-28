@@ -12,6 +12,7 @@ type Participant = {
   displayName: string;
   netCents: number;
   isPlaceholder?: boolean;
+  claimUrl?: string;
 };
 
 type TabInfo = {
@@ -109,10 +110,11 @@ export default function ParticipantsPage() {
     }
   };
 
-  const copyClaimUrl = async () => {
-    if (!claimUrl) return;
+  const copyClaimUrl = async (url?: string) => {
+    const urlToCopy = url || claimUrl;
+    if (!urlToCopy) return;
     try {
-      await navigator.clipboard.writeText(claimUrl);
+      await navigator.clipboard.writeText(urlToCopy);
       pushToast("Claim link copied!");
     } catch {
       pushToast("Could not copy link.");
@@ -192,7 +194,7 @@ export default function ParticipantsPage() {
                 />
                 <button
                   type="button"
-                  onClick={copyClaimUrl}
+                  onClick={() => copyClaimUrl()}
                   className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
                 >
                   Copy
@@ -236,6 +238,16 @@ export default function ParticipantsPage() {
                       ? `Owed ${formatCents(participant.netCents)}`
                       : `Owes ${formatCents(Math.abs(participant.netCents))}`}
                 </span>
+                {participant.isPlaceholder && participant.claimUrl && (
+                  <button
+                    type="button"
+                    onClick={() => copyClaimUrl(participant.claimUrl)}
+                    className="rounded-lg border border-ink-200 px-2 py-1 text-[10px] font-medium text-ink-500 hover:bg-sand-100"
+                    title="Copy invite link"
+                  >
+                    Copy link
+                  </button>
+                )}
                 {canRemove && (
                   <button
                     type="button"

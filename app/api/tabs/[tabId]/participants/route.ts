@@ -19,7 +19,7 @@ export async function GET(
     }
     await requireParticipant(tabId, user.id);
 
-    const [participants, expenses, splits] = await Promise.all([
+    const [participants, expenses, splits, claimTokens] = await Promise.all([
       prisma.participant.findMany({
         where: { tabId },
         include: { user: true },
@@ -32,19 +32,39 @@ export async function GET(
         where: { expense: { tabId } },
         select: { expenseId: true, participantId: true, amountCents: true },
       }),
+      // Get unclaimed tokens for placeholder users
+      prisma.userClaimToken.findMany({
+        where: {
+          claimedAt: null,
+          user: {
+            participants: {
+              some: { tabId },
+            },
+          },
+        },
+        select: { userId: true, token: true },
+      }),
     ]);
 
     const nets = computeNets(participants, expenses, splits);
 
+    // Build claim token map
+    const tokenMap = new Map(claimTokens.map((ct) => [ct.userId, ct.token]));
+    const baseUrl = process.env.APP_BASE_URL || "http://localhost:3000";
+
     return ok({
-      participants: participants.map((participant) => ({
-        id: participant.id,
-        userId: participant.userId,
-        displayName: participant.user.displayName,
-        netCents: nets.find((net) => net.participantId === participant.id)?.netCents ?? 0,
-        // Placeholder = no pinHash and no googleId and no passwordHash
-        isPlaceholder: !participant.user.pinHash && !participant.user.googleId && !participant.user.passwordHash,
-      })),
+      participants: participants.map((participant) => {
+        const isPlaceholder = !participant.user.pinHash && !participant.user.googleId && !participant.user.passwordHash;
+        const claimToken = tokenMap.get(participant.userId);
+        return {
+          id: participant.id,
+          userId: participant.userId,
+          displayName: participant.user.displayName,
+          netCents: nets.find((net) => net.participantId === participant.id)?.netCents ?? 0,
+          isPlaceholder,
+          claimUrl: isPlaceholder && claimToken ? `${baseUrl}/claim/${claimToken}` : undefined,
+        };
+      }),
     });
   } catch (error) {
     if (isApiError(error)) {

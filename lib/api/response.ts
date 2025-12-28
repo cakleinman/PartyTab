@@ -8,7 +8,8 @@ export type ErrorCode =
   | "unauthorized"
   | "tab_closed"
   | "not_participant"
-  | "already_claimed";
+  | "already_claimed"
+  | "internal_error";
 
 export function error(status: number, code: ErrorCode, message: string, details?: unknown) {
   return NextResponse.json(

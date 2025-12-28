@@ -4,6 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
+import {
+  SplitModeSelector,
+  SplitPanel,
+  ClaimPanel,
+  CustomSplitPanel,
+  type SplitMode,
+  type ReceiptItem,
+} from "@/app/components/split";
 
 type Participant = {
   id: string;
@@ -16,19 +24,35 @@ export default function NewExpensePage() {
   const params = useParams<{ tabId: string }>();
   const router = useRouter();
   const tabId = params?.tabId;
+
+  // Data loading
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [tabStatus, setTabStatus] = useState<"ACTIVE" | "CLOSED" | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { pushToast } = useToast();
+
+  // Form fields
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paidBy, setPaidBy] = useState("");
-  const [customSplit, setCustomSplit] = useState(false);
-  const [splitAmounts, setSplitAmounts] = useState<Record<string, string>>({});
+
+  // Split mode state
+  const [splitMode, setSplitMode] = useState<SplitMode>("split");
   const [splitParticipantIds, setSplitParticipantIds] = useState<string[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const { pushToast } = useToast();
+  const [splitAmounts, setSplitAmounts] = useState<Record<string, string>>({});
+
+  // Receipt items (will be populated when receipt is uploaded/parsed)
+  const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
+
+  // Get current participant ID for claim panel
+  const currentParticipantId = useMemo(() => {
+    const participant = participants.find((p) => p.userId === currentUserId);
+    return participant?.id ?? "";
+  }, [participants, currentUserId]);
 
   useEffect(() => {
     if (!tabId) return;
@@ -38,17 +62,18 @@ export default function NewExpensePage() {
       fetch(`/api/me`).then((res) => res.json()),
     ])
       .then(([participantsData, tabData, meData]) => {
-        setParticipants(participantsData.participants ?? []);
+        const loadedParticipants = participantsData.participants ?? [];
+        setParticipants(loadedParticipants);
         setTabStatus(tabData.tab?.status ?? null);
-        if (participantsData.participants?.length) {
+        setCurrentUserId(meData?.user?.id ?? null);
+
+        if (loadedParticipants.length) {
           const meId = meData?.user?.id ?? null;
-          const meParticipant = participantsData.participants.find(
-            (participant: Participant) => participant.userId === meId,
+          const meParticipant = loadedParticipants.find(
+            (participant: Participant) => participant.userId === meId
           );
-          setPaidBy(meParticipant?.id ?? participantsData.participants[0].id);
-          setSplitParticipantIds(
-            participantsData.participants.map((participant: Participant) => participant.id),
-          );
+          setPaidBy(meParticipant?.id ?? loadedParticipants[0].id);
+          // NOTE: splitParticipantIds starts EMPTY (unchecked by default)
         }
       })
       .catch(() => setError("Couldn't load participants."))
@@ -64,7 +89,7 @@ export default function NewExpensePage() {
   }, [amount]);
 
   const splitSumCents = useMemo(() => {
-    if (!customSplit) return 0;
+    if (splitMode !== "custom") return 0;
     return participants.reduce((sum, participant) => {
       try {
         return sum + parseCents(splitAmounts[participant.id] || "0", true);
@@ -72,12 +97,80 @@ export default function NewExpensePage() {
         return sum;
       }
     }, 0);
-  }, [customSplit, participants, splitAmounts]);
+  }, [splitMode, participants, splitAmounts]);
 
-  const canSubmit =
-    tabStatus !== "CLOSED" &&
-    amountCents > 0 &&
-    (!customSplit || (splitSumCents === amountCents && splitParticipantIds.length > 0));
+  // Calculate totals from claim mode
+  const claimTotals = useMemo(() => {
+    if (splitMode !== "claim") return {};
+    const totals: Record<string, number> = {};
+    receiptItems.forEach((item) => {
+      if (item.claimedBy.length > 0) {
+        const splitAmount = Math.floor(item.priceCents / item.claimedBy.length);
+        item.claimedBy.forEach((claim) => {
+          totals[claim.participantId] =
+            (totals[claim.participantId] || 0) + splitAmount;
+        });
+      }
+    });
+    return totals;
+  }, [splitMode, receiptItems]);
+
+  const canSubmit = useMemo(() => {
+    if (tabStatus === "CLOSED") return false;
+    if (amountCents <= 0) return false;
+
+    switch (splitMode) {
+      case "split":
+        return splitParticipantIds.length > 0;
+      case "custom":
+        return splitSumCents === amountCents;
+      case "claim":
+        // At least one item must be claimed
+        return receiptItems.some((item) => item.claimedBy.length > 0);
+      default:
+        return false;
+    }
+  }, [
+    tabStatus,
+    amountCents,
+    splitMode,
+    splitParticipantIds,
+    splitSumCents,
+    receiptItems,
+  ]);
+
+  const handleClaimToggle = (itemId: string, participantId: string) => {
+    setReceiptItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+
+        const isClaimed = item.claimedBy.some(
+          (c) => c.participantId === participantId
+        );
+        const participant = participants.find((p) => p.id === participantId);
+
+        if (isClaimed) {
+          return {
+            ...item,
+            claimedBy: item.claimedBy.filter(
+              (c) => c.participantId !== participantId
+            ),
+          };
+        } else {
+          return {
+            ...item,
+            claimedBy: [
+              ...item.claimedBy,
+              {
+                participantId,
+                displayName: participant?.displayName ?? "Unknown",
+              },
+            ],
+          };
+        }
+      })
+    );
+  };
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -91,21 +184,6 @@ export default function NewExpensePage() {
       return;
     }
 
-    let splits: { participantId: string; amountCents: number }[] | undefined;
-
-    if (customSplit) {
-      try {
-        splits = participants.map((participant) => ({
-          participantId: participant.id,
-          amountCents: parseCents(splitAmounts[participant.id] || "0", true),
-        }));
-      } catch (err) {
-        setError("Split amounts must be valid dollars and cents.");
-        setSaving(false);
-        return;
-      }
-    }
-
     const payload: Record<string, unknown> = {
       amount,
       note,
@@ -113,9 +191,29 @@ export default function NewExpensePage() {
       paidByParticipantId: paidBy,
     };
 
-    if (customSplit) {
+    if (splitMode === "custom") {
+      try {
+        const splits = participants.map((participant) => ({
+          participantId: participant.id,
+          amountCents: parseCents(splitAmounts[participant.id] || "0", true),
+        }));
+        payload.splits = splits;
+      } catch {
+        setError("Split amounts must be valid dollars and cents.");
+        setSaving(false);
+        return;
+      }
+    } else if (splitMode === "claim") {
+      // Convert claim totals to splits
+      const splits = Object.entries(claimTotals).map(
+        ([participantId, amountCents]) => ({
+          participantId,
+          amountCents,
+        })
+      );
       payload.splits = splits;
     } else {
+      // Even split mode
       if (splitParticipantIds.length === 0) {
         setError("Select at least one participant to split.");
         setSaving(false);
@@ -145,31 +243,55 @@ export default function NewExpensePage() {
     return <p className="text-sm text-ink-500">Loading…</p>;
   }
 
+  const isDisabled = tabStatus === "CLOSED";
+  const hasReceiptItems = receiptItems.length > 0;
+
   return (
     <div className="max-w-2xl space-y-6">
-      <a href={`/tabs/${tabId}`} className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-700">
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+      <a
+        href={`/tabs/${tabId}`}
+        className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-700"
+      >
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
         </svg>
         Back to tab
       </a>
       <div>
         <h1 className="text-3xl font-semibold">Add expense</h1>
-        <p className="text-sm text-ink-500">Log what was paid and how it's split.</p>
+        <p className="text-sm text-ink-500">
+          Log what was paid and how it's split.
+        </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-sand-200 bg-white/80 p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 rounded-3xl border border-sand-200 bg-white/80 p-6"
+      >
         {tabStatus === "CLOSED" && (
-          <p className="text-sm text-ink-500">This tab is closed. Expenses are read-only.</p>
+          <p className="text-sm text-ink-500">
+            This tab is closed. Expenses are read-only.
+          </p>
         )}
+
         <label className="grid gap-2 text-sm">
           Amount
           <input
             value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            onChange={(e) => setAmount(e.target.value)}
             inputMode="decimal"
-            onBlur={(event) => {
-              const value = event.target.value.trim();
+            onBlur={(e) => {
+              const value = e.target.value.trim();
               if (!value) return;
               try {
                 const cents = parseCents(value);
@@ -181,7 +303,7 @@ export default function NewExpensePage() {
             className="rounded-2xl border border-sand-200 px-4 py-2"
             placeholder="128.50"
             required
-            disabled={tabStatus === "CLOSED"}
+            disabled={isDisabled}
           />
         </label>
 
@@ -189,10 +311,10 @@ export default function NewExpensePage() {
           Note
           <input
             value={note}
-            onChange={(event) => setNote(event.target.value)}
+            onChange={(e) => setNote(e.target.value)}
             className="rounded-2xl border border-sand-200 px-4 py-2"
             placeholder="Groceries, gas, etc."
-            disabled={tabStatus === "CLOSED"}
+            disabled={isDisabled}
           />
         </label>
 
@@ -201,9 +323,9 @@ export default function NewExpensePage() {
           <input
             type="date"
             value={date}
-            onChange={(event) => setDate(event.target.value)}
+            onChange={(e) => setDate(e.target.value)}
             className="rounded-2xl border border-sand-200 px-4 py-2"
-            disabled={tabStatus === "CLOSED"}
+            disabled={isDisabled}
           />
         </label>
 
@@ -211,9 +333,9 @@ export default function NewExpensePage() {
           Paid by
           <select
             value={paidBy}
-            onChange={(event) => setPaidBy(event.target.value)}
+            onChange={(e) => setPaidBy(e.target.value)}
             className="rounded-2xl border border-sand-200 px-4 py-2"
-            disabled={tabStatus === "CLOSED"}
+            disabled={isDisabled}
           >
             {participants.map((participant) => (
               <option key={participant.id} value={participant.id}>
@@ -223,107 +345,52 @@ export default function NewExpensePage() {
           </select>
         </label>
 
+        {/* Split Section */}
         <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold">Split</p>
-              <p className="text-xs text-ink-500">
-                Even split is the default.
-              </p>
-            </div>
-            <label className="flex items-center gap-2 text-xs text-ink-500">
-              <input
-                type="checkbox"
-                checked={customSplit}
-                onChange={(event) => setCustomSplit(event.target.checked)}
-                disabled={tabStatus === "CLOSED"}
-              />
-              Custom
-            </label>
+          <div className="space-y-3">
+            <p className="text-sm font-semibold">How to split</p>
+            <SplitModeSelector
+              mode={splitMode}
+              onChange={setSplitMode}
+              hasReceiptItems={hasReceiptItems}
+              disabled={isDisabled}
+            />
           </div>
 
-          {!customSplit && (
-            <div className="space-y-3 text-sm text-ink-500">
-              <p>Even split across selected people.</p>
-              <p className="text-xs text-ink-500">
-                Any remainder cent goes to the last participant in alphabetical order.
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {participants.map((participant) => {
-                  const selected = splitParticipantIds.includes(participant.id);
-                  return (
-                    <label key={participant.id} className="flex items-center gap-2 text-xs">
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() =>
-                          setSplitParticipantIds((prev) =>
-                            selected
-                              ? prev.filter((id) => id !== participant.id)
-                              : [...prev, participant.id],
-                          )
-                        }
-                        disabled={tabStatus === "CLOSED"}
-                      />
-                      {participant.displayName}
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <div className="pt-2">
+            {splitMode === "split" && (
+              <SplitPanel
+                participants={participants}
+                selectedIds={splitParticipantIds}
+                onSelectionChange={setSplitParticipantIds}
+                totalCents={amountCents}
+                disabled={isDisabled}
+              />
+            )}
 
-          {customSplit && (
-            <div className="grid gap-3">
-              {participants.map((participant) => (
-                <label key={participant.id} className="grid gap-1 text-xs text-ink-500">
-                  {participant.displayName}
-                    <input
-                      value={splitAmounts[participant.id] ?? ""}
-                      onChange={(event) =>
-                        setSplitAmounts((prev) => ({
-                          ...prev,
-                          [participant.id]: event.target.value,
-                        }))
-                      }
-                      onBlur={(event) => {
-                        const value = event.target.value.trim();
-                        if (!value) return;
-                        try {
-                          const cents = parseCents(value, true);
-                          setSplitAmounts((prev) => ({
-                            ...prev,
-                            [participant.id]: formatCentsPlain(cents),
-                          }));
-                        } catch {
-                          // Invalid input, leave as-is
-                        }
-                      }}
-                      inputMode="decimal"
-                      disabled={tabStatus === "CLOSED"}
-                      className="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-700"
-                      placeholder="0.00"
-                    />
-                </label>
-              ))}
-              <p className="text-xs text-ink-500">
-                Split total: {splitSumCents ? formatCents(splitSumCents) : "$0.00"}
-              </p>
-              {amountCents > 0 && (
-                <p className="text-xs text-ink-500">
-                  Remaining: {formatCents(amountCents - splitSumCents)}
-                </p>
-              )}
-              {amountCents > 0 && splitSumCents !== amountCents && (
-                <p className="text-xs text-ink-500">
-                  Split total must match {formatCents(amountCents)}.
-                </p>
-              )}
-            </div>
-          )}
+            {splitMode === "claim" && (
+              <ClaimPanel
+                items={receiptItems}
+                participants={participants}
+                currentParticipantId={currentParticipantId}
+                onClaimToggle={handleClaimToggle}
+                disabled={isDisabled}
+              />
+            )}
+
+            {splitMode === "custom" && (
+              <CustomSplitPanel
+                participants={participants}
+                splitAmounts={splitAmounts}
+                onSplitAmountsChange={setSplitAmounts}
+                totalCents={amountCents}
+                disabled={isDisabled}
+              />
+            )}
+          </div>
         </div>
 
-        {error && <p className="text-sm text-ink-500">{error}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"

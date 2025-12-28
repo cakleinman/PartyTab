@@ -4,9 +4,21 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
+import { ReceiptUpload, type ReceiptItem } from "@/app/components/ReceiptUpload";
 
 type Participant = {
   id: string;
+  displayName: string;
+};
+
+type ReceiptData = {
+  path: string;
+  url: string;
+} | null;
+
+type ParticipantWithUserId = {
+  id: string;
+  userId: string;
   displayName: string;
 };
 
@@ -48,6 +60,9 @@ export default function ExpenseDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [amountCents, setAmountCents] = useState(0);
   const [splitSumCents, setSplitSumCents] = useState(0);
+  const [receipt, setReceipt] = useState<ReceiptData>(null);
+  const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
+  const [participantsWithUserId, setParticipantsWithUserId] = useState<ParticipantWithUserId[]>([]);
   const { pushToast } = useToast();
 
   useEffect(() => {
@@ -57,10 +72,15 @@ export default function ExpenseDetailPage() {
       fetch(`/api/tabs/${tabId}/expenses/${expenseId}`).then((res) => res.json()),
       fetch(`/api/tabs/${tabId}`).then((res) => res.json()),
       fetch(`/api/me`).then((res) => res.json()),
+      fetch(`/api/tabs/${tabId}/expenses/${expenseId}/receipt`).then((res) => res.json()),
+      fetch(`/api/tabs/${tabId}/expenses/${expenseId}/receipt/items`).then((res) => res.json()),
     ])
-      .then(([participantsData, expenseData, tabData, meData]) => {
+      .then(([participantsData, expenseData, tabData, meData, receiptData, itemsData]) => {
+        setReceipt(receiptData?.receipt ?? null);
+        setReceiptItems(itemsData?.items ?? []);
         const loadedParticipants = participantsData.participants ?? [];
         setParticipants(loadedParticipants);
+        setParticipantsWithUserId(loadedParticipants);
         setTab(tabData.tab ?? null);
         setUserId(meData?.user?.id ?? null);
         if (expenseData?.expense) {
@@ -304,6 +324,108 @@ export default function ExpenseDetailPage() {
             ))}
           </select>
         </label>
+
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Receipt</p>
+          <ReceiptUpload
+            tabId={tabId!}
+            expenseId={expenseId!}
+            initialReceipt={receipt}
+            onUploadComplete={(r) => {
+              setReceipt(r);
+              pushToast("Receipt uploaded.");
+            }}
+            onDelete={() => {
+              setReceipt(null);
+              setReceiptItems([]);
+              pushToast("Receipt removed.");
+            }}
+            onParseComplete={(items) => {
+              setReceiptItems(items);
+              pushToast(`Parsed ${items.length} items.`);
+            }}
+            disabled={!canEdit}
+          />
+        </div>
+
+        {receiptItems.length > 0 && (
+          <div className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
+            <p className="text-sm font-semibold">Receipt Items</p>
+            <p className="text-xs text-ink-500">
+              Claim items you consumed. Shared items split among claimers.
+            </p>
+            <div className="space-y-2">
+              {receiptItems.map((item) => {
+                const currentParticipant = participantsWithUserId.find(
+                  (p) => p.userId === userId
+                );
+                const isClaimed = currentParticipant
+                  ? item.claimedBy.some(
+                      (c) => c.participantId === currentParticipant.id
+                    )
+                  : false;
+
+                const handleClaimToggle = async () => {
+                  if (!currentParticipant) return;
+                  const method = isClaimed ? "DELETE" : "POST";
+                  const res = await fetch(
+                    `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items/${item.id}/claims`,
+                    {
+                      method,
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        participantId: currentParticipant.id,
+                      }),
+                    }
+                  );
+                  const data = await res.json();
+                  if (res.ok && data.item) {
+                    setReceiptItems((prev) =>
+                      prev.map((i) => (i.id === item.id ? data.item : i))
+                    );
+                  }
+                };
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex items-center justify-between rounded-xl border p-3 ${
+                      isClaimed
+                        ? "border-ink-300 bg-ink-50"
+                        : "border-sand-200 bg-white"
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.name}</p>
+                      <div className="flex items-center gap-2 text-xs text-ink-500">
+                        <span>{formatCents(item.priceCents)}</span>
+                        {item.quantity > 1 && <span>× {item.quantity}</span>}
+                      </div>
+                      {item.claimedBy.length > 0 && (
+                        <p className="text-xs text-ink-400 mt-1 truncate">
+                          {item.claimedBy.map((c) => c.displayName).join(", ")}
+                        </p>
+                      )}
+                    </div>
+                    {canEdit && currentParticipant && (
+                      <button
+                        type="button"
+                        onClick={handleClaimToggle}
+                        className={`ml-3 shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
+                          isClaimed
+                            ? "bg-ink-900 text-white"
+                            : "border border-ink-200 text-ink-500 hover:bg-sand-100"
+                        }`}
+                      >
+                        {isClaimed ? "Claimed" : "Claim"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
           <div className="flex items-center justify-between">
