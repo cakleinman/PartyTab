@@ -33,7 +33,10 @@ export default function LandingPage() {
           <p>Minimal, deterministic settlement math</p>
         </div>
       </section>
-      <section className="rounded-3xl border border-sand-200 bg-white/70 p-6 shadow-sm">
+      <section className="relative rounded-3xl border border-sand-200 bg-white/70 p-6 shadow-sm">
+        <span className="absolute -top-3 left-4 rounded-full bg-sand-200 px-3 py-1 text-xs font-medium uppercase tracking-wide text-ink-500">
+          Example
+        </span>
         <div className="space-y-6">
           <div className="rounded-2xl bg-sand-100 p-5">
             <p className="text-xs uppercase tracking-[0.2em] text-ink-500">
