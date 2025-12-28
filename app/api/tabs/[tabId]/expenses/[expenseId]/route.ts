@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
-import { parseAmountToCents, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
+import { parseAmountToCents, parseDateInput, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
 import { distributeEvenSplit } from "@/lib/money/cents";
 
 interface Split {
@@ -93,6 +93,7 @@ export async function GET(
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
+        date: expense.date.toISOString().slice(0, 10),
         paidByParticipantId: expense.paidByParticipantId,
         createdByUserId: expense.createdByUserId,
         createdAt: expense.createdAt.toISOString(),
@@ -135,13 +136,15 @@ export async function PATCH(
     if (!expense) {
       throwApiError(404, "not_found", "Expense not found");
     }
-    if (expense.createdByUserId !== user.id) {
-      throwApiError(403, "forbidden", "Only the creator can edit this expense");
+    // Allow edit by expense creator or tab owner
+    if (expense.createdByUserId !== user.id && tab.createdByUserId !== user.id) {
+      throwApiError(403, "forbidden", "Only the expense creator or tab owner can edit this expense");
     }
 
     const body = await request.json();
     const amountTotalCents = body?.amount ? parseAmountToCents(body.amount) : expense.amountTotalCents;
     const note = body?.note !== undefined ? parseOptionalString(body.note, 240) : expense.note;
+    const date = body?.date ? parseDateInput(body.date) ?? expense.date : expense.date;
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? expense.paidByParticipantId, "paidByParticipantId");
 
     const participants = await prisma.participant.findMany({
@@ -168,6 +171,7 @@ export async function PATCH(
         data: {
           amountTotalCents,
           note,
+          date,
           paidByParticipantId,
           splits: {
             create: splits.map((split) => ({
@@ -184,6 +188,7 @@ export async function PATCH(
         id: updated.id,
         amountTotalCents: updated.amountTotalCents,
         note: updated.note,
+        date: updated.date.toISOString().slice(0, 10),
         paidByParticipantId: updated.paidByParticipantId,
         createdAt: updated.createdAt.toISOString(),
       },

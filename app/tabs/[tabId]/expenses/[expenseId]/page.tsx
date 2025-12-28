@@ -14,6 +14,7 @@ type ExpenseDetail = {
   id: string;
   amountTotalCents: number;
   note: string | null;
+  date: string;
   paidByParticipantId: string;
   createdAt: string;
   createdByUserId: string;
@@ -36,6 +37,7 @@ export default function ExpenseDetailPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [date, setDate] = useState("");
   const [paidBy, setPaidBy] = useState("");
   const [customSplit, setCustomSplit] = useState(false);
   const [splitAmounts, setSplitAmounts] = useState<Record<string, string>>({});
@@ -67,6 +69,7 @@ export default function ExpenseDetailPage() {
           setAmount(formattedAmount);
           setAmountCents(expenseData.expense.amountTotalCents);
           setNote(expenseData.expense.note ?? "");
+          setDate(expenseData.expense.date ?? "");
           setPaidBy(expenseData.expense.paidByParticipantId);
           const splitMap: Record<string, string> = {};
           const splitIds = expenseData.expense.splits.map(
@@ -113,8 +116,11 @@ export default function ExpenseDetailPage() {
   }, [customSplit, participants, splitAmounts]);
 
   const tabStatus = tab?.status ?? null;
+  const canEdit =
+    tabStatus === "ACTIVE" &&
+    (expense?.createdByUserId === userId || tab?.isCreator);
   const canSubmit =
-    tabStatus !== "CLOSED" &&
+    canEdit &&
     amountCents > 0 &&
     (!customSplit || (splitSumCents === amountCents && splitParticipantIds.length > 0));
   const canDelete =
@@ -151,6 +157,7 @@ export default function ExpenseDetailPage() {
     const payload: Record<string, unknown> = {
       amount,
       note,
+      date,
       paidByParticipantId: paidBy,
     };
 
@@ -230,12 +237,14 @@ export default function ExpenseDetailPage() {
       </a>
       <div>
         <h1 className="text-3xl font-semibold">Expense detail</h1>
-        <p className="text-sm text-ink-500">Edit is allowed only for the creator.</p>
+        <p className="text-sm text-ink-500">Edit is allowed for the expense creator or tab owner.</p>
       </div>
 
       <form onSubmit={handleUpdate} className="space-y-6 rounded-3xl border border-sand-200 bg-white/80 p-6">
-        {tabStatus === "CLOSED" && (
-          <p className="text-sm text-ink-500">This tab is closed. Expenses are read-only.</p>
+        {!canEdit && (
+          <p className="text-sm text-ink-500">
+            {tabStatus === "CLOSED" ? "This tab is closed. Expenses are read-only." : "You cannot edit this expense."}
+          </p>
         )}
         <label className="grid gap-2 text-sm">
           Amount
@@ -255,7 +264,7 @@ export default function ExpenseDetailPage() {
             }}
             className="rounded-2xl border border-sand-200 px-4 py-2"
             required
-            disabled={tabStatus === "CLOSED"}
+            disabled={!canEdit}
           />
         </label>
 
@@ -265,7 +274,18 @@ export default function ExpenseDetailPage() {
             value={note}
             onChange={(event) => setNote(event.target.value)}
             className="rounded-2xl border border-sand-200 px-4 py-2"
-            disabled={tabStatus === "CLOSED"}
+            disabled={!canEdit}
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm">
+          Date
+          <input
+            type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+            className="rounded-2xl border border-sand-200 px-4 py-2"
+            disabled={!canEdit}
           />
         </label>
 
@@ -275,7 +295,7 @@ export default function ExpenseDetailPage() {
             value={paidBy}
             onChange={(event) => setPaidBy(event.target.value)}
             className="rounded-2xl border border-sand-200 px-4 py-2"
-            disabled={tabStatus === "CLOSED"}
+            disabled={!canEdit}
           >
             {participants.map((participant) => (
               <option key={participant.id} value={participant.id}>
@@ -296,7 +316,7 @@ export default function ExpenseDetailPage() {
                 type="checkbox"
                 checked={customSplit}
                 onChange={(event) => setCustomSplit(event.target.checked)}
-                disabled={tabStatus === "CLOSED"}
+                disabled={!canEdit}
               />
               Custom
             </label>
@@ -326,7 +346,7 @@ export default function ExpenseDetailPage() {
                           [participant.id]: event.target.value,
                         }))
                       }
-                      disabled={tabStatus === "CLOSED"}
+                      disabled={!canEdit}
                       className="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-700"
                       placeholder="0.00"
                     />
@@ -363,7 +383,7 @@ export default function ExpenseDetailPage() {
                             : [...prev, participant.id],
                         )
                       }
-                      disabled={tabStatus === "CLOSED"}
+                      disabled={!canEdit}
                     />
                     {participant.displayName}
                   </label>

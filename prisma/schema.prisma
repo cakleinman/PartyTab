@@ -111,6 +111,7 @@ model Expense {
   paidByParticipantId String   @db.Uuid
   amountTotalCents    Int
   note                String?
+  date                DateTime @default(now()) // The date the expense occurred
   createdByUserId     String   @db.Uuid
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

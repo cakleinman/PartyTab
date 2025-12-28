@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
-import { parseAmountToCents, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
+import { parseAmountToCents, parseDateInput, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
 import { distributeEvenSplit } from "@/lib/money/cents";
 
 interface Split {
@@ -86,6 +86,7 @@ export async function GET(
         id: true,
         amountTotalCents: true,
         note: true,
+        date: true,
         paidByParticipantId: true,
         createdAt: true,
         paidBy: {
@@ -118,6 +119,7 @@ export async function GET(
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
+        date: expense.date.toISOString().slice(0, 10),
         paidByParticipantId: expense.paidByParticipantId,
         paidByName: expense.paidBy.user.displayName,
         createdAt: expense.createdAt.toISOString(),
@@ -156,6 +158,7 @@ export async function POST(
     const body = await request.json();
     const amountTotalCents = parseAmountToCents(body?.amount);
     const note = parseOptionalString(body?.note, 240);
+    const date = parseDateInput(body?.date) ?? new Date();
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? participant.id, "paidByParticipantId");
 
     const participants = await prisma.participant.findMany({
@@ -175,6 +178,7 @@ export async function POST(
         tabId,
         amountTotalCents,
         note,
+        date,
         paidByParticipantId,
         createdByUserId: user.id,
         splits: {
@@ -191,6 +195,7 @@ export async function POST(
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
+        date: expense.date.toISOString().slice(0, 10),
         paidByParticipantId: expense.paidByParticipantId,
         createdAt: expense.createdAt.toISOString(),
       },

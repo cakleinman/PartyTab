@@ -20,6 +20,7 @@ export default function NewExpensePage() {
   const [tabStatus, setTabStatus] = useState<"ACTIVE" | "CLOSED" | null>(null);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paidBy, setPaidBy] = useState("");
   const [customSplit, setCustomSplit] = useState(false);
   const [splitAmounts, setSplitAmounts] = useState<Record<string, string>>({});
@@ -108,6 +109,7 @@ export default function NewExpensePage() {
     const payload: Record<string, unknown> = {
       amount,
       note,
+      date,
       paidByParticipantId: paidBy,
     };
 
@@ -190,6 +192,17 @@ export default function NewExpensePage() {
             onChange={(event) => setNote(event.target.value)}
             className="rounded-2xl border border-sand-200 px-4 py-2"
             placeholder="Groceries, gas, etc."
+            disabled={tabStatus === "CLOSED"}
+          />
+        </label>
+
+        <label className="grid gap-2 text-sm">
+          Date
+          <input
+            type="date"
+            value={date}
+            onChange={(event) => setDate(event.target.value)}
+            className="rounded-2xl border border-sand-200 px-4 py-2"
             disabled={tabStatus === "CLOSED"}
           />
         </label>
