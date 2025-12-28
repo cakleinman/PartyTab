@@ -1,5 +1,18 @@
 import type { PrismaClient } from "@prisma/client";
 import { throwApiError } from "@/lib/api/errors";
+import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
+
+// Helper to compute transfers for active tabs
+async function computeTransfersForActiveTab(prisma: PrismaClient, tabId: string) {
+  const [participants, expenses, splits] = await Promise.all([
+    prisma.participant.findMany({ where: { tabId }, select: { id: true } }),
+    prisma.expense.findMany({ where: { tabId }, select: { id: true, paidByParticipantId: true, amountTotalCents: true } }),
+    prisma.expenseSplit.findMany({ where: { expense: { tabId } }, select: { expenseId: true, participantId: true, amountCents: true } }),
+  ]);
+
+  const nets = computeNets(participants, expenses, splits);
+  return computeSettlement(nets.map((net) => ({ ...net })));
+}
 
 export async function listAcknowledgements(
   prisma: PrismaClient,
@@ -10,9 +23,6 @@ export async function listAcknowledgements(
   if (!tab) {
     throwApiError(404, "not_found", "Tab not found");
   }
-  if (tab.status !== "CLOSED") {
-    throwApiError(409, "tab_closed", "Tab is not closed");
-  }
 
   const participant = await prisma.participant.findUnique({
     where: { tabId_userId: { tabId, userId } },
@@ -21,13 +31,23 @@ export async function listAcknowledgements(
     throwApiError(403, "not_participant", "Not a participant in this tab");
   }
 
-  const settlement = await prisma.settlement.findUnique({
-    where: { tabId },
-    include: { transfers: true },
-  });
+  // Get transfers - from Settlement for closed tabs, computed for active tabs
+  let transfers: { fromParticipantId: string; toParticipantId: string; amountCents: number }[];
 
-  if (!settlement) {
-    throwApiError(404, "not_found", "Settlement not found");
+  if (tab.status === "CLOSED") {
+    const settlement = await prisma.settlement.findUnique({
+      where: { tabId },
+      include: { transfers: true },
+    });
+
+    if (!settlement) {
+      throwApiError(404, "not_found", "Settlement not found");
+    }
+
+    transfers = settlement.transfers;
+  } else {
+    // Compute transfers on-the-fly for active tabs
+    transfers = await computeTransfersForActiveTab(prisma, tabId);
   }
 
   const acknowledgements = await prisma.settlementAcknowledgement.findMany({
@@ -41,7 +61,7 @@ export async function listAcknowledgements(
     ]),
   );
 
-  return settlement.transfers.map((transfer) => {
+  return transfers.map((transfer) => {
     const ack = ackMap.get(`${transfer.fromParticipantId}:${transfer.toParticipantId}`);
     return {
       fromParticipantId: transfer.fromParticipantId,
@@ -67,9 +87,6 @@ export async function initiateAcknowledgement(
   if (!tab) {
     throwApiError(404, "not_found", "Tab not found");
   }
-  if (tab.status !== "CLOSED") {
-    throwApiError(409, "tab_closed", "Tab is not closed");
-  }
 
   const fromParticipant = await prisma.participant.findUnique({
     where: { id: params.fromParticipantId },
@@ -88,16 +105,37 @@ export async function initiateAcknowledgement(
     throwApiError(403, "not_participant", "Not a participant in this tab");
   }
 
-  const transfer = await prisma.settlementTransfer.findFirst({
-    where: {
-      fromParticipantId: params.fromParticipantId,
-      toParticipantId: params.toParticipantId,
-      settlement: { tabId: params.tabId },
-    },
-  });
+  // Get transfer amount - from Settlement for closed tabs, computed for active tabs
+  let transferAmount: number;
 
-  if (!transfer) {
-    throwApiError(404, "not_found", "Settlement transfer not found");
+  if (tab.status === "CLOSED") {
+    const transfer = await prisma.settlementTransfer.findFirst({
+      where: {
+        fromParticipantId: params.fromParticipantId,
+        toParticipantId: params.toParticipantId,
+        settlement: { tabId: params.tabId },
+      },
+    });
+
+    if (!transfer) {
+      throwApiError(404, "not_found", "Settlement transfer not found");
+    }
+
+    transferAmount = transfer.amountCents;
+  } else {
+    // Compute transfers on-the-fly for active tabs
+    const transfers = await computeTransfersForActiveTab(prisma, params.tabId);
+    const transfer = transfers.find(
+      (t) =>
+        t.fromParticipantId === params.fromParticipantId &&
+        t.toParticipantId === params.toParticipantId
+    );
+
+    if (!transfer) {
+      throwApiError(404, "not_found", "No transfer needed between these participants");
+    }
+
+    transferAmount = transfer.amountCents;
   }
 
   const existing = await prisma.settlementAcknowledgement.findUnique({
@@ -124,7 +162,7 @@ export async function initiateAcknowledgement(
     },
     update: {
       status: "PENDING",
-      amountCents: transfer.amountCents,
+      amountCents: transferAmount,
       initiatedByUserId: params.userId,
       initiatedAt: new Date(),
       acknowledgedByUserId: null,
@@ -134,7 +172,7 @@ export async function initiateAcknowledgement(
       tabId: params.tabId,
       fromParticipantId: params.fromParticipantId,
       toParticipantId: params.toParticipantId,
-      amountCents: transfer.amountCents,
+      amountCents: transferAmount,
       status: "PENDING",
       initiatedByUserId: params.userId,
       initiatedAt: new Date(),
@@ -155,9 +193,7 @@ export async function confirmAcknowledgement(
   if (!tab) {
     throwApiError(404, "not_found", "Tab not found");
   }
-  if (tab.status !== "CLOSED") {
-    throwApiError(409, "tab_closed", "Tab is not closed");
-  }
+  // Removed tab.status check - allow confirmations on active tabs too
 
   const toParticipant = await prisma.participant.findUnique({
     where: { id: params.toParticipantId },

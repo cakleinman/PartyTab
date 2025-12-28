@@ -33,6 +33,7 @@ type Settlement = {
 };
 
 type TabInfo = {
+  status: "ACTIVE" | "CLOSED";
   isCreator: boolean;
 };
 
@@ -44,6 +45,7 @@ export default function SettlementPage() {
   const [settlement, setSettlement] = useState<Settlement | null>(null);
   const [acknowledgements, setAcknowledgements] = useState<Acknowledgement[]>([]);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
+  const [isPreview, setIsPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -61,7 +63,8 @@ export default function SettlementPage() {
       .then(([participantData, settlementData, acknowledgementData, meData, tabData]) => {
         setParticipants(participantData.participants ?? []);
         setUserId(meData?.user?.id ?? null);
-        setTabInfo(tabData?.tab ? { isCreator: tabData.tab.isCreator } : null);
+        setTabInfo(tabData?.tab ? { status: tabData.tab.status, isCreator: tabData.tab.isCreator } : null);
+        setIsPreview(settlementData?.isPreview ?? false);
         if (settlementData?.settlement) {
           setSettlement(settlementData.settlement);
         } else {
@@ -214,9 +217,13 @@ export default function SettlementPage() {
       </a>
 
       <div>
-        <h1 className="text-3xl font-semibold">Final settlement</h1>
+        <h1 className="text-3xl font-semibold">
+          {isPreview ? "Settlement preview" : "Final settlement"}
+        </h1>
         <p className="text-sm text-ink-500">
-          Settle up using any payment app. Confirm payments here.
+          {isPreview
+            ? "See where things stand. You can settle debts early while the tab is still open."
+            : "Settle up using any payment app. Confirm payments here."}
         </p>
       </div>
 
@@ -429,6 +436,7 @@ export default function SettlementPage() {
 
       <p className="text-xs text-ink-500">
         This doesn&apos;t move money. It&apos;s a confirmation system so everyone knows who&apos;s paid.
+        {isPreview && " Amounts shown may change as new expenses are added."}
       </p>
     </div>
   );

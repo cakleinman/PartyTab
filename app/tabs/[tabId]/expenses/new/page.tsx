@@ -288,7 +288,13 @@ export default function NewExpensePage() {
           Amount
           <input
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Only allow numbers and one decimal point
+              if (/^[0-9]*\.?[0-9]*$/.test(value)) {
+                setAmount(value);
+              }
+            }}
             inputMode="decimal"
             onBlur={(e) => {
               const value = e.target.value.trim();

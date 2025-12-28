@@ -270,7 +270,13 @@ export default function ExpenseDetailPage() {
           Amount
           <input
             value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            onChange={(event) => {
+              const value = event.target.value;
+              // Only allow numbers and one decimal point
+              if (/^[0-9]*\.?[0-9]*$/.test(value)) {
+                setAmount(value);
+              }
+            }}
             inputMode="decimal"
             onBlur={(event) => {
               const value = event.target.value.trim();

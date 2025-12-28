@@ -27,7 +27,7 @@ export function SplitModeSelector({
         }`}
         disabled={disabled}
       >
-        Split
+        Even
       </button>
       <button
         type="button"
