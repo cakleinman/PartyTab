@@ -36,6 +36,7 @@ export default function ParticipantsPage() {
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
   const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [lastAddedName, setLastAddedName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!tabId) return;
@@ -101,6 +102,7 @@ export default function ParticipantsPage() {
       // Add new participant to list
       setParticipants((prev) => [...prev, data.participant]);
       setClaimUrl(data.claimUrl);
+      setLastAddedName(data.participant.displayName);
       setNewName("");
       pushToast(`${data.participant.displayName} added!`);
     } catch {
@@ -145,6 +147,7 @@ export default function ParticipantsPage() {
               onClick={() => {
                 setShowAddForm(!showAddForm);
                 setClaimUrl(null);
+                setLastAddedName(null);
               }}
               className="rounded-full border border-ink-200 px-4 py-2 text-sm font-medium text-ink-700 hover:bg-sand-100"
             >
@@ -183,7 +186,7 @@ export default function ParticipantsPage() {
           {claimUrl && (
             <div className="rounded-xl border border-green-200 bg-green-50 p-3 space-y-2">
               <p className="text-sm font-medium text-green-800">
-                Person added! Share this link with them:
+                {lastAddedName} added! Share this link with them:
               </p>
               <div className="flex gap-2">
                 <input
