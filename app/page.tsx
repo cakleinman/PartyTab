@@ -260,10 +260,10 @@ export default function LandingPage() {
                     Paid
                   </text>
                   {/* People around the table - labels read A-F left to right */}
-                  <circle cx="40" cy="40" r="16" fill="#eadfcd" />
-                  <text x="40" y="45" textAnchor="middle" fontSize="12">A</text>
                   <circle cx="40" cy="100" r="16" fill="#eadfcd" />
-                  <text x="40" y="105" textAnchor="middle" fontSize="12">B</text>
+                  <text x="40" y="105" textAnchor="middle" fontSize="12">A</text>
+                  <circle cx="40" cy="40" r="16" fill="#eadfcd" />
+                  <text x="40" y="45" textAnchor="middle" fontSize="12">B</text>
                   <circle cx="100" cy="20" r="16" fill="#eadfcd" />
                   <text x="100" y="25" textAnchor="middle" fontSize="12">C</text>
                   <circle cx="180" cy="20" r="16" fill="#eadfcd" />
