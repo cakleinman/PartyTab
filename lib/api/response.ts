@@ -9,6 +9,7 @@ export type ErrorCode =
   | "tab_closed"
   | "not_participant"
   | "already_claimed"
+  | "tab_limit_reached"
   | "internal_error";
 
 export function error(status: number, code: ErrorCode, message: string, details?: unknown) {

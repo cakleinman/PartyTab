@@ -26,6 +26,12 @@ enum AuthProvider {
   GOOGLE
 }
 
+enum SubscriptionTier {
+  GUEST // Not signed up, using PIN only
+  BASIC // Free account with Google/Email
+  PRO   // Paid account with full features
+}
+
 model User {
   id           String       @id @default(uuid()) @db.Uuid
   displayName  String
@@ -33,10 +39,11 @@ model User {
   phone        String?
 
   // Auth fields
-  authProvider AuthProvider @default(GUEST)
-  googleId     String?      @unique
-  passwordHash String?      // bcrypt hash for email auth
-  pinHash      String?      // Hashed 4-digit PIN for guest mode
+  authProvider     AuthProvider     @default(GUEST)
+  subscriptionTier SubscriptionTier @default(GUEST)
+  googleId         String?          @unique
+  passwordHash     String?          // bcrypt hash for email auth
+  pinHash          String?          // Hashed 4-digit PIN for guest mode
 
   // Account linking (for merging guest → authenticated)
   linkedFromId String?      @db.Uuid

@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
-import { isApiError } from "@/lib/api/errors";
+import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireUser } from "@/lib/api/guards";
 import { parseDateInput, parseDescription, parseTabName } from "@/lib/validators/schemas";
+
+const BASIC_TAB_LIMIT = 3;
 
 export async function GET() {
   try {
@@ -73,6 +75,24 @@ export async function POST(request: Request) {
     const name = parseTabName(body?.name);
     const description = parseDescription(body?.description);
     const startDate = parseDateInput(body?.startDate) ?? new Date();
+
+    // Check tab limit for non-Pro users
+    if (user.subscriptionTier !== "PRO") {
+      const activeTabCount = await prisma.tab.count({
+        where: {
+          createdByUserId: user.id,
+          status: "ACTIVE",
+        },
+      });
+
+      if (activeTabCount >= BASIC_TAB_LIMIT) {
+        throwApiError(
+          403,
+          "tab_limit_reached",
+          `You've reached the limit of ${BASIC_TAB_LIMIT} active tabs. Close a tab or upgrade to Pro for unlimited tabs.`
+        );
+      }
+    }
 
     const tab = await prisma.tab.create({
       data: {

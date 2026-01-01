@@ -19,15 +19,19 @@ export async function GET(
     const tab = await requireTab(tabId);
     const participant = await requireParticipant(tabId, user.id);
 
-    const [expenses, splits, participants] = await Promise.all([
+    const [expenses, splits, participants, tabCreator] = await Promise.all([
       prisma.expense.findMany({ where: { tabId }, select: { amountTotalCents: true, paidByParticipantId: true, id: true } }),
       prisma.expenseSplit.findMany({ where: { expense: { tabId } }, select: { expenseId: true, participantId: true, amountCents: true } }),
       prisma.participant.findMany({ where: { tabId }, select: { id: true } }),
+      prisma.user.findUnique({ where: { id: tab.createdByUserId }, select: { subscriptionTier: true } }),
     ]);
 
     const totalSpentCents = expenses.reduce((sum, exp) => sum + exp.amountTotalCents, 0);
     const nets = computeNets(participants, expenses, splits);
     const userNet = nets.find((net) => net.participantId === participant.id)?.netCents ?? 0;
+
+    // Pro features are available if the tab creator has a Pro subscription
+    const hasProFeatures = tabCreator?.subscriptionTier === "PRO";
 
     return ok({
       tab: {
@@ -42,6 +46,7 @@ export async function GET(
         totalSpentCents,
         yourNetCents: userNet,
         isCreator: tab.createdByUserId === user.id,
+        hasProFeatures,
       },
     });
   } catch (error) {

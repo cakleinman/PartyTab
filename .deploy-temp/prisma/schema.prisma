@@ -1,0 +1,218 @@
+// PartyTab data model
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum TabStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum SettlementAcknowledgementStatus {
+  PENDING
+  ACKNOWLEDGED
+}
+
+enum AuthProvider {
+  GUEST
+  EMAIL
+  GOOGLE
+}
+
+model User {
+  id           String       @id @default(uuid()) @db.Uuid
+  displayName  String
+  email        String?      @unique
+  phone        String?
+
+  // Auth fields
+  authProvider AuthProvider @default(GUEST)
+  googleId     String?      @unique
+  passwordHash String?      // bcrypt hash for email auth
+  pinHash      String?      // Hashed 4-digit PIN for guest mode
+
+  // Account linking (for merging guest → authenticated)
+  linkedFromId String?      @db.Uuid
+  linkedFrom   User?        @relation("AccountLink", fields: [linkedFromId], references: [id])
+  linkedTo     User[]       @relation("AccountLink")
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  // Relations
+  tabs                         Tab[]                       @relation("TabCreator")
+  participants                 Participant[]
+  expensesCreated              Expense[]                   @relation("ExpenseCreator")
+  invitesCreated               Invite[]                    @relation("InviteCreator")
+  acknowledgementsInitiated    SettlementAcknowledgement[] @relation("AckInitiated")
+  acknowledgementsAcknowledged SettlementAcknowledgement[] @relation("AckAcknowledged")
+  claimTokens                  UserClaimToken[]
+}
+
+// Claim token for placeholder users (added by others, claimed via link)
+model UserClaimToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  token     String    @unique
+  createdAt DateTime  @default(now())
+  claimedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Tab {
+  id              String    @id @default(uuid()) @db.Uuid
+  name            String
+  description     String?
+  status          TabStatus @default(ACTIVE)
+  startDate       DateTime  @default(now())
+  endDate         DateTime?
+  createdByUserId String    @db.Uuid
+  createdAt       DateTime  @default(now())
+  closedAt        DateTime?
+
+  createdBy        User                        @relation("TabCreator", fields: [createdByUserId], references: [id])
+  participants     Participant[]
+  expenses         Expense[]
+  settlement       Settlement?
+  invites          Invite[]
+  acknowledgements SettlementAcknowledgement[]
+}
+
+model Participant {
+  id       String   @id @default(uuid()) @db.Uuid
+  tabId    String   @db.Uuid
+  userId   String   @db.Uuid
+  joinedAt DateTime @default(now())
+
+  tab              Tab                         @relation(fields: [tabId], references: [id])
+  user             User                        @relation(fields: [userId], references: [id])
+  expensesPaid     Expense[]                   @relation("ExpensePayer")
+  splits           ExpenseSplit[]
+  settlementFrom   SettlementTransfer[]        @relation("SettlementFrom")
+  settlementTo     SettlementTransfer[]        @relation("SettlementTo")
+  acknowledgementsFrom SettlementAcknowledgement[] @relation("AckFrom")
+  acknowledgementsTo   SettlementAcknowledgement[] @relation("AckTo")
+  itemClaims       ReceiptItemClaim[]
+
+  @@unique([tabId, userId])
+}
+
+model Expense {
+  id                  String   @id @default(uuid()) @db.Uuid
+  tabId               String   @db.Uuid
+  paidByParticipantId String   @db.Uuid
+  amountTotalCents    Int
+  note                String?
+  date                DateTime @default(now()) // The date the expense occurred
+  createdByUserId     String   @db.Uuid
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Receipt attachment
+  receiptUrl String?
+
+  tab          Tab            @relation(fields: [tabId], references: [id])
+  paidBy       Participant    @relation("ExpensePayer", fields: [paidByParticipantId], references: [id])
+  createdBy    User           @relation("ExpenseCreator", fields: [createdByUserId], references: [id])
+  splits       ExpenseSplit[]
+  receiptItems ReceiptItem[]
+}
+
+model ExpenseSplit {
+  id            String @id @default(uuid()) @db.Uuid
+  expenseId     String @db.Uuid
+  participantId String @db.Uuid
+  amountCents   Int
+
+  expense     Expense     @relation(fields: [expenseId], references: [id])
+  participant Participant @relation(fields: [participantId], references: [id])
+
+  @@unique([expenseId, participantId])
+}
+
+// Parsed receipt line items
+model ReceiptItem {
+  id         String @id @default(uuid()) @db.Uuid
+  expenseId  String @db.Uuid
+  name       String
+  priceCents Int
+  quantity   Int    @default(1)
+  sortOrder  Int    @default(0)
+
+  expense Expense            @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  claims  ReceiptItemClaim[]
+}
+
+// Item claims (who consumed what)
+model ReceiptItemClaim {
+  id            String @id @default(uuid()) @db.Uuid
+  receiptItemId String @db.Uuid
+  participantId String @db.Uuid
+
+  receiptItem ReceiptItem @relation(fields: [receiptItemId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id])
+
+  @@unique([receiptItemId, participantId])
+}
+
+model Settlement {
+  id        String   @id @default(uuid()) @db.Uuid
+  tabId     String   @unique @db.Uuid
+  createdAt DateTime @default(now())
+
+  tab       Tab                  @relation(fields: [tabId], references: [id])
+  transfers SettlementTransfer[]
+}
+
+model SettlementTransfer {
+  id                String @id @default(uuid()) @db.Uuid
+  settlementId      String @db.Uuid
+  fromParticipantId String @db.Uuid
+  toParticipantId   String @db.Uuid
+  amountCents       Int
+
+  settlement      Settlement  @relation(fields: [settlementId], references: [id])
+  fromParticipant Participant @relation("SettlementFrom", fields: [fromParticipantId], references: [id])
+  toParticipant   Participant @relation("SettlementTo", fields: [toParticipantId], references: [id])
+}
+
+model SettlementAcknowledgement {
+  id                   String                        @id @default(uuid()) @db.Uuid
+  tabId                String                        @db.Uuid
+  fromParticipantId    String                        @db.Uuid
+  toParticipantId      String                        @db.Uuid
+  amountCents          Int
+  status               SettlementAcknowledgementStatus @default(PENDING)
+  initiatedByUserId    String                        @db.Uuid
+  initiatedAt          DateTime                      @default(now())
+  acknowledgedByUserId String?                       @db.Uuid
+  acknowledgedAt       DateTime?
+
+  tab             Tab         @relation(fields: [tabId], references: [id])
+  fromParticipant Participant @relation("AckFrom", fields: [fromParticipantId], references: [id])
+  toParticipant   Participant @relation("AckTo", fields: [toParticipantId], references: [id])
+  initiatedBy     User        @relation("AckInitiated", fields: [initiatedByUserId], references: [id])
+  acknowledgedBy  User?       @relation("AckAcknowledged", fields: [acknowledgedByUserId], references: [id])
+
+  @@unique([tabId, fromParticipantId, toParticipantId])
+}
+
+model Invite {
+  id              String    @id @default(uuid()) @db.Uuid
+  tabId           String    @db.Uuid
+  token           String    @unique
+  createdByUserId String    @db.Uuid
+  createdAt       DateTime  @default(now())
+  revokedAt       DateTime?
+
+  tab       Tab  @relation(fields: [tabId], references: [id])
+  createdBy User @relation("InviteCreator", fields: [createdByUserId], references: [id])
+}

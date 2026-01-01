@@ -243,21 +243,24 @@ export default function TabDashboard() {
           </div>
           <div className="mt-4 grid gap-3">
             {expenses.slice(0, 5).map((expense) => {
-              // Get names of people who owe (everyone except the payer)
-              const owingPeople = expense.splits
-                .filter((split) => split.participantId !== expense.paidByParticipantId && split.amountCents > 0)
-                .map((split) => split.participantName);
+              // Get splits for people who owe (everyone except the payer)
+              const owingSplits = expense.splits
+                .filter((split) => split.participantId !== expense.paidByParticipantId && split.amountCents > 0);
 
-              // Format the "who owes whom" text
-              let owesText = "";
-              if (owingPeople.length === 0) {
-                owesText = `${expense.paidByName} paid`;
-              } else if (owingPeople.length === 1) {
-                owesText = `${owingPeople[0]} owes ${expense.paidByName}`;
-              } else if (owingPeople.length === 2) {
-                owesText = `${owingPeople[0]} and ${owingPeople[1]} owe ${expense.paidByName}`;
-              } else {
-                owesText = `${owingPeople.slice(0, -1).join(", ")} and ${owingPeople[owingPeople.length - 1]} owe ${expense.paidByName}`;
+              // Calculate total owed to the payer
+              const totalOwedCents = owingSplits.reduce((sum, split) => sum + split.amountCents, 0);
+
+              // Format the subtitle text
+              let subtitleText = `Paid by ${expense.paidByName}`;
+              if (owingSplits.length > 0) {
+                const names = owingSplits.map((s) => s.participantName);
+                if (names.length === 1) {
+                  subtitleText = `${names[0]} → ${expense.paidByName}`;
+                } else if (names.length === 2) {
+                  subtitleText = `${names[0]}, ${names[1]} → ${expense.paidByName}`;
+                } else {
+                  subtitleText = `${names.length} people → ${expense.paidByName}`;
+                }
               }
 
               return (
@@ -271,9 +274,14 @@ export default function TabDashboard() {
                       <span className="font-medium text-ink-700">
                         {expense.note || "Expense"}
                       </span>
-                      <p className="truncate text-xs text-ink-500">{owesText}</p>
+                      <p className="truncate text-xs text-ink-500">{subtitleText}</p>
                     </div>
-                    <span className="flex-shrink-0 text-ink-500">{formatCents(expense.amountTotalCents)}</span>
+                    <div className="flex-shrink-0 text-right">
+                      <span className="text-ink-700">{formatCents(expense.amountTotalCents)}</span>
+                      {totalOwedCents > 0 && totalOwedCents !== expense.amountTotalCents && (
+                        <p className="text-xs text-ink-400">{formatCents(totalOwedCents)} owed</p>
+                      )}
+                    </div>
                   </div>
                 </a>
               );

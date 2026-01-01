@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
+import { ProPreviewModal } from "@/app/components/ProPreviewModal";
 import {
   SplitModeSelector,
   SplitPanel,
@@ -28,10 +29,12 @@ export default function NewExpensePage() {
   // Data loading
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [tabStatus, setTabStatus] = useState<"ACTIVE" | "CLOSED" | null>(null);
+  const [hasProFeatures, setHasProFeatures] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showProPreview, setShowProPreview] = useState(false);
   const { pushToast } = useToast();
 
   // Form fields
@@ -65,6 +68,7 @@ export default function NewExpensePage() {
         const loadedParticipants = participantsData.participants ?? [];
         setParticipants(loadedParticipants);
         setTabStatus(tabData.tab?.status ?? null);
+        setHasProFeatures(tabData.tab?.hasProFeatures ?? false);
         setCurrentUserId(meData?.user?.id ?? null);
 
         if (loadedParticipants.length) {
@@ -359,6 +363,8 @@ export default function NewExpensePage() {
               mode={splitMode}
               onChange={setSplitMode}
               hasReceiptItems={hasReceiptItems}
+              hasProFeatures={hasProFeatures}
+              onProPreview={() => setShowProPreview(true)}
               disabled={isDisabled}
             />
           </div>
@@ -406,6 +412,11 @@ export default function NewExpensePage() {
           {saving ? "Saving…" : "Save expense"}
         </button>
       </form>
+
+      <ProPreviewModal
+        isOpen={showProPreview}
+        onClose={() => setShowProPreview(false)}
+      />
     </div>
   );
 }

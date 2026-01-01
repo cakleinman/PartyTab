@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
+import { auth } from "@/app/api/auth/[...nextauth]/route";
 
 const SESSION_COOKIE = "partytab_session";
 
@@ -32,6 +33,17 @@ function parseSession(value: string): string | null {
 }
 
 export async function getSessionUserId(): Promise<string | null> {
+  // First check NextAuth session (Google/Email authenticated users)
+  try {
+    const session = await auth();
+    if (session?.user?.id) {
+      return session.user.id;
+    }
+  } catch {
+    // NextAuth session check failed, continue to guest session
+  }
+
+  // Fall back to guest session cookie
   const cookieStore = await cookies();
   const raw = cookieStore.get(SESSION_COOKIE)?.value;
   if (!raw) return null;

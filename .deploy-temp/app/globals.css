@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  --sand-50: #fbf7f0;
+  --sand-100: #f5efe2;
+  --sand-200: #eadfcd;
+  --ink-900: #1b1a18;
+  --ink-700: #3c3a36;
+  --ink-500: #6f6a61;
+  --ink-300: #a8a29a;
+  --mint-400: #54b9a7;
+}
+
+@theme inline {
+  --color-sand-50: var(--sand-50);
+  --color-sand-100: var(--sand-100);
+  --color-sand-200: var(--sand-200);
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-500: var(--ink-500);
+  --color-ink-300: var(--ink-300);
+  --color-mint-400: var(--mint-400);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  background: var(--sand-50);
+  color: var(--ink-900);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+/* Links inherit by default, but explicit color classes override */
+a:not([class*="text-"]) {
+  color: inherit;
+}
+
+/* Primary button - ensure contrast on dark backgrounds */
+.btn-primary {
+  background-color: var(--ink-900);
+  color: var(--sand-50) !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--ink-700);
+}
+
+/* Secondary button */
+.btn-secondary {
+  background-color: transparent;
+  border: 1px solid var(--ink-300);
+  color: var(--ink-700);
+}
+
+.btn-secondary:hover {
+  border-color: var(--ink-500);
+}

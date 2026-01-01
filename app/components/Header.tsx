@@ -2,50 +2,57 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { InstallAppButton } from "./InstallAppButton";
+
+type AuthStatus = "loading" | "signed_out" | "guest" | "basic" | "pro";
 
 export function Header() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [authStatus, setAuthStatus] = useState<AuthStatus>("loading");
   const pathname = usePathname();
 
   useEffect(() => {
     fetch("/api/me")
       .then((res) => res.json())
       .then((data) => {
-        setIsSignedIn(!!data?.user?.id);
+        if (!data?.user?.id) {
+          setAuthStatus("signed_out");
+        } else if (data.user.authProvider === "GUEST") {
+          setAuthStatus("guest");
+        } else if (data.user.subscriptionTier === "PRO") {
+          setAuthStatus("pro");
+        } else {
+          setAuthStatus("basic");
+        }
       })
       .catch(() => {
-        setIsSignedIn(false);
-      })
-      .finally(() => setLoading(false));
+        setAuthStatus("signed_out");
+      });
   }, [pathname]);
 
-  const handleLogout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    window.location.href = "/";
-  };
+  // Show upgrade for non-pro signed-in users
+  const showUpgrade = authStatus === "guest" || authStatus === "basic";
 
   return (
     <header className="border-b border-ink-100 bg-sand-50/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
-        <a href="/" className="text-lg font-semibold tracking-tight">
+        <Link href="/" className="text-lg font-semibold tracking-tight">
           PartyTab
-        </a>
+        </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <span className="hidden text-ink-500 sm:inline">Keep the party going.</span>
-          {!loading && (
-            isSignedIn ? (
-              <button
-                onClick={handleLogout}
-                className="font-medium text-ink-700 hover:text-ink-900"
-              >
-                Log out
-              </button>
-            ) : (
-              <a href="/signin" className="font-medium text-ink-700 hover:text-ink-900">
-                Sign in
-              </a>
-            )
+          <Link href="/tabs" className="hidden text-ink-500 hover:text-ink-700 sm:inline">
+            Keep the party going.
+          </Link>
+          <InstallAppButton />
+          {authStatus === "signed_out" && (
+            <Link href="/login" className="font-medium text-ink-700 hover:text-ink-900">
+              Sign in
+            </Link>
+          )}
+          {showUpgrade && (
+            <Link href="/upgrade" className="font-medium text-green-700 hover:text-green-800">
+              Upgrade
+            </Link>
           )}
         </nav>
       </div>

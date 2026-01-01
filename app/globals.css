@@ -43,14 +43,26 @@ a:not([class*="text-"]) {
   color: inherit;
 }
 
+/* Base button styles */
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
 /* Primary button - ensure contrast on dark backgrounds */
 .btn-primary {
   background-color: var(--ink-900);
   color: var(--sand-50) !important;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
 .btn-primary:hover {
   background-color: var(--ink-700);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
 }
 
 /* Secondary button */
@@ -58,8 +70,11 @@ a:not([class*="text-"]) {
   background-color: transparent;
   border: 1px solid var(--ink-300);
   color: var(--ink-700);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .btn-secondary:hover {
   border-color: var(--ink-500);
+  color: var(--ink-900);
 }

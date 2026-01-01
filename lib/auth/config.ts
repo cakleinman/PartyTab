@@ -1,103 +1,71 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
+import { cookies } from "next/headers";
+import crypto from "crypto";
 import { prisma } from "@/lib/db/prisma";
-import { hashPassword, verifyPassword } from "./password";
+
+// Session parsing (duplicated from session.ts to avoid circular deps)
+function parseGuestSession(value: string): string | null {
+  const secret = process.env.SESSION_SECRET;
+  if (!secret || secret.length < 32) return null;
+
+  const [userId, signature] = value.split(".");
+  if (!userId || !signature) return null;
+
+  const expected = crypto.createHmac("sha256", secret).update(userId).digest("hex");
+  const signatureBuf = Buffer.from(signature);
+  const expectedBuf = Buffer.from(expected);
+  if (signatureBuf.length !== expectedBuf.length) return null;
+  return crypto.timingSafeEqual(signatureBuf, expectedBuf) ? userId : null;
+}
+
+async function getGuestUserId(): Promise<string | null> {
+  try {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get("partytab_session")?.value;
+    if (!raw) return null;
+    return parseGuestSession(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function getGuestUser(): Promise<{ id: string; displayName: string } | null> {
+  const guestUserId = await getGuestUserId();
+  if (!guestUserId) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: guestUserId },
+    select: { id: true, displayName: true, pinHash: true },
+  });
+
+  // Only return if user has a PIN (is a real guest, not a placeholder)
+  if (!user || !user.pinHash) return null;
+  return { id: user.id, displayName: user.displayName };
+}
 
 export const authConfig: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    Credentials({
-      name: "email",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-        displayName: { label: "Display Name", type: "text" },
-        isSignUp: { label: "Is Sign Up", type: "text" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-
-        const email = credentials.email as string;
-        const password = credentials.password as string;
-        const displayName = credentials.displayName as string;
-        const isSignUp = credentials.isSignUp === "true";
-
-        if (isSignUp) {
-          // Sign up flow
-          if (!displayName) {
-            throw new Error("Display name is required");
-          }
-
-          // Check if email already exists
-          const existingUser = await prisma.user.findUnique({
-            where: { email },
-          });
-
-          if (existingUser) {
-            throw new Error("Email already registered");
-          }
-
-          // Create new user
-          const passwordHash = await hashPassword(password);
-          const user = await prisma.user.create({
-            data: {
-              email,
-              displayName,
-              passwordHash,
-              authProvider: "EMAIL",
-            },
-          });
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.displayName,
-          };
-        } else {
-          // Sign in flow
-          const user = await prisma.user.findUnique({
-            where: { email },
-          });
-
-          if (!user || !user.passwordHash) {
-            throw new Error("Invalid email or password");
-          }
-
-          const isValid = await verifyPassword(password, user.passwordHash);
-          if (!isValid) {
-            throw new Error("Invalid email or password");
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.displayName,
-          };
-        }
-      },
-    }),
-  ],
+  providers: [Google],
+  pages: {
+    signIn: "/login",
+  },
+  trustHost: true,
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google") {
+        // Check for existing guest session - we'll prompt for merge confirmation
+        const guestUser = await getGuestUser();
+
         // For Google sign in, ensure user exists in our User table
-        const existingUser = await prisma.user.findUnique({
+        let existingGoogleUser = await prisma.user.findUnique({
           where: { googleId: account.providerAccountId },
         });
 
-        if (!existingUser) {
+        if (!existingGoogleUser) {
           // Check if there's a user with this email (might be from email signup)
-          const emailUser = await prisma.user.findUnique({
-            where: { email: user.email! },
-          });
+          const emailUser = user.email
+            ? await prisma.user.findUnique({ where: { email: user.email } })
+            : null;
 
           if (emailUser) {
             // Link Google to existing email account
@@ -106,18 +74,53 @@ export const authConfig: NextAuthConfig = {
               data: {
                 googleId: account.providerAccountId,
                 authProvider: "GOOGLE",
+                subscriptionTier: "BASIC",
               },
+            });
+            existingGoogleUser = await prisma.user.findUnique({
+              where: { id: emailUser.id },
             });
           } else {
             // Create new user
-            await prisma.user.create({
+            existingGoogleUser = await prisma.user.create({
               data: {
                 email: user.email!,
                 displayName: user.name || user.email!.split("@")[0],
                 googleId: account.providerAccountId,
                 authProvider: "GOOGLE",
+                subscriptionTier: "BASIC",
               },
             });
+          }
+        } else {
+          // Existing Google user - ensure they have BASIC tier (upgrade from GUEST if needed)
+          if (existingGoogleUser.subscriptionTier === "GUEST") {
+            await prisma.user.update({
+              where: { id: existingGoogleUser.id },
+              data: { subscriptionTier: "BASIC" },
+            });
+          }
+        }
+
+        // If there was a guest session with a different user, set pending merge cookie
+        // The user will be redirected to confirm the merge with their PIN
+        if (guestUser && existingGoogleUser && guestUser.id !== existingGoogleUser.id) {
+          try {
+            const cookieStore = await cookies();
+            // Store pending merge info (will be used by merge confirmation page)
+            cookieStore.set("pending_merge", JSON.stringify({
+              guestUserId: guestUser.id,
+              guestDisplayName: guestUser.displayName,
+              targetUserId: existingGoogleUser.id,
+            }), {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === "production",
+              sameSite: "lax",
+              maxAge: 60 * 10, // 10 minutes
+              path: "/",
+            });
+          } catch (error) {
+            console.error("Failed to set pending merge cookie:", error);
           }
         }
       }
@@ -154,14 +157,9 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
   },
-  pages: {
-    signIn: "/login",
-    newUser: "/tabs", // Redirect here after first sign up
-  },
   session: {
     strategy: "jwt",
   },
-  secret: process.env.AUTH_SECRET || process.env.SESSION_SECRET,
 };
 
 // Type augmentation for session
