@@ -12,6 +12,24 @@ const ACTIVITIES = [
   "Concert tickets",
   "Birthday dinner",
   "Beach house",
+  "Euro trip",
+  "Wedding weekend",
+  "Camping trip",
+  "Fantasy football league",
+  "Bachelorette in Nashville",
+  "Lake house summer",
+  "Golf trip",
+  "Friendsgiving",
+  "Road trip to Joshua Tree",
+  "Coachella house",
+  "Thailand for two weeks",
+  "Monthly book club",
+  "Graduation party",
+  "Family reunion",
+  "Airbnb in Tulum",
+  "Summer share house",
+  "Fishing trip",
+  "Vegas weekend",
 ];
 
 function CyclingActivity() {
@@ -241,19 +259,19 @@ export default function LandingPage() {
                   <text x="140" y="75" textAnchor="middle" fontSize="12" fill="white" fontWeight="600">
                     Paid
                   </text>
-                  {/* People around the table - labels read A-F right to left */}
-                  <circle cx="240" cy="40" r="16" fill="#eadfcd" />
-                  <text x="240" y="45" textAnchor="middle" fontSize="12">A</text>
-                  <circle cx="240" cy="100" r="16" fill="#eadfcd" />
-                  <text x="240" y="105" textAnchor="middle" fontSize="12">B</text>
-                  <circle cx="180" cy="20" r="16" fill="#eadfcd" />
-                  <text x="180" y="25" textAnchor="middle" fontSize="12">C</text>
-                  <circle cx="100" cy="20" r="16" fill="#eadfcd" />
-                  <text x="100" y="25" textAnchor="middle" fontSize="12">D</text>
+                  {/* People around the table - labels read A-F left to right */}
                   <circle cx="40" cy="40" r="16" fill="#eadfcd" />
-                  <text x="40" y="45" textAnchor="middle" fontSize="12">E</text>
+                  <text x="40" y="45" textAnchor="middle" fontSize="12">A</text>
                   <circle cx="40" cy="100" r="16" fill="#eadfcd" />
-                  <text x="40" y="105" textAnchor="middle" fontSize="12">F</text>
+                  <text x="40" y="105" textAnchor="middle" fontSize="12">B</text>
+                  <circle cx="100" cy="20" r="16" fill="#eadfcd" />
+                  <text x="100" y="25" textAnchor="middle" fontSize="12">C</text>
+                  <circle cx="180" cy="20" r="16" fill="#eadfcd" />
+                  <text x="180" y="25" textAnchor="middle" fontSize="12">D</text>
+                  <circle cx="240" cy="40" r="16" fill="#eadfcd" />
+                  <text x="240" y="45" textAnchor="middle" fontSize="12">E</text>
+                  <circle cx="240" cy="100" r="16" fill="#eadfcd" />
+                  <text x="240" y="105" textAnchor="middle" fontSize="12">F</text>
                   {/* Arrows pointing to payer */}
                   <line x1="56" y1="48" x2="118" y2="62" className="flow-line flow-line-accent" strokeWidth="2" markerEnd="url(#arrow-dinner)" />
                   <line x1="108" y1="34" x2="126" y2="52" className="flow-line flow-line-accent delay-line" strokeWidth="2" markerEnd="url(#arrow-dinner)" />
