@@ -33,6 +33,7 @@ function SkiWeekendPreview() {
   const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState("You");
   const [splitWith, setSplitWith] = useState<string[]>([]); // Empty = everyone owes
+  const [hasClickedAdd, setHasClickedAdd] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   // Get participants who can owe (everyone except the payer)
@@ -109,8 +110,13 @@ function SkiWeekendPreview() {
             <h2 className="text-xl font-semibold text-ink-900">Ski Weekend</h2>
           </div>
           <button
-            onClick={() => setShowForm(!showForm)}
-            className="rounded-full bg-ink-900 px-3 py-1.5 text-xs font-semibold text-sand-50 transition-transform hover:scale-105 active:scale-95"
+            onClick={() => {
+              setShowForm(!showForm);
+              setHasClickedAdd(true);
+            }}
+            className={`rounded-full bg-ink-900 px-3 py-1.5 text-xs font-semibold text-sand-50 transition-transform hover:scale-105 active:scale-95 ${
+              !hasClickedAdd && !showForm ? "animate-pulse" : ""
+            }`}
           >
             {showForm ? "Cancel" : "+ Add expense"}
           </button>
