@@ -10,14 +10,16 @@ type Expense = {
   note: string;
   paidBy: string;
   amountCents: number;
+  splitWith?: string[]; // If undefined, split with everyone; otherwise only these people owe
 };
 
 const INITIAL_EXPENSES: Expense[] = [
-  { id: "1", note: "Cabin rental", paidBy: "Jamie", amountCents: 80000 },
-  { id: "2", note: "Lift tickets", paidBy: "Alex", amountCents: 48000 },
-  { id: "3", note: "Ski rentals", paidBy: "You", amountCents: 32000 },
-  { id: "4", note: "Dinner at the lodge", paidBy: "Alex", amountCents: 18000 },
-  { id: "5", note: "Groceries", paidBy: "Sam", amountCents: 15600 },
+  { id: "1", note: "Cabin rental", paidBy: "Jamie", amountCents: 80000 }, // Everyone splits
+  { id: "2", note: "Lift tickets", paidBy: "Alex", amountCents: 48000 }, // Everyone splits
+  { id: "3", note: "Ski rentals", paidBy: "You", amountCents: 32000, splitWith: ["Alex", "Jamie"] }, // Only Alex & Jamie rented
+  { id: "4", note: "Dinner at the lodge", paidBy: "Alex", amountCents: 18000 }, // Everyone splits
+  { id: "5", note: "Uber to airport", paidBy: "Sam", amountCents: 4500, splitWith: ["You"] }, // Just You owes Sam
+  { id: "6", note: "Groceries", paidBy: "Sam", amountCents: 15600 }, // Everyone splits
 ];
 
 function formatCents(cents: number): string {
@@ -34,13 +36,26 @@ function SkiWeekendPreview() {
 
   // Calculate totals
   const totalCents = expenses.reduce((sum, e) => sum + e.amountCents, 0);
-  const perPersonShare = Math.round(totalCents / PARTICIPANTS.length);
 
-  // Calculate "Your" net position
-  const yourPaidTotal = expenses
-    .filter((e) => e.paidBy === "You")
-    .reduce((sum, e) => sum + e.amountCents, 0);
-  const yourNetCents = yourPaidTotal - perPersonShare;
+  // Calculate "Your" net position properly accounting for splits
+  // Net = (what you paid) - (what you owe from all expenses you're part of)
+  const yourNetCents = expenses.reduce((net, expense) => {
+    // Get who's involved in this expense (payer + people who owe)
+    const peopleWhoOwe = expense.splitWith ?? PARTICIPANTS.filter(p => p !== expense.paidBy);
+    const allInvolved = [expense.paidBy, ...peopleWhoOwe];
+    const perPersonAmount = Math.round(expense.amountCents / allInvolved.length);
+
+    if (expense.paidBy === "You") {
+      // You paid, so others owe you their shares
+      const othersOweYou = peopleWhoOwe.length * perPersonAmount;
+      return net + othersOweYou;
+    } else if (peopleWhoOwe.includes("You")) {
+      // You owe this payer your share
+      return net - perPersonAmount;
+    }
+    // You're not involved in this expense
+    return net;
+  }, 0);
 
   const handleAddExpense = () => {
     const amountCents = Math.round(parseFloat(amount) * 100);
@@ -61,9 +76,11 @@ function SkiWeekendPreview() {
   };
 
   const getOwedByText = (expense: Expense) => {
-    const others = PARTICIPANTS.filter((p) => p !== expense.paidBy);
-    if (others.length <= 2) return others.join(" & ");
-    return `${others.length} people`;
+    // If splitWith is defined, only those people owe; otherwise everyone except payer
+    const peopleWhoOwe = expense.splitWith ?? PARTICIPANTS.filter((p) => p !== expense.paidBy);
+    if (peopleWhoOwe.length === 1) return peopleWhoOwe[0];
+    if (peopleWhoOwe.length === 2) return peopleWhoOwe.join(" & ");
+    return `${peopleWhoOwe.length} people`;
   };
 
   return (
