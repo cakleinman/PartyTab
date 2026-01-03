@@ -30,8 +30,8 @@ export function Header() {
       });
   }, [pathname]);
 
-  // Show upgrade for non-pro signed-in users
-  const showUpgrade = authStatus === "guest" || authStatus === "basic";
+  // Show upgrade for signed-in users, login for signed-out
+  const isSignedIn = authStatus === "guest" || authStatus === "basic" || authStatus === "pro";
 
   return (
     <header className="border-b border-ink-100 bg-sand-50/80 backdrop-blur">
@@ -45,11 +45,11 @@ export function Header() {
           </Link>
           <InstallAppButton />
           {authStatus === "signed_out" && (
-            <Link href="/login" className="font-medium text-ink-700 hover:text-ink-900">
-              Sign in
+            <Link href="/login" className="font-medium text-green-700 hover:text-green-800">
+              Login
             </Link>
           )}
-          {showUpgrade && (
+          {isSignedIn && (
             <Link href="/upgrade" className="font-medium text-green-700 hover:text-green-800">
               Upgrade
             </Link>
