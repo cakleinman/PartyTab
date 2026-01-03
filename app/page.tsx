@@ -32,7 +32,11 @@ function SkiWeekendPreview() {
   const [note, setNote] = useState("");
   const [amount, setAmount] = useState("");
   const [paidBy, setPaidBy] = useState("You");
+  const [splitWith, setSplitWith] = useState<string[]>([]); // Empty = everyone owes
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Get participants who can owe (everyone except the payer)
+  const potentialOwers = PARTICIPANTS.filter((p) => p !== paidBy);
 
   // Calculate totals
   const totalCents = expenses.reduce((sum, e) => sum + e.amountCents, 0);
@@ -66,13 +70,22 @@ function SkiWeekendPreview() {
       note: note.trim(),
       paidBy,
       amountCents,
+      // Only set splitWith if specific people selected, otherwise undefined = everyone
+      splitWith: splitWith.length > 0 && splitWith.length < potentialOwers.length ? splitWith : undefined,
     };
 
     setExpenses([newExpense, ...expenses]);
     setNote("");
     setAmount("");
     setPaidBy("You");
+    setSplitWith([]);
     setShowForm(false);
+  };
+
+  const toggleOwer = (person: string) => {
+    setSplitWith((prev) =>
+      prev.includes(person) ? prev.filter((p) => p !== person) : [...prev, person]
+    );
   };
 
   const getOwedByText = (expense: Expense) => {
@@ -129,7 +142,11 @@ function SkiWeekendPreview() {
               </div>
               <select
                 value={paidBy}
-                onChange={(e) => setPaidBy(e.target.value)}
+                onChange={(e) => {
+                  setPaidBy(e.target.value);
+                  // Clear splitWith selections that include the new payer
+                  setSplitWith((prev) => prev.filter((p) => p !== e.target.value));
+                }}
                 className="rounded-lg border border-sand-200 bg-white px-3 py-2 text-sm focus:border-teal-400 focus:outline-none"
               >
                 {PARTICIPANTS.map((p) => (
@@ -138,6 +155,36 @@ function SkiWeekendPreview() {
                   </option>
                 ))}
               </select>
+            </div>
+            {/* Who owes selector */}
+            <div>
+              <p className="mb-1.5 text-[10px] uppercase tracking-wide text-ink-500">Who owes?</p>
+              <div className="flex flex-wrap gap-1.5">
+                {potentialOwers.map((person) => {
+                  const isSelected = splitWith.length === 0 || splitWith.includes(person);
+                  return (
+                    <button
+                      key={person}
+                      type="button"
+                      onClick={() => toggleOwer(person)}
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                        isSelected
+                          ? "bg-ink-900 text-white"
+                          : "bg-sand-100 text-ink-500 hover:bg-sand-200"
+                      }`}
+                    >
+                      {person}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-1 text-[10px] text-ink-400">
+                {splitWith.length === 0
+                  ? "Everyone owes"
+                  : splitWith.length === potentialOwers.length
+                  ? "Everyone owes"
+                  : `${splitWith.length} ${splitWith.length === 1 ? "person owes" : "people owe"}`}
+              </p>
             </div>
             <button
               onClick={handleAddExpense}
