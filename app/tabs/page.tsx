@@ -19,6 +19,7 @@ type TabSummary = {
   endDate: string | null;
   createdAt: string;
   closedAt: string | null;
+  isCreator: boolean;
   settlementProgress: {
     total: number;
     confirmed: number;
@@ -120,7 +121,18 @@ export default function TabsPage() {
             >
               <div className="flex items-center justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-semibold text-ink-900">{tab.name}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-ink-900">{tab.name}</h2>
+                    {tab.isCreator ? (
+                      <span className="rounded bg-ink-900 px-1.5 py-0.5 text-[10px] font-medium text-sand-50">
+                        Owner
+                      </span>
+                    ) : (
+                      <span className="rounded bg-sand-200 px-1.5 py-0.5 text-[10px] font-medium text-ink-500">
+                        Member
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-ink-500">
                     Started {tab.startDate} · {tab.status === "ACTIVE" ? "Active" : "Closed"}
                   </p>

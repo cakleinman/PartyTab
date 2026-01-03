@@ -27,6 +27,7 @@ export async function GET() {
         endDate: true,
         createdAt: true,
         closedAt: true,
+        createdByUserId: true,
         settlement: {
           select: {
             transfers: {
@@ -55,6 +56,7 @@ export async function GET() {
           endDate: tab.endDate ? tab.endDate.toISOString().slice(0, 10) : null,
           createdAt: tab.createdAt.toISOString(),
           closedAt: tab.closedAt ? tab.closedAt.toISOString() : null,
+          isCreator: tab.createdByUserId === user.id,
           settlementProgress: tab.status === "CLOSED" ? {
             total: totalTransfers,
             confirmed: confirmedCount,
