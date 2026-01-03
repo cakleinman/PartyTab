@@ -271,7 +271,7 @@ export default function LandingPage() {
   return (
     <div className="space-y-16">
       {/* Hero section with ski weekend preview */}
-      <section className="grid gap-10 lg:grid-cols-[1fr_1fr]">
+      <section className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-start">
         <div className="space-y-6">
           <p className="text-xs uppercase tracking-[0.35em] text-ink-500">
             Perfect for: <CyclingActivity />
