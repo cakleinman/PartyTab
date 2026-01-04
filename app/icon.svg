@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Sand background with rounded corners -->
+  <rect width="32" height="32" rx="6" fill="#fbf7f0"/>
+
+  <!-- Pizza crust (outer ring) -->
+  <circle cx="16" cy="16" r="13" fill="#e8a849"/>
+
+  <!-- Cheese/sauce base -->
+  <circle cx="16" cy="16" r="10.5" fill="#f4c56e"/>
+
+  <!-- Slice lines -->
+  <line x1="16" y1="3" x2="16" y2="29" stroke="#e8a849" stroke-width="1.2"/>
+  <line x1="3" y1="16" x2="29" y2="16" stroke="#e8a849" stroke-width="1.2"/>
+  <line x1="6.8" y1="6.8" x2="25.2" y2="25.2" stroke="#e8a849" stroke-width="1.2"/>
+  <line x1="25.2" y1="6.8" x2="6.8" y2="25.2" stroke="#e8a849" stroke-width="1.2"/>
+
+  <!-- Pepperoni -->
+  <circle cx="10" cy="10" r="2.2" fill="#c0392b"/>
+  <circle cx="22" cy="10" r="2.2" fill="#c0392b"/>
+  <circle cx="10" cy="22" r="2.2" fill="#c0392b"/>
+  <circle cx="22" cy="22" r="2.2" fill="#c0392b"/>
+  <circle cx="16" cy="16" r="1.8" fill="#c0392b"/>
+  <circle cx="16" cy="7" r="1.5" fill="#c0392b"/>
+  <circle cx="16" cy="25" r="1.5" fill="#c0392b"/>
+  <circle cx="7" cy="16" r="1.5" fill="#c0392b"/>
+  <circle cx="25" cy="16" r="1.5" fill="#c0392b"/>
+</svg>
