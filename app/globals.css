@@ -9,6 +9,15 @@
   --ink-500: #6f6a61;
   --ink-300: #a8a29a;
   --mint-400: #54b9a7;
+  --teal-50: #f0f9f8;
+  --teal-100: #ccede8;
+  --teal-200: #a8e0d9;
+  --teal-600: #54b9a7;
+  --teal-700: #429b8b;
+  --teal-800: #357d70;
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-600: #ea580c;
 }
 
 @theme inline {
@@ -20,6 +29,15 @@
   --color-ink-500: var(--ink-500);
   --color-ink-300: var(--ink-300);
   --color-mint-400: var(--mint-400);
+  --color-teal-50: var(--teal-50);
+  --color-teal-100: var(--teal-100);
+  --color-teal-200: var(--teal-200);
+  --color-teal-600: var(--teal-600);
+  --color-teal-700: var(--teal-700);
+  --color-teal-800: var(--teal-800);
+  --color-orange-50: var(--orange-50);
+  --color-orange-100: var(--orange-100);
+  --color-orange-600: var(--orange-600);
   --font-display: var(--font-display);
   --font-body: var(--font-body);
 }
@@ -77,4 +95,92 @@ button,
 .btn-secondary:hover {
   border-color: var(--ink-500);
   color: var(--ink-900);
+}
+
+/* Animation utilities */
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(27, 26, 24, 0);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(27, 26, 24, 0.15);
+  }
+}
+
+@keyframes flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 2s infinite ease-in-out;
+}
+
+.flow-line {
+  stroke-dasharray: 6 6;
+  animation: flow 3s linear infinite;
+}
+
+/* Carousel text transitions */
+.carousel-text {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+
+.carousel-hidden {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.carousel-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Interactive card rotation on desktop only */
+@media (min-width: 1024px) {
+  .interactive-card {
+    transform: rotate(-1deg);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .interactive-card:hover,
+  .interactive-card:focus-within {
+    transform: rotate(0deg) scale(1.01);
+    box-shadow: 0 25px 30px -5px rgb(0 0 0 / 0.1);
+  }
+}
+
+/* Custom scrollbar hiding */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Focus styles */
+input:focus,
+select:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(84, 185, 167, 0.2);
+  border-color: var(--teal-600);
 }
