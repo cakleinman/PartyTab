@@ -40,9 +40,18 @@ export function Header() {
           PartyTab
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <Link href="/tabs" className="hidden text-ink-500 hover:text-ink-700 sm:inline">
-            Keep the party going.
-          </Link>
+          {isSignedIn ? (
+            <Link
+              href="/tabs"
+              className="hidden animate-subtle-pulse rounded-full bg-green-600 px-4 py-1.5 font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md sm:inline-block"
+            >
+              Keep the party going →
+            </Link>
+          ) : (
+            <Link href="/tabs" className="hidden text-ink-500 hover:text-ink-700 sm:inline">
+              Keep the party going.
+            </Link>
+          )}
           <InstallAppButton />
           {authStatus === "signed_out" && (
             <Link href="/login" className="font-medium text-green-700 hover:text-green-800">

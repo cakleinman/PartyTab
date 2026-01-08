@@ -120,6 +120,15 @@ button,
   }
 }
 
+@keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3), 0 0 0 0 rgba(22, 163, 74, 0);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.4), 0 0 0 4px rgba(22, 163, 74, 0.15);
+  }
+}
+
 @keyframes flow {
   to {
     stroke-dashoffset: -24;
@@ -132,6 +141,10 @@ button,
 
 .animate-gentle-pulse {
   animation: gentlePulse 2s infinite ease-in-out;
+}
+
+.animate-subtle-pulse {
+  animation: subtlePulse 2.5s infinite ease-in-out;
 }
 
 .flow-line {
