@@ -43,9 +43,10 @@ export function Header() {
           {isSignedIn ? (
             <Link
               href="/tabs"
-              className="hidden animate-subtle-pulse rounded-full bg-green-600 px-4 py-1.5 font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md sm:inline-block"
+              className="animate-subtle-pulse rounded-full bg-green-600 px-3 py-1.5 font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md sm:px-4"
             >
-              Keep the party going →
+              <span className="sm:hidden">My Tabs →</span>
+              <span className="hidden sm:inline">Keep the party going →</span>
             </Link>
           ) : (
             <Link href="/tabs" className="hidden text-ink-500 hover:text-ink-700 sm:inline">
