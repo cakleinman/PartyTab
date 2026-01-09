@@ -97,7 +97,7 @@ export default function UpgradePage() {
             </a>
           </div>
 
-          {/* Basic Tier */}
+          {/* Member Tier */}
           <div className={`rounded-3xl border-2 p-6 space-y-5 relative ${
             currentTier === "BASIC"
               ? "border-green-500 bg-green-50"
@@ -111,7 +111,7 @@ export default function UpgradePage() {
               </span>
             </div>
             <div className="pt-2">
-              <h2 className="text-xl font-semibold">Basic</h2>
+              <h2 className="text-xl font-semibold">Member</h2>
               <p className="mt-1 text-sm text-ink-500">
                 Perfect for tab creators
               </p>
@@ -212,7 +212,7 @@ export default function UpgradePage() {
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-                <span>Everything in Basic</span>
+                <span>Everything in Member</span>
               </li>
               <li className="flex items-start gap-2">
                 <SparkleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
