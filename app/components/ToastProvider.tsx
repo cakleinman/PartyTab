@@ -15,15 +15,15 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   return (
-    <div className="rounded-2xl border border-sand-200 bg-white/95 px-4 py-3 text-sm text-ink-700 shadow-md backdrop-blur-sm">
-      <div className="flex items-start justify-between gap-3">
-        <span className="flex-1 break-words leading-tight">{toast.message}</span>
+    <div className="pointer-events-auto w-full max-w-xs animate-fade-in-up rounded-2xl border border-sand-200 bg-white p-4 text-center shadow-xl ring-1 ring-ink-900/5 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-3">
+        <span className="text-sm font-medium text-ink-900 break-words">{toast.message}</span>
         <button
           type="button"
           onClick={() => onDismiss(toast.id)}
-          className="shrink-0 text-xs font-semibold text-ink-500 hover:text-ink-700 pt-0.5"
+          className="rounded-full bg-sand-100 px-4 py-1.5 text-xs font-semibold text-ink-700 hover:bg-sand-200"
         >
-          Close
+          Okay
         </button>
       </div>
     </div>
@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       {toasts.length > 0 && (
-        <div className="fixed bottom-12 left-4 right-4 z-[100] flex flex-col gap-2 sm:bottom-6 sm:left-auto sm:right-6 sm:w-full sm:max-w-sm">
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4 pointer-events-none p-6 bg-black/5 backdrop-blur-[1px]">
           {toasts.map((toast) => (
             <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
           ))}
