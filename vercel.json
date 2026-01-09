@@ -1,0 +1,15 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "partytab.vercel.app"
+        }
+      ],
+      "destination": "https://partytab.app/:path*",
+      "permanent": true
+    }
+  ]
+}
