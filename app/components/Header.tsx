@@ -45,8 +45,8 @@ export function Header() {
               href="/tabs"
               className="animate-subtle-pulse rounded-full bg-green-600 px-3 py-1.5 font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md sm:px-4"
             >
-              <span className="sm:hidden">My Tabs →</span>
-              <span className="hidden sm:inline">Keep the party going →</span>
+              <span className="sm:hidden">My Tabs</span>
+              <span className="hidden sm:inline">Keep the party going</span>
             </Link>
           ) : (
             <Link href="/tabs" className="hidden text-ink-500 hover:text-ink-700 sm:inline">
