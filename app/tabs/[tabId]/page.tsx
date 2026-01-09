@@ -71,7 +71,7 @@ export default function TabDashboard() {
       .finally(() => {
         setLoading(false);
       });
-  }, [tabId]);
+  }, [tabId, pushToast]);
 
   if (loading) {
     return <p className="text-sm text-ink-500">Loading tab…</p>;
@@ -185,7 +185,7 @@ export default function TabDashboard() {
           {tab.yourNetCents === 0 ? (
             <>
               <p className="mt-2 text-2xl font-semibold">Even</p>
-              <p className="mt-1 text-sm text-ink-500">You're all squared up.</p>
+              <p className="mt-1 text-sm text-ink-500">You&apos;re all squared up.</p>
             </>
           ) : tab.yourNetCents > 0 ? (
             <>

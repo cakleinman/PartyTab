@@ -60,7 +60,7 @@ export default function ExpensesPage() {
         pushToast("Network error loading expenses.");
       })
       .finally(() => setLoading(false));
-  }, [tabId]);
+  }, [tabId, pushToast]);
 
   const filteredExpenses = useMemo(() => {
     if (payerFilter === "all") return expenses;

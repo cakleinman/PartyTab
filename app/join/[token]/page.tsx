@@ -8,7 +8,6 @@ export default function JoinPage() {
   const params = useParams<{ token: string }>();
   const router = useRouter();
   const token = params?.token;
-  const [tabId, setTabId] = useState<string | null>(null);
   const [tabName, setTabName] = useState<string | null>(null);
   const [tabStatus, setTabStatus] = useState<"ACTIVE" | "CLOSED" | null>(null);
   const [displayName, setDisplayName] = useState("");
@@ -26,7 +25,6 @@ export default function JoinPage() {
     ])
       .then(([inviteData, meData]) => {
         if (inviteData?.tab?.name) {
-          setTabId(inviteData.tab.id);
           setTabName(inviteData.tab.name);
           setTabStatus(inviteData.tab.status);
         } else {

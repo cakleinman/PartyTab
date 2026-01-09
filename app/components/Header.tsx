@@ -61,7 +61,7 @@ export function Header() {
           )}
           {isSignedIn && (
             <Link href="/upgrade" className="font-medium text-green-700 hover:text-green-800">
-              Upgrade
+              {authStatus === "pro" ? "Pro" : "Upgrade"}
             </Link>
           )}
         </nav>

@@ -45,7 +45,12 @@ async function run() {
   const { response: createRes, data: createData } = await host.request("/api/tabs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: "Smoke Test", description: "CLI smoke", displayName: "Host" }),
+    body: JSON.stringify({
+      name: "Smoke Test",
+      description: "CLI smoke",
+      displayName: "Host",
+      pin: "1234",
+    }),
   });
   if (!createRes.ok) throw new Error(`Create tab failed: ${JSON.stringify(createData)}`);
   const tabId = createData.tab.id;
@@ -59,7 +64,7 @@ async function run() {
   const joinRes = await guest.request(`/api/invites/${token}/join`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ displayName: "Guest" }),
+    body: JSON.stringify({ displayName: "Guest", pin: "4321" }),
   });
   if (!joinRes.response.ok) throw new Error(`Join failed: ${JSON.stringify(joinRes.data)}`);
 

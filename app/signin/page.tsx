@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { InfoTooltip } from "@/app/components/InfoTooltip";
 
@@ -18,7 +19,7 @@ export default function SignInPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data?.user?.id) {
-          router.push("/home");
+          router.push("/tabs");
         }
       })
       .finally(() => setLoading(false));
@@ -42,7 +43,7 @@ export default function SignInPage() {
       return;
     }
 
-    router.push("/home");
+    router.push("/tabs");
   };
 
   if (loading) {
@@ -99,9 +100,9 @@ export default function SignInPage() {
 
       <p className="text-center text-sm text-ink-500">
         Don&apos;t have an account?{" "}
-        <a href="/tabs/new" className="font-medium text-ink-700 underline">
+        <Link href="/tabs/new" className="font-medium text-ink-700 underline">
           Create a tab
-        </a>{" "}
+        </Link>{" "}
         or join one via invite link.
       </p>
     </div>

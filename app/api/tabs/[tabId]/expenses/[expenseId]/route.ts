@@ -97,6 +97,8 @@ export async function GET(
         paidByParticipantId: expense.paidByParticipantId,
         createdByUserId: expense.createdByUserId,
         createdAt: expense.createdAt.toISOString(),
+        receiptSubtotalCents: expense.receiptSubtotalCents,
+        receiptTaxCents: expense.receiptTaxCents,
         splits: expense.splits.map((split) => ({
           participantId: split.participantId,
           amountCents: split.amountCents,

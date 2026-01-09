@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
+import { formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
 import { ProPreviewModal } from "@/app/components/ProPreviewModal";
 import {
@@ -50,6 +51,21 @@ export default function NewExpensePage() {
 
   // Receipt items (will be populated when receipt is uploaded/parsed)
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
+
+  // Receipt upload state (for claim mode)
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+
+  // Add participant inline
+  const [showAddParticipant, setShowAddParticipant] = useState(false);
+  const [newParticipantName, setNewParticipantName] = useState("");
+  const [addingParticipant, setAddingParticipant] = useState(false);
+
+  // Tip state (for receipt/claim mode)
+  const [tipMode, setTipMode] = useState<"percent" | "amount">("percent");
+  const [tipValue, setTipValue] = useState("");
 
   // Get current participant ID for claim panel
   const currentParticipantId = useMemo(() => {
@@ -121,16 +137,18 @@ export default function NewExpensePage() {
 
   const canSubmit = useMemo(() => {
     if (tabStatus === "CLOSED") return false;
-    if (amountCents <= 0) return false;
 
     switch (splitMode) {
       case "split":
-        return splitParticipantIds.length > 0;
+        return amountCents > 0 && splitParticipantIds.length > 0;
       case "custom":
-        return splitSumCents === amountCents;
+        return amountCents > 0 && splitSumCents === amountCents;
       case "claim":
-        // At least one item must be claimed
-        return receiptItems.some((item) => item.claimedBy.length > 0);
+        // Allow saving with receipt file even without amount (will be parsed)
+        if (receiptFile) return true;
+        // Or if we have claimed items with an amount
+        if (amountCents > 0 && receiptItems.some((item) => item.claimedBy.length > 0)) return true;
+        return false;
       default:
         return false;
     }
@@ -141,7 +159,15 @@ export default function NewExpensePage() {
     splitParticipantIds,
     splitSumCents,
     receiptItems,
+    receiptFile,
   ]);
+
+  // Handle receipt file selection (creates local preview)
+  const handleReceiptUpload = (file: File) => {
+    setReceiptFile(file);
+    const url = URL.createObjectURL(file);
+    setReceiptPreviewUrl(url);
+  };
 
   const handleClaimToggle = (itemId: string, participantId: string) => {
     setReceiptItems((prev) =>
@@ -176,6 +202,36 @@ export default function NewExpensePage() {
     );
   };
 
+  const handleAddParticipant = async (event?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
+    event?.preventDefault();
+    if (!tabId || !newParticipantName.trim()) return;
+
+    setAddingParticipant(true);
+    try {
+      const res = await fetch(`/api/tabs/${tabId}/participants`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ displayName: newParticipantName.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        pushToast(data?.error?.message ?? "Could not add person.");
+        return;
+      }
+
+      // Add new participant to list
+      setParticipants((prev) => [...prev, data.participant]);
+      setNewParticipantName("");
+      setShowAddParticipant(false);
+      pushToast(`${data.participant.displayName} added!`);
+    } catch {
+      pushToast("Network error adding person.");
+    } finally {
+      setAddingParticipant(false);
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!tabId) return;
@@ -195,6 +251,25 @@ export default function NewExpensePage() {
       paidByParticipantId: paidBy,
     };
 
+    // Calculate tip in cents for receipt mode
+    const calculateTipCents = (): number => {
+      if (!tipValue || tipValue === "0") return 0;
+      const tipNum = parseFloat(tipValue);
+      if (isNaN(tipNum) || tipNum <= 0) return 0;
+
+      if (tipMode === "amount") {
+        // Direct dollar amount
+        return Math.round(tipNum * 100);
+      } else {
+        // Percentage - but we don't know receipt total yet, so store as-is
+        // The API will need to handle this after parsing
+        // For now, we'll pass the percentage and let the expense detail page handle it
+        // Actually, we can't calculate % without knowing the total...
+        // So we'll pass both tipPercent and tipAmount, and API uses what it can
+        return 0; // Will be calculated after receipt is parsed
+      }
+    };
+
     if (splitMode === "custom") {
       try {
         const splits = participants.map((participant) => ({
@@ -208,14 +283,36 @@ export default function NewExpensePage() {
         return;
       }
     } else if (splitMode === "claim") {
-      // Convert claim totals to splits
-      const splits = Object.entries(claimTotals).map(
-        ([participantId, amountCents]) => ({
-          participantId,
-          amountCents,
-        })
-      );
-      payload.splits = splits;
+      if (receiptItems.length > 0) {
+        // Convert claim totals to splits
+        const splits = Object.entries(claimTotals).map(
+          ([participantId, amountCents]) => ({
+            participantId,
+            amountCents,
+          })
+        );
+        payload.splits = splits;
+      } else if (receiptFile) {
+        // Receipt mode - amount will be populated after parsing
+        payload.receiptMode = true;
+        // For percentage tip, we need to calculate after receipt is parsed
+        // For fixed amount tip, we can calculate now
+        if (tipMode === "amount" && tipValue) {
+          payload.tipCents = calculateTipCents();
+        } else if (tipMode === "percent" && tipValue) {
+          // Store tip percentage - will be calculated after parsing on the detail page
+          // For now, we'll store it but the parse endpoint will need the receipt total
+          // Actually, let's simplify: require user to enter tip as $ amount for now
+          // Or we can calculate based on a rough estimate
+          payload.tipPercent = parseFloat(tipValue) || 0;
+        }
+        payload.evenSplit = true;
+        payload.splitParticipantIds = participants.map((p) => p.id);
+      } else {
+        // No items yet - use even split as placeholder, will be updated after parsing
+        payload.evenSplit = true;
+        payload.splitParticipantIds = participants.map((p) => p.id);
+      }
     } else {
       // Even split mode
       if (splitParticipantIds.length === 0) {
@@ -239,6 +336,36 @@ export default function NewExpensePage() {
       return;
     }
 
+    const expenseId = data.expense?.id;
+
+    // If claim mode with receipt file, upload and parse it
+    if (splitMode === "claim" && receiptFile && expenseId) {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append("file", receiptFile);
+
+      const uploadRes = await fetch(
+        `/api/tabs/${tabId}/expenses/${expenseId}/receipt`,
+        { method: "POST", body: formData }
+      );
+
+      if (uploadRes.ok) {
+        setIsUploading(false);
+        setIsParsing(true);
+        // Parse the receipt
+        await fetch(
+          `/api/tabs/${tabId}/expenses/${expenseId}/receipt/parse`,
+          { method: "POST" }
+        );
+        setIsParsing(false);
+      }
+
+      // Redirect to expense detail page to claim items
+      pushToast("Receipt uploaded! Claim your items.");
+      router.push(`/tabs/${tabId}/expenses/${expenseId}`);
+      return;
+    }
+
     pushToast("Expense saved.");
     router.push(`/tabs/${tabId}`);
   };
@@ -252,7 +379,7 @@ export default function NewExpensePage() {
 
   return (
     <div className="max-w-2xl space-y-6">
-      <a
+      <Link
         href={`/tabs/${tabId}`}
         className="inline-flex items-center gap-1 text-sm text-ink-500 hover:text-ink-700"
       >
@@ -270,11 +397,11 @@ export default function NewExpensePage() {
           />
         </svg>
         Back to tab
-      </a>
+      </Link>
       <div>
         <h1 className="text-3xl font-semibold">Add expense</h1>
         <p className="text-sm text-ink-500">
-          Log what was paid and how it's split.
+          Log what was paid and how it&apos;s split.
         </p>
       </div>
 
@@ -386,6 +513,10 @@ export default function NewExpensePage() {
                 participants={participants}
                 currentParticipantId={currentParticipantId}
                 onClaimToggle={handleClaimToggle}
+                onReceiptUpload={handleReceiptUpload}
+                uploadedReceipt={receiptPreviewUrl ? { url: receiptPreviewUrl } : null}
+                isUploading={isUploading}
+                isParsing={isParsing}
                 disabled={isDisabled}
               />
             )}
@@ -400,6 +531,59 @@ export default function NewExpensePage() {
               />
             )}
           </div>
+
+          {/* Add participant inline */}
+          {!isDisabled && (
+            <div className="border-t border-sand-200 pt-3">
+              {showAddParticipant ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newParticipantName}
+                    onChange={(e) => setNewParticipantName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddParticipant();
+                      }
+                    }}
+                    placeholder="Name"
+                    className="flex-1 rounded-xl border border-sand-200 px-3 py-2 text-sm"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddParticipant()}
+                    disabled={addingParticipant || !newParticipantName.trim()}
+                    className="rounded-xl bg-ink-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  >
+                    {addingParticipant ? "…" : "Add"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddParticipant(false);
+                      setNewParticipantName("");
+                    }}
+                    className="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-500"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowAddParticipant(true)}
+                  className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add person to tab
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}

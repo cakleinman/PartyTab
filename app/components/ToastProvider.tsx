@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       {toasts.length > 0 && (
-        <div className="fixed bottom-6 right-6 z-50 grid w-[min(360px,90vw)] gap-3">
+        <div className="fixed bottom-6 left-1/2 z-50 grid w-full max-w-[360px] -translate-x-1/2 gap-3 px-4 sm:bottom-6 sm:left-auto sm:right-6 sm:w-auto sm:translate-x-0 sm:px-0">
           {toasts.map((toast) => (
             <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
           ))}

@@ -3,17 +3,20 @@ import { PrismaClient, TabStatus } from "@prisma/client";
 import { confirmAcknowledgement, initiateAcknowledgement } from "@/lib/settlement/acknowledgement";
 import { resetDatabase } from "@/lib/dev/seed";
 
-const databaseUrl = process.env.DATABASE_URL || process.env.DATABASE_URL_LOCAL;
+const databaseUrl = process.env.DATABASE_URL_LOCAL || process.env.DATABASE_URL;
+const runDbTests = ["1", "true", "yes"].includes(
+  (process.env.RUN_DB_TESTS ?? "").toLowerCase()
+);
 
-if (databaseUrl) {
+if (runDbTests && databaseUrl) {
   process.env.DATABASE_URL = databaseUrl;
 }
 
-const prisma = databaseUrl ? new PrismaClient() : null;
+const prisma = runDbTests && databaseUrl ? new PrismaClient() : null;
 
 describe("settlement acknowledgements", () => {
-  if (!databaseUrl || !prisma) {
-    it.skip("DATABASE_URL not set", () => {});
+  if (!runDbTests || !databaseUrl || !prisma) {
+    it.skip("RUN_DB_TESTS not set or DATABASE_URL missing", () => {});
     return;
   }
 

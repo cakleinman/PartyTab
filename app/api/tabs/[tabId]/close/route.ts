@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
-import { created, error as apiError, ok, validationError } from "@/lib/api/response";
+import { created, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireTab } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";

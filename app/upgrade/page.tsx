@@ -103,15 +103,17 @@ export default function UpgradePage() {
               ? "border-green-500 bg-green-50"
               : "border-green-300 bg-white/80"
           }`}>
-            <div className="absolute -top-3 left-6">
-              <span className={`rounded-full px-3 py-1 text-xs font-medium text-white ${
-                currentTier === "BASIC" ? "bg-green-600" : "bg-green-500"
-              }`}>
-                {currentTier === "BASIC" ? "Your plan" : "Recommended"}
-              </span>
-            </div>
-            <div className="pt-2">
-              <h2 className="text-xl font-semibold">Member</h2>
+            {(currentTier === "BASIC" || currentTier === "GUEST" || currentTier === null) && (
+              <div className="absolute -top-3 left-6">
+                <span className={`rounded-full px-3 py-1 text-xs font-medium text-white ${
+                  currentTier === "BASIC" ? "bg-green-600" : "bg-green-500"
+                }`}>
+                  {currentTier === "BASIC" ? "Your plan" : "Recommended"}
+                </span>
+              </div>
+            )}
+            <div className={currentTier === "BASIC" || currentTier === "GUEST" || currentTier === null ? "pt-2" : ""}>
+              <h2 className="text-xl font-semibold">Basic</h2>
               <p className="mt-1 text-sm text-ink-500">
                 Perfect for tab creators
               </p>

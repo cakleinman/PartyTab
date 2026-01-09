@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PartyTab - Mobile Optimized V6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sand: { 50: '#fbf7f0', 100: '#f5efe2', 200: '#eadfcd' },
+                        ink: { 900: '#1b1a18', 700: '#3c3a36', 500: '#6f6a61', 300: '#a8a29a' },
+                        teal: { 600: '#54b9a7', 700: '#429b8b', 50: '#f0f9f8', 100: '#ccede8' }
+                    },
+                    fontFamily: {
+                        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        body: ['Work Sans', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.4s ease-out forwards',
+                        'gentle-pulse': 'gentlePulse 2s infinite ease-in-out',
+                        'flow': 'flow 3s linear infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        gentlePulse: {
+                            '0%, 100%': { transform: 'scale(1)', boxShadow: '0 0 0 0 rgba(27, 26, 24, 0)' },
+                            '50%': { transform: 'scale(1.05)', boxShadow: '0 4px 12px rgba(27, 26, 24, 0.15)' },
+                        },
+                        flow: { 'to': { strokeDashoffset: '-24' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Work Sans', sans-serif; background-color: #fbf7f0; color: #1b1a18; -webkit-tap-highlight-color: transparent; }
+        h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+        .carousel-text { transition: opacity 0.3s ease, transform 0.3s ease; display: inline-block; }
+        .carousel-hidden { opacity: 0; transform: translateY(10px); }
+        .carousel-visible { opacity: 1; transform: translateY(0); }
+        
+        /* Rotation only on desktop */
+        @media (min-width: 1024px) {
+            .interactive-card { transform: rotate(-1deg); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+            .interactive-card:hover, .interactive-card:focus-within { transform: rotate(0deg) scale(1.01); box-shadow: 0 25px 30px -5px rgb(0 0 0 / 0.1); }
+        }
+        
+        input:focus, select:focus { outline: none; box-shadow: 0 0 0 4px rgba(84, 185, 167, 0.2); border-color: #54b9a7; }
+        .flow-line { stroke-dasharray: 6 6; animation: flow 3s linear infinite; }
+        
+        /* Custom scrollbar for better mobile feel */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="p-4 md:p-6 max-w-7xl mx-auto w-full flex justify-between items-center bg-sand-50/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="font-bold text-xl tracking-tight">PartyTab</div>
+        <a href="#" class="text-sm font-semibold text-ink-700 hover:text-ink-900 transition-colors bg-sand-100 px-4 py-2 rounded-full">Sign in</a>
+    </nav>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-12 space-y-24 md:space-y-32">
+        <!-- Hero Section -->
+        <section class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center pt-8 md:pt-16">
+            <div class="space-y-8 md:space-y-10 text-center lg:text-left">
+                <div class="space-y-4">
+                    <p class="text-[10px] md:text-xs font-bold uppercase tracking-[0.2em] text-ink-500 bg-sand-100 inline-block px-3 py-1 rounded-full">
+                        Perfect for: <span id="activity-carousel" class="text-teal-600 carousel-visible">Ski weekends</span>
+                    </p>
+                    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] text-ink-900">
+                        Enjoy the trip.<br>
+                        <span class="text-teal-600">We'll handle the tab.</span>
+                    </h1>
+                </div>
+                
+                <p class="text-lg md:text-xl text-ink-700 max-w-lg mx-auto lg:mx-0 leading-relaxed">
+                    Throw expenses in as you go. We track who paid what and figure out the simplest way to settle up at the end.
+                </p>
+
+                <!-- Start Flow -->
+                <div class="bg-white p-2 rounded-[2rem] shadow-lg shadow-sand-200/50 border border-sand-200 max-w-md mx-auto lg:mx-0 flex flex-col sm:flex-row gap-2 transform transition-all group focus-within:ring-4 ring-sand-200/50">
+                    <input type="text" placeholder="Name your trip (e.g. Miami 🏖️)" class="flex-1 bg-transparent border-none px-6 py-4 text-base md:text-lg placeholder:text-ink-300 rounded-xl focus:shadow-none focus:ring-0">
+                    <button class="bg-ink-900 text-sand-50 px-8 py-4 rounded-[1.5rem] font-semibold hover:bg-ink-700 transition-colors shrink-0 flex items-center justify-center gap-2 group-focus-within:bg-teal-600 active:scale-95 transition-transform">
+                        Start Tab <span>&rarr;</span>
+                    </button>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 sm:gap-6 text-xs font-medium text-ink-500 pl-2">
+                    <span class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-teal-600"></div>App download optional</span>
+                    <span class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-teal-600"></div>Free for everyone</span>
+                </div>
+            </div>
+
+            <!-- Interactive Preview -->
+            <div class="relative pt-6 max-w-md mx-auto w-full">
+                <div class="absolute -top-12 -right-6 w-32 h-32 bg-teal-100 rounded-full blur-3xl opacity-60"></div>
+                <div class="absolute bottom-12 -left-8 w-40 h-40 bg-orange-100 rounded-full blur-3xl opacity-60"></div>
+                
+                <div id="app-container" class="interactive-card relative rounded-[2rem] border border-sand-200 bg-white/95 p-4 sm:p-6 shadow-xl shadow-sand-200/50 backdrop-blur-sm">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                                <p class="text-[9px] font-bold uppercase tracking-widest text-ink-500">LIVE DEMO</p>
+                            </div>
+                            <h2 class="text-xl sm:text-2xl font-bold">Ski Weekend 🎿</h2>
+                        </div>
+                        <button id="btn-add-expense" class="animate-gentle-pulse bg-ink-900 text-white text-[10px] sm:text-xs font-bold px-4 py-2 rounded-full hover:bg-ink-700 transition-colors">
+                            + Add Expense
+                        </button>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="bg-sand-50 p-3 sm:p-4 rounded-2xl border border-sand-100">
+                            <p class="text-[9px] uppercase tracking-wider text-ink-500 mb-1">Total Spent</p>
+                            <p class="text-lg sm:text-xl font-bold text-ink-900" id="total-spent">$0.00</p>
+                        </div>
+                        <div class="bg-sand-50 p-3 sm:p-4 rounded-2xl border border-sand-100 transition-colors" id="net-container">
+                            <p class="text-[9px] uppercase tracking-wider text-ink-500 mb-1">Your Net</p>
+                            <p class="text-lg sm:text-xl font-bold text-ink-900" id="your-net">$0.00</p>
+                            <p class="text-[9px] text-ink-500" id="net-status">You're even</p>
+                        </div>
+                    </div>
+
+                    <!-- Enhanced Expense Form (Optimized for Mobile) -->
+                    <div id="expense-form" class="hidden mb-6 bg-teal-50/50 rounded-2xl p-4 border border-teal-200 animate-fade-in-up space-y-4">
+                        <div class="space-y-1">
+                            <p class="text-[10px] uppercase tracking-wide text-ink-500 font-bold">What was it for?</p>
+                            <input type="text" id="input-note" placeholder="Dinner, Airbnb, etc." class="w-full rounded-lg border border-sand-200 bg-white px-3 py-3 text-sm focus:border-teal-400">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="space-y-1">
+                                <p class="text-[10px] uppercase tracking-wide text-ink-500 font-bold">How much?</p>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-500">$</span>
+                                    <input type="number" id="input-amount" placeholder="0" class="w-full rounded-lg border border-sand-200 bg-white py-3 pl-7 pr-3 text-sm focus:border-teal-400">
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-[10px] uppercase tracking-wide text-ink-500 font-bold">Paid by</p>
+                                <select id="input-payer" class="w-full rounded-lg border border-sand-200 bg-white px-3 py-3 text-sm focus:border-teal-400">
+                                    <option value="You">You paid</option>
+                                    <option value="Alex">Alex paid</option>
+                                    <option value="Jamie">Jamie paid</option>
+                                    <option value="Sam">Sam paid</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Who Owes Section -->
+                        <div class="space-y-2">
+                            <p class="text-[10px] uppercase tracking-wide text-ink-500 font-bold">Who owes?</p>
+                            <div class="flex flex-wrap gap-2" id="ower-buttons">
+                                <!-- Generated by JS -->
+                            </div>
+                            <p class="text-[10px] text-ink-400" id="ower-summary">Everyone owes</p>
+                        </div>
+
+                        <button id="btn-submit-expense" class="w-full rounded-lg bg-teal-600 py-3 text-sm font-bold text-white transition-colors hover:bg-teal-700 shadow-md active:scale-[0.98] transition-transform">
+                            Add to tab
+                        </button>
+                    </div>
+
+                    <!-- Expense List -->
+                    <div class="space-y-2 max-h-[260px] overflow-y-auto pr-1 no-scrollbar" id="expense-list">
+                        <!-- Items injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Section -->
+        <section class="border-t border-sand-200 pt-20">
+            <div class="text-center max-w-2xl mx-auto mb-16 px-4">
+                <h2 class="text-3xl sm:text-4xl font-bold text-ink-900 mb-6">No more passing the same $20 bill around.</h2>
+                <p class="text-lg text-ink-700 leading-relaxed">
+                    Instead of Alex paying Jamie, and Jamie paying Sam, and Sam paying Alex... PartyTab just figures out who owes what and cancels out the rest.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 lg:gap-12 items-stretch">
+                <!-- Spreadsheet Way -->
+                <div class="bg-white rounded-[2rem] p-6 sm:p-8 border border-sand-200 relative overflow-hidden group hover:border-sand-300 transition-colors">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-sand-200"></div>
+                    <h3 class="text-sm font-bold mb-10 text-ink-500 uppercase tracking-[0.2em] text-center">The "Spreadsheet" Way</h3>
+                    <div class="overflow-x-auto no-scrollbar">
+                        <svg viewBox="0 0 400 200" class="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto">
+                            <circle cx="100" cy="50" r="28" fill="#f5efe2" stroke="#eadfcd" stroke-width="2"/>
+                            <text x="100" y="55" text-anchor="middle" font-size="24">🧑‍🦰</text>
+                            <text x="100" y="95" text-anchor="middle" font-size="13" fill="#6f6a61" font-weight="600">Alex</text>
+                            <circle cx="300" cy="50" r="28" fill="#f5efe2" stroke="#eadfcd" stroke-width="2"/>
+                            <text x="300" y="55" text-anchor="middle" font-size="24">👩‍🦱</text>
+                            <text x="300" y="95" text-anchor="middle" font-size="13" fill="#6f6a61" font-weight="600">Jamie</text>
+                            <circle cx="200" cy="150" r="28" fill="#f5efe2" stroke="#eadfcd" stroke-width="2"/>
+                            <text x="200" y="155" text-anchor="middle" font-size="24">🧔</text>
+                            <text x="200" y="195" text-anchor="middle" font-size="13" fill="#6f6a61" font-weight="600">Sam</text>
+                            <defs><marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#a8a29a" /></marker></defs>
+                            <path d="M135,50 L265,50" stroke="#a8a29a" stroke-width="2" marker-end="url(#arrow-gray)" stroke-dasharray="4" />
+                            <text x="200" y="40" text-anchor="middle" font-size="11" font-weight="bold" fill="#a8a29a">$20</text>
+                            <path d="M290,75 L225,135" stroke="#a8a29a" stroke-width="2" marker-end="url(#arrow-gray)" stroke-dasharray="4" />
+                            <text x="275" y="115" text-anchor="middle" font-size="11" font-weight="bold" fill="#a8a29a">$20</text>
+                            <path d="M175,135 L110,75" stroke="#a8a29a" stroke-width="2" marker-end="url(#arrow-gray)" stroke-dasharray="4" />
+                            <text x="125" y="115" text-anchor="middle" font-size="11" font-weight="bold" fill="#a8a29a">$15</text>
+                        </svg>
+                    </div>
+                    <div class="mt-6 text-center"><span class="inline-block bg-sand-100 text-ink-500 text-xs px-3 py-1 rounded-full font-medium">Confusing, right?</span></div>
+                </div>
+
+                <!-- PartyTab Way -->
+                <div class="bg-sand-50 rounded-[2rem] p-6 sm:p-8 border border-teal-100 relative overflow-hidden ring-1 ring-teal-100/50">
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-teal-500"></div>
+                    <h3 class="text-sm font-bold mb-10 text-teal-700 uppercase tracking-[0.2em] text-center">The PartyTab Way</h3>
+                    <div class="overflow-x-auto no-scrollbar">
+                        <svg viewBox="0 0 400 200" class="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto">
+                            <circle cx="100" cy="50" r="28" fill="#fff" stroke="#54b9a7" stroke-width="2"/>
+                            <text x="100" y="55" text-anchor="middle" font-size="24">🧑‍🦰</text>
+                            <text x="100" y="95" text-anchor="middle" font-size="13" fill="#1b1a18" font-weight="700">Alex</text>
+                            <circle cx="300" cy="50" r="28" fill="#fff" stroke="#54b9a7" stroke-width="2"/>
+                            <text x="300" y="55" text-anchor="middle" font-size="24">👩‍🦱</text>
+                            <text x="300" y="95" text-anchor="middle" font-size="13" fill="#1b1a18" font-weight="700">Jamie</text>
+                            <circle cx="200" cy="150" r="28" fill="#fff" stroke="#54b9a7" stroke-width="2"/>
+                            <text x="200" y="155" text-anchor="middle" font-size="24">🧔</text>
+                            <text x="200" y="195" text-anchor="middle" font-size="13" fill="#1b1a18" font-weight="700">Sam</text>
+                            <defs><marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#54b9a7" /></marker></defs>
+                            <path d="M125,70 L175,120" stroke="#54b9a7" stroke-width="3" marker-end="url(#arrow-teal)" class="flow-line" />
+                            <rect x="132" y="90" width="36" height="20" rx="6" fill="#fff" stroke="#54b9a7" stroke-width="1.5"/>
+                            <text x="150" y="104" text-anchor="middle" font-size="11" font-weight="bold" fill="#54b9a7">$5</text>
+                        </svg>
+                    </div>
+                    <div class="mt-6 text-center"><span class="inline-block bg-teal-100 text-teal-800 text-xs px-3 py-1 rounded-full font-bold">One simple payment settles everything.</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom CTA -->
+        <section class="rounded-[2rem] md:rounded-[2.5rem] bg-ink-900 px-6 py-12 md:py-16 text-center shadow-xl shadow-ink-900/10 mb-8 md:mb-12">
+            <h2 class="text-2xl sm:text-3xl font-bold text-sand-50 mb-4">Ready to stop chasing payments?</h2>
+            <p class="text-ink-300 mb-8 max-w-lg mx-auto text-sm sm:text-base">Create a tab in seconds. App download optional.</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button class="bg-teal-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-500 transition-colors shadow-lg shadow-teal-900/50 active:scale-95">
+                    Start a PartyTab
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="py-8 text-center text-xs text-ink-500 border-t border-sand-200">
+        &copy; 2026 PartyTab. All rights reserved.
+    </footer>
+
+    <script>
+        // --- 1. Carousel Logic ---
+        const activities = ["Ski weekends", "Bachelor parties", "Road trips", "Group dinners", "Roommate bills", "Concert tickets"];
+        let actIndex = 0;
+        const carouselEl = document.getElementById('activity-carousel');
+        setInterval(() => {
+            carouselEl.classList.remove('carousel-visible');
+            carouselEl.classList.add('carousel-hidden');
+            setTimeout(() => {
+                actIndex = (actIndex + 1) % activities.length;
+                carouselEl.textContent = activities[actIndex];
+                carouselEl.classList.remove('carousel-hidden');
+                carouselEl.classList.add('carousel-visible');
+            }, 300);
+        }, 2500);
+
+        // --- 2. Interactive App Logic ---
+        const ALL_PARTICIPANTS = ["You", "Alex", "Jamie", "Sam"];
+        let expenses = [
+            { id: 1, note: "Cabin rental", paidBy: "Jamie", amount: 800.00, splitWith: ["You", "Alex", "Sam"] },
+            { id: 2, note: "Lift tickets", paidBy: "Alex", amount: 480.00, splitWith: ["You", "Jamie", "Sam"] },
+            { id: 3, note: "Groceries", paidBy: "You", amount: 156.00, splitWith: ["Alex", "Jamie", "Sam"] },
+        ];
+        let selectedSplit = [];
+
+        const listEl = document.getElementById('expense-list');
+        const totalEl = document.getElementById('total-spent');
+        const netEl = document.getElementById('your-net');
+        const netStatusEl = document.getElementById('net-status');
+        const netContainer = document.getElementById('net-container');
+        const form = document.getElementById('expense-form');
+        const addBtn = document.getElementById('btn-add-expense');
+        const submitBtn = document.getElementById('btn-submit-expense');
+        const noteInput = document.getElementById('input-note');
+        const amountInput = document.getElementById('input-amount');
+        const payerInput = document.getElementById('input-payer');
+        const owerButtonsEl = document.getElementById('ower-buttons');
+        const owerSummaryEl = document.getElementById('ower-summary');
+
+        function formatMoney(amount) {
+            return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function updateOwerUI() {
+            const currentPayer = payerInput.value;
+            const potentialOwers = ALL_PARTICIPANTS.filter(p => p !== currentPayer);
+            owerButtonsEl.innerHTML = '';
+            potentialOwers.forEach(p => {
+                const btn = document.createElement('button');
+                const isSelected = selectedSplit.length === 0 || selectedSplit.includes(p);
+                btn.className = `rounded-full px-4 py-2 text-xs font-medium transition-colors ${
+                    isSelected ? "bg-ink-900 text-white" : "bg-sand-100 text-ink-500 hover:bg-sand-200"
+                }`;
+                btn.textContent = p;
+                btn.onclick = () => {
+                    if (selectedSplit.length === 0) selectedSplit = [...potentialOwers];
+                    if (selectedSplit.includes(p)) {
+                        selectedSplit = selectedSplit.filter(name => name !== p);
+                    } else {
+                        selectedSplit.push(p);
+                    }
+                    if (selectedSplit.length === potentialOwers.length) selectedSplit = [];
+                    updateOwerUI();
+                };
+                owerButtonsEl.appendChild(btn);
+            });
+            const count = selectedSplit.length === 0 ? potentialOwers.length : selectedSplit.length;
+            owerSummaryEl.textContent = (selectedSplit.length === 0 || selectedSplit.length === potentialOwers.length) ? "Everyone owes" : `${count} ${count === 1 ? 'person owes' : 'people owe'}`;
+        }
+
+        payerInput.addEventListener('change', () => { selectedSplit = []; updateOwerUI(); });
+
+        function render() {
+            listEl.innerHTML = '';
+            expenses.slice().reverse().forEach(exp => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 bg-white border border-sand-100 rounded-xl animate-fade-in-up hover:bg-sand-50 transition-colors";
+                const subtext = `${exp.paidBy} paid • ${exp.splitWith ? exp.splitWith.length + ' people owe' : 'Everyone owes'}`;
+                div.innerHTML = `<div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-sand-100 flex items-center justify-center text-[10px] font-bold text-ink-700 border border-sand-200">${exp.paidBy.slice(0,2).toUpperCase()}</div>
+                    <div class="min-w-0"><p class="font-medium text-xs text-ink-900 truncate">${exp.note}</p><p class="text-[9px] text-ink-500 truncate max-w-[120px]">${subtext}</p></div>
+                </div><span class="font-bold text-xs text-ink-900">${formatMoney(exp.amount)}</span>`;
+                listEl.appendChild(div);
+            });
+            const total = expenses.reduce((sum, e) => sum + e.amount, 0);
+            totalEl.textContent = formatMoney(total);
+            let net = 0;
+            expenses.forEach(e => {
+                const owers = e.splitWith || ALL_PARTICIPANTS.filter(p => p !== e.paidBy);
+                const totalInvolved = 1 + owers.length;
+                const share = e.amount / totalInvolved;
+                if (e.paidBy === 'You') net += (e.amount - share);
+                else if (owers.includes('You')) net -= share;
+            });
+            if (Math.abs(net) < 0.01) {
+                netEl.textContent = "Even"; netEl.className = "text-lg font-bold text-ink-900";
+                netStatusEl.textContent = "You're squared up";
+                netContainer.className = "bg-sand-50 p-3 rounded-2xl border border-sand-100";
+            } else if (net > 0) {
+                netEl.textContent = "+" + formatMoney(net); netEl.className = "text-lg font-bold text-teal-600";
+                netStatusEl.textContent = "Others owe you";
+                netContainer.className = "bg-teal-50 p-3 rounded-2xl border border-teal-100";
+            } else {
+                netEl.textContent = "-" + formatMoney(Math.abs(net)); netEl.className = "text-lg font-bold text-orange-600";
+                netStatusEl.textContent = "You owe others";
+                netContainer.className = "bg-orange-50 p-3 rounded-2xl border border-orange-100";
+            }
+        }
+
+        updateOwerUI(); render();
+        addBtn.addEventListener('click', () => {
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden'); addBtn.textContent = "Cancel"; addBtn.classList.remove('animate-gentle-pulse'); noteInput.focus();
+            } else {
+                form.classList.add('hidden'); addBtn.textContent = "+ Add Expense"; addBtn.classList.add('animate-gentle-pulse');
+            }
+        });
+        submitBtn.addEventListener('click', () => {
+            const note = noteInput.value.trim(); const amount = parseFloat(amountInput.value); const payer = payerInput.value;
+            if (note && amount > 0) {
+                expenses.push({ id: Date.now(), note, amount, paidBy: payer, splitWith: selectedSplit.length > 0 ? [...selectedSplit] : null });
+                render(); noteInput.value = ''; amountInput.value = ''; selectedSplit = []; updateOwerUI(); form.classList.add('hidden'); addBtn.textContent = "+ Add Expense"; addBtn.classList.add('animate-gentle-pulse');
+            }
+        });
+    </script>
+</body>
+</html>

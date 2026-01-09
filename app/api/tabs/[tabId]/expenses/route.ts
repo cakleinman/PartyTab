@@ -156,10 +156,22 @@ export async function POST(
 
     const participant = await requireParticipant(tabId, user.id);
     const body = await request.json();
-    const amountTotalCents = parseAmountToCents(body?.amount);
     const note = parseOptionalString(body?.note, 240);
     const date = parseDateInput(body?.date) ?? new Date();
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? participant.id, "paidByParticipantId");
+
+    // Receipt mode: amount can be 0/empty, tip is stored for later calculation
+    const isReceiptMode = body?.receiptMode === true;
+    const tipCents = typeof body?.tipCents === "number" && body.tipCents >= 0 ? Math.round(body.tipCents) : null;
+    const tipPercent = typeof body?.tipPercent === "number" && body.tipPercent >= 0 ? body.tipPercent : null;
+
+    // Amount is required unless in receipt mode (will be populated after parsing)
+    let amountTotalCents: number;
+    if (isReceiptMode && (!body?.amount || body.amount === "0" || body.amount === "")) {
+      amountTotalCents = 0; // Placeholder, will be updated after receipt parsing
+    } else {
+      amountTotalCents = parseAmountToCents(body?.amount);
+    }
 
     const participants = await prisma.participant.findMany({
       where: { tabId },
@@ -171,7 +183,10 @@ export async function POST(
       throwApiError(400, "validation_error", "Paid by participant must be in tab");
     }
 
-    const splits = parseSplits(body, amountTotalCents, participantIds);
+    // For receipt mode, create even split across all participants as placeholder
+    const splits = isReceiptMode && amountTotalCents === 0
+      ? participantIds.map(id => ({ participantId: id, amountCents: 0 }))
+      : parseSplits(body, amountTotalCents, participantIds);
 
     const expense = await prisma.expense.create({
       data: {
@@ -181,6 +196,8 @@ export async function POST(
         date,
         paidByParticipantId,
         createdByUserId: user.id,
+        receiptTipCents: tipCents,
+        receiptTipPercent: tipPercent,
         splits: {
           create: splits.map((split) => ({
             participantId: split.participantId,

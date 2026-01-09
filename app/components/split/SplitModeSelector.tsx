@@ -24,16 +24,12 @@ export function SplitModeSelector({
       onProPreview?.();
       return;
     }
-    if (hasReceiptItems) {
-      onChange("claim");
-    }
+    onChange("claim");
   };
 
-  const claimDisabled = disabled || (!hasProFeatures ? false : !hasReceiptItems);
+  const claimDisabled = disabled;
   const claimTitle = !hasProFeatures
     ? "Pro feature - click to learn more"
-    : !hasReceiptItems
-    ? "Upload a receipt to claim items"
     : undefined;
 
   return (
@@ -57,8 +53,8 @@ export function SplitModeSelector({
           mode === "claim"
             ? "bg-ink-900 text-white"
             : "text-ink-500 hover:bg-sand-100"
-        } ${claimDisabled && hasProFeatures ? "opacity-40 cursor-not-allowed" : ""}`}
-        disabled={claimDisabled && hasProFeatures}
+        } ${claimDisabled ? "opacity-40 cursor-not-allowed" : ""}`}
+        disabled={claimDisabled}
         title={claimTitle}
       >
         Claim

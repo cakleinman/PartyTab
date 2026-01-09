@@ -18,6 +18,10 @@ const bodyFont = Work_Sans({
 export const metadata: Metadata = {
   title: "PartyTab",
   description: "Track shared expenses, settle later.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon-192.png?v=2",
+  },
 };
 
 export default function RootLayout({

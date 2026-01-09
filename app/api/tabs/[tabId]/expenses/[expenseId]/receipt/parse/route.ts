@@ -24,10 +24,10 @@ export async function POST(
     }
     await requireParticipant(tabId, user.id);
 
-    // Get expense with receipt URL
+    // Get expense with receipt URL and tip settings
     const expense = await prisma.expense.findFirst({
       where: { id: expenseId, tabId },
-      select: { receiptUrl: true },
+      select: { receiptUrl: true, receiptTipCents: true, receiptTipPercent: true },
     });
     if (!expense) {
       throwApiError(404, "not_found", "Expense not found");
@@ -83,6 +83,26 @@ export async function POST(
       });
     }
 
+    // Update expense with parsed totals and amount (including tip)
+    const updateData: { receiptSubtotalCents?: number; receiptTaxCents?: number; amountTotalCents?: number } = {};
+    if (parsed.subtotalCents) {
+      updateData.receiptSubtotalCents = parsed.subtotalCents;
+    }
+    if (parsed.taxCents) {
+      updateData.receiptTaxCents = parsed.taxCents;
+    }
+    if (parsed.totalCents) {
+      // Add tip to the total if present
+      const tipCents = expense.receiptTipCents ?? 0;
+      updateData.amountTotalCents = parsed.totalCents + tipCents;
+    }
+    if (Object.keys(updateData).length > 0) {
+      await prisma.expense.update({
+        where: { id: expenseId },
+        data: updateData,
+      });
+    }
+
     // Fetch created items
     const items = await prisma.receiptItem.findMany({
       where: { expenseId },
@@ -116,7 +136,9 @@ export async function POST(
       parsed: {
         subtotalCents: parsed.subtotalCents,
         taxCents: parsed.taxCents,
+        tipCents: expense.receiptTipCents ?? 0,
         totalCents: parsed.totalCents,
+        grandTotalCents: (parsed.totalCents ?? 0) + (expense.receiptTipCents ?? 0),
       },
     });
   } catch (error) {

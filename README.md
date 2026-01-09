@@ -44,6 +44,20 @@ Reset the DB + seed:
 npm run db:reset
 ```
 
+## Migrations
+
+Local dev uses Prisma migrations:
+
+```bash
+npm run db:migrate
+```
+
+Production deploy uses:
+
+```bash
+npm run db:deploy
+```
+
 ## Environment Variables
 
 Create a `.env` file based on `.env.example` and set:
@@ -55,6 +69,13 @@ Create a `.env` file based on `.env.example` and set:
 
 `DIRECT_URL` is optional for Prisma migrations.
 
+Optional (receipt upload + parsing):
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `ANTHROPIC_API_KEY`
+
 ## Testing
 
 Tests use Vitest and run in Node.
@@ -62,6 +83,11 @@ Tests use Vitest and run in Node.
 ```bash
 npm run test
 ```
+
+Optional:
+
+- `SMOKE_BASE_URL=http://localhost:3000` to run API contract tests.
+- `RUN_DB_TESTS=true` to run DB-backed acknowledgement tests (requires `DATABASE_URL`).
 
 ## Dev Checklist
 

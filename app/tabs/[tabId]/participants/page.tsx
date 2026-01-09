@@ -55,7 +55,7 @@ export default function ParticipantsPage() {
         pushToast("Network error loading participants.");
       })
       .finally(() => setLoading(false));
-  }, [tabId]);
+  }, [tabId, pushToast]);
 
   const handleRemove = async (participantId: string, displayName: string) => {
     if (!confirm(`Remove ${displayName} from this tab?`)) return;

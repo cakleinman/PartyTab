@@ -18,7 +18,7 @@ export async function GET() {
       return ok({ user: null });
     }
     return ok({ user });
-  } catch (error) {
+  } catch {
     return apiError(500, "forbidden", "Unexpected error");
   }
 }

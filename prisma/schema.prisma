@@ -126,6 +126,12 @@ model Expense {
   // Receipt attachment
   receiptUrl String?
 
+  // Receipt parsed totals (for tax distribution)
+  receiptSubtotalCents Int?
+  receiptTaxCents      Int?
+  receiptTipCents      Int?
+  receiptTipPercent    Float? // Tip as percentage (e.g., 20.0 for 20%)
+
   tab          Tab            @relation(fields: [tabId], references: [id])
   paidBy       Participant    @relation("ExpensePayer", fields: [paidByParticipantId], references: [id])
   createdBy    User           @relation("ExpenseCreator", fields: [createdByUserId], references: [id])

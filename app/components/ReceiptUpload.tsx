@@ -10,13 +10,19 @@ export interface ReceiptItem {
   claimedBy: { participantId: string; displayName: string }[];
 }
 
+export interface ParsedTotals {
+  subtotalCents?: number;
+  taxCents?: number;
+  totalCents?: number;
+}
+
 interface ReceiptUploadProps {
   tabId: string;
   expenseId: string;
   initialReceipt?: { path: string; url: string } | null;
   onUploadComplete?: (receipt: { path: string; url: string }) => void;
   onDelete?: () => void;
-  onParseComplete?: (items: ReceiptItem[]) => void;
+  onParseComplete?: (items: ReceiptItem[], parsed?: ParsedTotals) => void;
   disabled?: boolean;
 }
 
@@ -53,7 +59,7 @@ export function ReceiptUpload({
         return;
       }
 
-      onParseComplete?.(data.items);
+      onParseComplete?.(data.items, data.parsed);
     } catch {
       setError("Parse failed");
     } finally {

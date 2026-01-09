@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
@@ -30,6 +30,8 @@ type ExpenseDetail = {
   paidByParticipantId: string;
   createdAt: string;
   createdByUserId: string;
+  receiptSubtotalCents?: number | null;
+  receiptTaxCents?: number | null;
   splits: { participantId: string; amountCents: number }[];
 };
 
@@ -58,8 +60,6 @@ export default function ExpenseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [amountCents, setAmountCents] = useState(0);
-  const [splitSumCents, setSplitSumCents] = useState(0);
   const [receipt, setReceipt] = useState<ReceiptData>(null);
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
   const [participantsWithUserId, setParticipantsWithUserId] = useState<ParticipantWithUserId[]>([]);
@@ -87,7 +87,6 @@ export default function ExpenseDetailPage() {
           setExpense(expenseData.expense);
           const formattedAmount = formatCentsPlain(expenseData.expense.amountTotalCents);
           setAmount(formattedAmount);
-          setAmountCents(expenseData.expense.amountTotalCents);
           setNote(expenseData.expense.note ?? "");
           setDate(expenseData.expense.date ?? "");
           setPaidBy(expenseData.expense.paidByParticipantId);
@@ -112,27 +111,25 @@ export default function ExpenseDetailPage() {
       .finally(() => setLoading(false));
   }, [tabId, expenseId]);
 
-  useEffect(() => {
+  const amountCents = useMemo(() => {
     try {
-      setAmountCents(parseCents(amount || "0"));
+      return parseCents(amount || "0");
     } catch {
-      setAmountCents(0);
+      return 0;
     }
   }, [amount]);
 
-  useEffect(() => {
+  const splitSumCents = useMemo(() => {
     if (!customSplit) {
-      setSplitSumCents(0);
-      return;
+      return 0;
     }
-    const sum = participants.reduce((total, participant) => {
+    return participants.reduce((total, participant) => {
       try {
         return total + parseCents(splitAmounts[participant.id] || "0");
       } catch {
         return total;
       }
     }, 0);
-    setSplitSumCents(sum);
   }, [customSplit, participants, splitAmounts]);
 
   const tabStatus = tab?.status ?? null;
@@ -346,8 +343,12 @@ export default function ExpenseDetailPage() {
               setReceiptItems([]);
               pushToast("Receipt removed.");
             }}
-            onParseComplete={(items) => {
+            onParseComplete={(items, parsed) => {
               setReceiptItems(items);
+              // Auto-update amount from parsed receipt total
+              if (parsed?.totalCents) {
+                setAmount(formatCentsPlain(parsed.totalCents));
+              }
               pushToast(`Parsed ${items.length} items.`);
             }}
             disabled={!canEdit}
@@ -356,32 +357,32 @@ export default function ExpenseDetailPage() {
 
         {receiptItems.length > 0 && (
           <div className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
-            <p className="text-sm font-semibold">Receipt Items</p>
-            <p className="text-xs text-ink-500">
-              Claim items you consumed. Shared items split among claimers.
-            </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-semibold">Receipt Items</p>
+                <p className="text-xs text-ink-500">
+                  Tap initials to claim. Shared items split evenly.
+                </p>
+              </div>
+              {expense?.receiptTaxCents && expense.receiptTaxCents > 0 && (
+                <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
+                  +{formatCents(expense.receiptTaxCents)} tax
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               {receiptItems.map((item) => {
-                const currentParticipant = participantsWithUserId.find(
-                  (p) => p.userId === userId
-                );
-                const isClaimed = currentParticipant
-                  ? item.claimedBy.some(
-                      (c) => c.participantId === currentParticipant.id
-                    )
-                  : false;
-
-                const handleClaimToggle = async () => {
-                  if (!currentParticipant) return;
+                const handleClaimToggle = async (participantId: string) => {
+                  const isClaimed = item.claimedBy.some(
+                    (c) => c.participantId === participantId
+                  );
                   const method = isClaimed ? "DELETE" : "POST";
                   const res = await fetch(
                     `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items/${item.id}/claims`,
                     {
                       method,
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        participantId: currentParticipant.id,
-                      }),
+                      body: JSON.stringify({ participantId }),
                     }
                   );
                   const data = await res.json();
@@ -395,44 +396,100 @@ export default function ExpenseDetailPage() {
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center justify-between rounded-xl border p-3 ${
-                      isClaimed
-                        ? "border-ink-300 bg-ink-50"
-                        : "border-sand-200 bg-white"
-                    }`}
+                    className="rounded-xl border border-sand-200 bg-white p-3"
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.name}</p>
-                      <div className="flex items-center gap-2 text-xs text-ink-500">
-                        <span>{formatCents(item.priceCents)}</span>
-                        {item.quantity > 1 && <span>× {item.quantity}</span>}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{item.name}</p>
+                        <div className="flex items-center gap-2 text-xs text-ink-500">
+                          <span>{formatCents(item.priceCents)}</span>
+                          {item.quantity > 1 && <span>× {item.quantity}</span>}
+                        </div>
                       </div>
-                      {item.claimedBy.length > 0 && (
-                        <p className="text-xs text-ink-400 mt-1 truncate">
-                          {item.claimedBy.map((c) => c.displayName).join(", ")}
-                        </p>
-                      )}
                     </div>
-                    {canEdit && currentParticipant && (
-                      <button
-                        type="button"
-                        onClick={handleClaimToggle}
-                        className={`ml-3 shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
-                          isClaimed
-                            ? "bg-ink-900 text-white"
-                            : "border border-ink-200 text-ink-500 hover:bg-sand-100"
-                        }`}
-                      >
-                        {isClaimed ? "Claimed" : "Claim"}
-                      </button>
-                    )}
+                    {/* Participant claim buttons */}
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {participants.map((participant) => {
+                        const isClaimed = item.claimedBy.some(
+                          (c) => c.participantId === participant.id
+                        );
+                        const initials = participant.displayName
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .slice(0, 2)
+                          .toUpperCase();
+                        return (
+                          <button
+                            key={participant.id}
+                            type="button"
+                            onClick={() => handleClaimToggle(participant.id)}
+                            disabled={!canEdit}
+                            title={participant.displayName}
+                            className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${
+                              isClaimed
+                                ? "bg-ink-900 text-white"
+                                : "bg-sand-100 text-ink-400 hover:bg-sand-200"
+                            } ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
+                          >
+                            {initials}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 );
               })}
             </div>
+
+            {/* Split summary with tax distribution */}
+            {(() => {
+              const totals: Record<string, number> = {};
+              let itemSubtotal = 0;
+              receiptItems.forEach((item) => {
+                if (item.claimedBy.length > 0) {
+                  const splitAmount = Math.floor(item.priceCents / item.claimedBy.length);
+                  item.claimedBy.forEach((claim) => {
+                    totals[claim.participantId] = (totals[claim.participantId] || 0) + splitAmount;
+                    itemSubtotal += splitAmount;
+                  });
+                }
+              });
+              // Add proportional tax
+              const taxCents = expense?.receiptTaxCents || 0;
+              const baseSubtotal = expense?.receiptSubtotalCents || itemSubtotal;
+              if (taxCents > 0 && itemSubtotal > 0) {
+                Object.keys(totals).forEach((participantId) => {
+                  const share = totals[participantId] / baseSubtotal;
+                  totals[participantId] += Math.round(share * taxCents);
+                });
+              }
+              const hasAnyClaims = Object.keys(totals).length > 0;
+              if (!hasAnyClaims) return null;
+              return (
+                <div className="rounded-xl bg-sand-100 p-3 space-y-1 mt-3">
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs font-medium text-ink-700">Split Summary</p>
+                    {taxCents > 0 && (
+                      <p className="text-xs text-ink-500">incl. tax</p>
+                    )}
+                  </div>
+                  {participants
+                    .filter((p) => totals[p.id])
+                    .map((participant) => (
+                      <div key={participant.id} className="flex justify-between text-xs text-ink-600">
+                        <span>{participant.displayName}</span>
+                        <span>{formatCents(totals[participant.id])}</span>
+                      </div>
+                    ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
+        {/* Hide split section when using claim mode (receipt items exist) */}
+        {receiptItems.length === 0 && (
         <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -520,6 +577,7 @@ export default function ExpenseDetailPage() {
             </div>
           )}
         </div>
+        )}
 
         {error && <p className="text-sm text-ink-500">{error}</p>}
 

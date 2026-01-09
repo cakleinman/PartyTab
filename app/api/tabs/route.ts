@@ -65,7 +65,7 @@ export async function GET() {
         };
       }),
     });
-  } catch (error) {
+  } catch {
     return apiError(500, "forbidden", "Unexpected error");
   }
 }
