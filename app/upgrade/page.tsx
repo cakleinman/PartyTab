@@ -117,8 +117,8 @@ export default function UpgradePage() {
               </p>
             </div>
 
-            <div className="text-3xl font-bold">
-              $0<span className="text-base font-normal text-ink-400">/month</span>
+            <div className="text-2xl font-bold">
+              Free<span className="text-base font-normal text-ink-400"> with Google sign in</span>
             </div>
 
             <ul className="space-y-3 text-sm">
