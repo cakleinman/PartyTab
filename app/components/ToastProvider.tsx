@@ -15,13 +15,13 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   return (
-    <div className="rounded-2xl border border-sand-200 bg-white/90 px-4 py-3 text-sm text-ink-700 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <span>{toast.message}</span>
+    <div className="rounded-2xl border border-sand-200 bg-white/95 px-4 py-3 text-sm text-ink-700 shadow-md backdrop-blur-sm">
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex-1 break-words leading-tight">{toast.message}</span>
         <button
           type="button"
           onClick={() => onDismiss(toast.id)}
-          className="text-xs font-semibold text-ink-500"
+          className="shrink-0 text-xs font-semibold text-ink-500 hover:text-ink-700 pt-0.5"
         >
           Close
         </button>
@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts((prev) => [...prev, { id, message }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 3000);
+    }, 5000);
   }, []);
 
   const dismiss = useCallback((id: string) => {
@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       {toasts.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 z-50 grid w-full max-w-[360px] -translate-x-1/2 gap-3 px-4 sm:bottom-6 sm:left-auto sm:right-6 sm:w-auto sm:translate-x-0 sm:px-0">
+        <div className="fixed bottom-12 left-4 right-4 z-[100] flex flex-col gap-2 sm:bottom-6 sm:left-auto sm:right-6 sm:w-full sm:max-w-sm">
           {toasts.map((toast) => (
             <ToastItem key={toast.id} toast={toast} onDismiss={dismiss} />
           ))}
