@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { InfoTooltip } from "@/app/components/InfoTooltip";
+import { AccessCard } from "@/app/components/AccessCard";
 
 type TabInfo = {
   id: string;
@@ -17,10 +17,13 @@ export default function ClaimPage() {
 
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [tabs, setTabs] = useState<TabInfo[]>([]);
-  const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [claimSuccess, setClaimSuccess] = useState<{
+    displayName: string;
+    pin: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -51,7 +54,7 @@ export default function ClaimPage() {
     const res = await fetch(`/api/users/claim/${token}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pin }),
+      body: JSON.stringify({}),
     });
     const data = await res.json();
 
@@ -61,7 +64,14 @@ export default function ClaimPage() {
       return;
     }
 
-    // Redirect to first tab, or tabs list if multiple
+    // Show access card with generated PIN
+    setClaimSuccess({
+      displayName: data.displayName,
+      pin: data.pin,
+    });
+  };
+
+  const handleContinue = () => {
     if (tabs.length === 1) {
       router.push(`/tabs/${tabs[0].id}`);
     } else {
@@ -71,6 +81,18 @@ export default function ClaimPage() {
 
   if (loading) {
     return <p className="text-sm text-ink-500">Loading…</p>;
+  }
+
+  if (claimSuccess) {
+    return (
+      <div className="max-w-xl">
+        <AccessCard
+          displayName={claimSuccess.displayName}
+          pin={claimSuccess.pin}
+          onContinue={handleContinue}
+        />
+      </div>
+    );
   }
 
   if (error && !displayName) {
@@ -113,33 +135,16 @@ export default function ClaimPage() {
         onSubmit={handleClaim}
         className="space-y-5 rounded-3xl border border-sand-200 bg-white/80 p-6"
       >
-        <label className="grid gap-2 text-sm">
-          <span>
-            Create a PIN
-            <InfoTooltip text="A 4-digit code to access your account. Use this same name + PIN to log in from another device." />
-          </span>
-          <input
-            type="password"
-            inputMode="numeric"
-            maxLength={4}
-            value={pin}
-            onChange={(event) =>
-              setPin(event.target.value.replace(/\D/g, "").slice(0, 4))
-            }
-            className="rounded-2xl border border-sand-200 px-4 py-2"
-            placeholder="4 digits"
-            required
-          />
-        </label>
-
+        <p className="text-sm text-ink-500">
+          We&apos;ll create a PIN for you to access your account from any device.
+        </p>
         {error && <p className="text-sm text-red-600">{error}</p>}
-
         <button
           type="submit"
-          disabled={claiming || pin.length !== 4}
+          disabled={claiming}
           className="btn-primary w-full rounded-full px-6 py-3 text-sm font-semibold disabled:opacity-50"
         >
-          {claiming ? "Claiming…" : "Claim account"}
+          {claiming ? "Setting up…" : "Claim account"}
         </button>
       </form>
     </div>

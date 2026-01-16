@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { hashPin, isValidPin } from "@/lib/auth/pin";
+import { generatePin, hashPin } from "@/lib/auth/pin";
 import { setSessionUserId } from "@/lib/session/session";
 
 /**
@@ -80,14 +80,8 @@ export async function POST(
       throwApiError(410, "already_claimed", "This account has already been claimed");
     }
 
-    const body = await request.json();
-    const pin = body?.pin;
-
-    if (!pin || !isValidPin(pin)) {
-      throwApiError(400, "validation_error", "PIN must be exactly 4 digits");
-    }
-
-    // Update user with PIN and mark token as claimed
+    // Generate a random 4-digit PIN server-side
+    const pin = generatePin();
     const pinHash = hashPin(pin);
 
     await prisma.$transaction([
@@ -108,6 +102,7 @@ export async function POST(
       success: true,
       userId: claimToken.userId,
       displayName: claimToken.user.displayName,
+      pin,
     });
   } catch (error) {
     if (isApiError(error)) {

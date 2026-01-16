@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { InfoTooltip } from "@/app/components/InfoTooltip";
+import { AccessCard } from "@/app/components/AccessCard";
 
 export default function JoinPage() {
   const params = useParams<{ token: string }>();
@@ -16,6 +17,11 @@ export default function JoinPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
+  const [joinSuccess, setJoinSuccess] = useState<{
+    displayName: string;
+    pin: string;
+    tabId: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -69,6 +75,16 @@ export default function JoinPage() {
       return;
     }
 
+    // Show access card for new users with generated PIN
+    if (data.pin) {
+      setJoinSuccess({
+        displayName: data.displayName,
+        pin: data.pin,
+        tabId: data.tabId,
+      });
+      return;
+    }
+
     // Redirect to settlement if tab is closed, otherwise to tab dashboard
     if (data.redirectToSettlement) {
       router.push(`/tabs/${data.tabId}/settlement`);
@@ -76,6 +92,24 @@ export default function JoinPage() {
       router.push(`/tabs/${data.tabId}`);
     }
   };
+
+  const handleContinue = () => {
+    if (joinSuccess) {
+      router.push(`/tabs/${joinSuccess.tabId}`);
+    }
+  };
+
+  if (joinSuccess) {
+    return (
+      <div className="max-w-xl">
+        <AccessCard
+          displayName={joinSuccess.displayName}
+          pin={joinSuccess.pin}
+          onContinue={handleContinue}
+        />
+      </div>
+    );
+  }
 
   if (loading) {
     return <p className="text-sm text-ink-500">Loading invite…</p>;
@@ -149,36 +183,18 @@ export default function JoinPage() {
       </p>
       <form onSubmit={handleJoin} className="space-y-5 rounded-3xl border border-sand-200 bg-white/80 p-6">
         {!hasUser && (
-          <>
-            <label className="grid gap-2 text-sm">
-              <span>
-                Display name
-                <InfoTooltip text="Your name as shown to other participants in this tab. Choose something they'll recognize you by." />
-              </span>
-              <input
-                value={displayName}
-                onChange={(event) => setDisplayName(event.target.value)}
-                className="rounded-2xl border border-sand-200 px-4 py-2"
-                required
-              />
-            </label>
-            <label className="grid gap-2 text-sm">
-              <span>
-                PIN
-                <InfoTooltip text="A 4-digit code to identify you. Use this same name + PIN to access your account from another device." />
-              </span>
-              <input
-                type="password"
-                inputMode="numeric"
-                maxLength={4}
-                value={pin}
-                onChange={(event) => setPin(event.target.value.replace(/\D/g, "").slice(0, 4))}
-                className="rounded-2xl border border-sand-200 px-4 py-2"
-                placeholder="4 digits"
-                required
-              />
-            </label>
-          </>
+          <label className="grid gap-2 text-sm">
+            <span>
+              Display name
+              <InfoTooltip text="Your name as shown to other participants in this tab. Choose something they'll recognize you by." />
+            </span>
+            <input
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              className="rounded-2xl border border-sand-200 px-4 py-2"
+              required
+            />
+          </label>
         )}
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button
