@@ -13,7 +13,8 @@ export type ErrorCode =
   | "pro_required"
   | "limit_exceeded"
   | "internal_error"
-  | "email_exists";
+  | "email_exists"
+  | "upgrade_required";
 
 export function error(status: number, code: ErrorCode, message: string, details?: unknown) {
   return NextResponse.json(

@@ -78,6 +78,15 @@ export async function POST(request: Request) {
     const description = parseDescription(body?.description);
     const startDate = parseDateInput(body?.startDate) ?? new Date();
 
+    // Guests cannot create tabs - must upgrade to Basic or Pro
+    if (user.subscriptionTier === "GUEST") {
+      throwApiError(
+        403,
+        "upgrade_required",
+        "Creating tabs requires a free account. Sign in with Google or email to create tabs."
+      );
+    }
+
     // Check tab limit for non-Pro users
     if (user.subscriptionTier !== "PRO") {
       const activeTabCount = await prisma.tab.count({
