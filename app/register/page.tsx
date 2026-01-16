@@ -124,10 +124,13 @@ export default function RegisterPage() {
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2"
-            placeholder="What should we call you?"
+            placeholder="What do your friends call you?"
             maxLength={40}
             required
           />
+          <p className="mt-1 text-xs text-ink-400">
+            Use your real name so tab members can recognize you
+          </p>
         </label>
 
         <label className="block">
@@ -183,6 +186,18 @@ export default function RegisterPage() {
         <Link href="/login" className="font-medium text-ink-700 underline">
           Sign in
         </Link>
+      </p>
+
+      <p className="text-center text-xs text-ink-400">
+        By creating an account, you agree to PartyTab&apos;s{" "}
+        <Link href="/terms" className="underline hover:text-ink-600">
+          terms of service
+        </Link>{" "}
+        and{" "}
+        <Link href="/privacy" className="underline hover:text-ink-600">
+          privacy policy
+        </Link>
+        .
       </p>
     </div>
   );
