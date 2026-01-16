@@ -61,6 +61,19 @@ model User {
   acknowledgementsInitiated    SettlementAcknowledgement[] @relation("AckInitiated")
   acknowledgementsAcknowledged SettlementAcknowledgement[] @relation("AckAcknowledged")
   claimTokens                  UserClaimToken[]
+
+  // Pro / Billing
+  stripeCustomer      StripeCustomer?
+  stripeSubscriptions StripeSubscription[]
+  entitlement         Entitlement?
+  receiptUsage        ReceiptUsage[]
+  receipts            Receipt[]
+
+  // Reminders / Notifications
+  createdReminderSettings TabReminderSetting[]
+  reminderLogs            TabReminderLog[]
+  pushSubscriptions       PushSubscription[]
+  emailPreference         EmailPreference?
 }
 
 // Claim token for placeholder users (added by others, claimed via link)
@@ -91,6 +104,11 @@ model Tab {
   settlement       Settlement?
   invites          Invite[]
   acknowledgements SettlementAcknowledgement[]
+
+  // Pro
+  receipts         Receipt[]
+  reminderSettings TabReminderSetting?
+  reminderLogs     TabReminderLog[]
 }
 
 model Participant {
@@ -126,11 +144,12 @@ model Expense {
   // Receipt attachment
   receiptUrl String?
 
-  // Receipt parsed totals (for tax distribution)
+  // Receipt parsed totals (for tax/tip/fee distribution)
   receiptSubtotalCents Int?
   receiptTaxCents      Int?
   receiptTipCents      Int?
   receiptTipPercent    Float? // Tip as percentage (e.g., 20.0 for 20%)
+  receiptFeeCents      Int?   // Service fees, admin fees, convenience fees, etc.
 
   tab          Tab            @relation(fields: [tabId], references: [id])
   paidBy       Participant    @relation("ExpensePayer", fields: [paidByParticipantId], references: [id])
@@ -228,4 +247,129 @@ model Invite {
 
   tab       Tab  @relation(fields: [tabId], references: [id])
   createdBy User @relation("InviteCreator", fields: [createdByUserId], references: [id])
+}
+
+// --- New Models for PartyTab Pro ---
+
+model StripeCustomer {
+  userId           String   @id @db.Uuid @map("user_id")
+  stripeCustomerId String   @unique @map("stripe_customer_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@map("stripe_customers")
+}
+
+model StripeSubscription {
+  id                   String   @id @default(uuid()) @db.Uuid
+  userId               String   @db.Uuid @map("user_id")
+  stripeSubscriptionId String   @unique @map("stripe_subscription_id")
+  stripePriceId        String   @map("stripe_price_id")
+  stripeStatus         String   @map("stripe_status")
+  currentPeriodStart   DateTime @map("current_period_start")
+  currentPeriodEnd     DateTime @map("current_period_end")
+  cancelAtPeriodEnd    Boolean  @map("cancel_at_period_end")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@map("stripe_subscriptions")
+}
+
+model Entitlement {
+  userId      String    @id @db.Uuid @map("user_id")
+  plan        String // FREE | PRO
+  state       String // FREE | PRO_ACTIVE | PRO_PAST_DUE | PRO_CANCELED
+  effectiveAt DateTime  @default(now()) @map("effective_at")
+  expiresAt   DateTime? @map("expires_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@map("entitlements")
+}
+
+model StripeEvent {
+  eventId    String   @id @unique @map("event_id")
+  type       String
+  receivedAt DateTime @default(now()) @map("received_at")
+  @@map("stripe_events")
+}
+
+model ReceiptUsage {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  month     String // YYYY-MM
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, month])
+  @@map("receipt_usage")
+}
+
+model Receipt {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid @map("user_id")
+  tabId           String   @db.Uuid @map("tab_id")
+  imageStorageKey String   @map("image_storage_key")
+  parsedItemsJson String   @map("parsed_items_json") // JSON
+  taxTotalCents   Int      @map("tax_total_cents")
+  tipTotalCents   Int      @map("tip_total_cents")
+  feesTotalCents  Int      @map("fees_total_cents")
+  allocationJson  String   @map("allocation_json") // JSON
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  tab  Tab  @relation(fields: [tabId], references: [id])
+  @@map("receipts")
+}
+
+model TabReminderSetting {
+  tabId             String   @id @db.Uuid @map("tab_id")
+  enabled           Boolean  @default(false)
+  enabledAt         DateTime? @map("enabled_at")
+  scheduleDaysJson  String   @default("[3,7,14]") @map("schedule_days_json")
+  channelPush       Boolean  @default(true) @map("channel_push")
+  channelEmail      Boolean  @default(true) @map("channel_email")
+  createdByUserId   String   @db.Uuid @map("created_by_user_id")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  tab       Tab  @relation(fields: [tabId], references: [id])
+  createdBy User @relation(fields: [createdByUserId], references: [id])
+  @@map("tab_reminder_settings")
+}
+
+model TabReminderLog {
+  id              String   @id @default(uuid()) @db.Uuid
+  tabId           String   @db.Uuid @map("tab_id")
+  recipientUserId String   @db.Uuid @map("recipient_user_id")
+  channel         String // push | email
+  sentAt          DateTime @default(now()) @map("sent_at")
+  status          String // sent | skipped | failed
+  reason          String?
+
+  tab           Tab  @relation(fields: [tabId], references: [id])
+  recipientUser User @relation(fields: [recipientUserId], references: [id])
+  @@map("tab_reminder_log")
+}
+
+model PushSubscription {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid @map("user_id")
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@map("push_subscriptions")
+}
+
+model EmailPreference {
+  userId                String    @id @db.Uuid @map("user_id")
+  reminderEmailsEnabled Boolean   @default(true) @map("reminder_emails_enabled")
+  unsubscribedAt        DateTime? @map("unsubscribed_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@map("email_preferences")
 }
