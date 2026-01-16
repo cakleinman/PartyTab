@@ -10,7 +10,10 @@ export type ErrorCode =
   | "not_participant"
   | "already_claimed"
   | "tab_limit_reached"
-  | "internal_error";
+  | "pro_required"
+  | "limit_exceeded"
+  | "internal_error"
+  | "email_exists";
 
 export function error(status: number, code: ErrorCode, message: string, details?: unknown) {
   return NextResponse.json(

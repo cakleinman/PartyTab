@@ -1,20 +1,46 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { Suspense } from "react";
+import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 function LoginContent() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/tabs";
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl });
   };
 
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (result?.error) {
+      setError("Invalid email or password");
+      setLoading(false);
+      return;
+    }
+
+    window.location.href = callbackUrl;
+  };
+
   return (
-    <div className="min-h-[80vh] flex items-start justify-center bg-sand-50 px-4 pt-16">
-      <div className="w-full max-w-sm space-y-6">
+    <div className="min-h-screen flex items-start justify-center bg-sand-50 px-4 pt-8 md:pt-16">
+      <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-semibold">Sign in to PartyTab</h1>
           <p className="mt-2 text-sm text-ink-500">
@@ -23,6 +49,7 @@ function LoginContent() {
         </div>
 
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-6 space-y-4">
+          {/* Google Sign In */}
           <button
             onClick={handleGoogleSignIn}
             className="w-full flex items-center justify-center gap-3 rounded-full border border-sand-200 bg-white px-6 py-3 text-sm font-medium hover:bg-sand-50 transition"
@@ -57,12 +84,67 @@ function LoginContent() {
             </div>
           </div>
 
-          <a
-            href="/signin"
-            className="block w-full text-center rounded-full border border-sand-200 px-6 py-3 text-sm font-medium text-ink-600 hover:bg-sand-50 transition"
-          >
-            Continue as guest (PIN)
-          </a>
+          {/* Email Sign In */}
+          <form onSubmit={handleEmailSignIn} className="space-y-3">
+            <label className="block">
+              <span className="text-xs font-semibold text-ink-700">Email</span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2 text-sm placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-ink-900 focus:ring-offset-2"
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+
+            <label className="block">
+              <span className="text-xs font-semibold text-ink-700">Password</span>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2 text-sm placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-ink-900 focus:ring-offset-2"
+                placeholder="••••••••"
+                required
+              />
+            </label>
+
+            {error && (
+              <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full bg-ink-900 px-6 py-3 text-sm font-semibold text-white hover:bg-ink-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Signing in..." : "Sign in with Email"}
+            </button>
+          </form>
+        </div>
+
+        {/* Additional options */}
+        <div className="space-y-3 text-center">
+          <div>
+            <p className="text-xs text-ink-500">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="font-semibold text-ink-700 underline hover:text-ink-900">
+                Create one
+              </Link>
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-ink-500">
+              Prefer to pay later?{" "}
+              <Link href="/signin" className="font-semibold text-ink-700 underline hover:text-ink-900">
+                Sign in as guest (PIN)
+              </Link>
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-xs text-ink-400">
@@ -75,7 +157,11 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-sand-50"><p className="text-ink-500">Loading...</p></div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-sand-50">
+        <p className="text-ink-500">Loading...</p>
+      </div>
+    }>
       <LoginContent />
     </Suspense>
   );
