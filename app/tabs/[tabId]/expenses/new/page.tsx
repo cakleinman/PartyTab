@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { formatCentsPlain, parseCents } from "@/lib/money/cents";
+import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
 import { ProPreviewModal } from "@/app/components/ProPreviewModal";
 import {
@@ -45,9 +45,28 @@ export default function NewExpensePage() {
   const [paidBy, setPaidBy] = useState("");
 
   // Split mode state
-  const [splitMode, setSplitMode] = useState<SplitMode>("split");
+  const [splitMode, setSplitModeInternal] = useState<SplitMode>("split");
   const [splitParticipantIds, setSplitParticipantIds] = useState<string[]>([]);
   const [splitAmounts, setSplitAmounts] = useState<Record<string, string>>({});
+  const [hasRestoredState, setHasRestoredState] = useState(false);
+
+  // Wrap setSplitMode to persist to sessionStorage (handles mobile camera eviction)
+  const setSplitMode = (mode: SplitMode) => {
+    setSplitModeInternal(mode);
+    if (typeof window !== "undefined" && tabId) {
+      sessionStorage.setItem(`expense-mode-${tabId}`, mode);
+    }
+  };
+
+  // Restore split mode from sessionStorage on mount (handles mobile camera return)
+  useEffect(() => {
+    if (!tabId || hasRestoredState) return;
+    const saved = sessionStorage.getItem(`expense-mode-${tabId}`);
+    if (saved === "claim" || saved === "custom" || saved === "split") {
+      setSplitModeInternal(saved);
+    }
+    setHasRestoredState(true);
+  }, [tabId, hasRestoredState]);
 
   // Receipt items (will be populated when receipt is uploaded/parsed)
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
@@ -55,8 +74,30 @@ export default function NewExpensePage() {
   // Receipt upload state (for claim mode)
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreviewUrl, setReceiptPreviewUrl] = useState<string | null>(null);
+  const [receiptExpenseId, setReceiptExpenseIdInternal] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+
+  // Wrap setReceiptExpenseId to persist to sessionStorage
+  const setReceiptExpenseId = (id: string | null) => {
+    setReceiptExpenseIdInternal(id);
+    if (typeof window !== "undefined" && tabId) {
+      if (id) {
+        sessionStorage.setItem(`expense-receipt-id-${tabId}`, id);
+      } else {
+        sessionStorage.removeItem(`expense-receipt-id-${tabId}`);
+      }
+    }
+  };
+
+  // Restore receiptExpenseId from sessionStorage on mount
+  useEffect(() => {
+    if (!tabId || hasRestoredState) return;
+    const savedExpenseId = sessionStorage.getItem(`expense-receipt-id-${tabId}`);
+    if (savedExpenseId) {
+      setReceiptExpenseIdInternal(savedExpenseId);
+    }
+  }, [tabId, hasRestoredState]);
 
   // Add participant inline
   const [showAddParticipant, setShowAddParticipant] = useState(false);
@@ -67,11 +108,34 @@ export default function NewExpensePage() {
   const [tipMode, setTipMode] = useState<"percent" | "amount">("percent");
   const [tipValue, setTipValue] = useState("");
 
+  // Receipt parsed totals (for calculating tip and total)
+  const [receiptSubtotalCents, setReceiptSubtotalCents] = useState(0);
+  const [receiptTaxCents, setReceiptTaxCents] = useState(0);
+  const [receiptFeeCents, setReceiptFeeCents] = useState(0);
+
   // Get current participant ID for claim panel
   const currentParticipantId = useMemo(() => {
     const participant = participants.find((p) => p.userId === currentUserId);
     return participant?.id ?? "";
   }, [participants, currentUserId]);
+
+  // Calculate tip in cents based on current mode and value
+  const calculatedTipCents = useMemo(() => {
+    const val = parseFloat(tipValue) || 0;
+    if (tipMode === "percent" && receiptSubtotalCents > 0) {
+      return Math.round((receiptSubtotalCents * val) / 100);
+    } else if (tipMode === "amount") {
+      return Math.round(val * 100);
+    }
+    return 0;
+  }, [tipMode, tipValue, receiptSubtotalCents]);
+
+  // Auto-update amount when tip changes for receipt-based expenses
+  useEffect(() => {
+    if (splitMode !== "claim" || receiptSubtotalCents === 0) return;
+    const total = receiptSubtotalCents + receiptTaxCents + receiptFeeCents + calculatedTipCents;
+    setAmount(formatCentsPlain(total));
+  }, [calculatedTipCents, receiptSubtotalCents, receiptTaxCents, receiptFeeCents, splitMode]);
 
   useEffect(() => {
     if (!tabId) return;
@@ -99,6 +163,46 @@ export default function NewExpensePage() {
       .catch(() => setError("Couldn't load participants."))
       .finally(() => setLoading(false));
   }, [tabId]);
+
+  // Restore receipt data if returning from camera (mobile browser eviction)
+  useEffect(() => {
+    if (!tabId || !receiptExpenseId || receiptItems.length > 0) return;
+
+    // Fetch existing receipt items for the saved expense
+    fetch(`/api/tabs/${tabId}/expenses/${receiptExpenseId}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (!data?.expense) return;
+        const expense = data.expense;
+
+        // Restore receipt URL for preview
+        if (expense.receiptUrl) {
+          setReceiptPreviewUrl(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/receipts/${expense.receiptUrl}`);
+        }
+
+        // Restore receipt items if already parsed
+        if (expense.receiptItems?.length > 0) {
+          setReceiptItems(expense.receiptItems.map((item: { id: string; name: string; priceCents: number; quantity: number; claims?: { participantId: string; participant?: { user?: { displayName?: string } } }[] }) => ({
+            id: item.id,
+            name: item.name,
+            priceCents: item.priceCents,
+            quantity: item.quantity,
+            claimedBy: (item.claims || []).map((c: { participantId: string; participant?: { user?: { displayName?: string } } }) => ({
+              participantId: c.participantId,
+              displayName: c.participant?.user?.displayName || "Unknown",
+            })),
+          })));
+        }
+
+        // Restore parsed totals
+        if (expense.receiptSubtotalCents) setReceiptSubtotalCents(expense.receiptSubtotalCents);
+        if (expense.receiptTaxCents) setReceiptTaxCents(expense.receiptTaxCents);
+        if (expense.receiptFeeCents) setReceiptFeeCents(expense.receiptFeeCents);
+        if (expense.amountTotalCents) setAmount(formatCentsPlain(expense.amountTotalCents));
+        if (expense.note) setNote(expense.note);
+      })
+      .catch((err) => console.error("Failed to restore receipt data:", err));
+  }, [tabId, receiptExpenseId, receiptItems.length]);
 
   const amountCents = useMemo(() => {
     try {
@@ -144,10 +248,14 @@ export default function NewExpensePage() {
       case "custom":
         return amountCents > 0 && splitSumCents === amountCents;
       case "claim":
-        // Allow saving with receipt file even without amount (will be parsed)
+        // If expense was already created from receipt, allow saving
+        if (receiptExpenseId) return true;
+        // If receipt has items, allow (even without claims - can claim on detail page)
+        if (receiptItems.length > 0) return true;
+        // If uploading/parsing, don't allow yet
+        if (isUploading || isParsing) return false;
+        // If receipt file exists but not yet processed, allow to start processing
         if (receiptFile) return true;
-        // Or if we have claimed items with an amount
-        if (amountCents > 0 && receiptItems.some((item) => item.claimedBy.length > 0)) return true;
         return false;
       default:
         return false;
@@ -160,13 +268,120 @@ export default function NewExpensePage() {
     splitSumCents,
     receiptItems,
     receiptFile,
+    receiptExpenseId,
+    isUploading,
+    isParsing,
   ]);
 
-  // Handle receipt file selection (creates local preview)
-  const handleReceiptUpload = (file: File) => {
+  // Handle receipt file selection - create expense, upload, and parse immediately
+  const handleReceiptUpload = async (file: File) => {
+    if (!tabId || !paidBy) return;
+
+    // Show preview immediately
     setReceiptFile(file);
     const url = URL.createObjectURL(file);
     setReceiptPreviewUrl(url);
+    setError(null);
+    setIsUploading(true);
+
+    try {
+      // Create expense with receiptMode flag (allows amount=0)
+      const createRes = await fetch(`/api/tabs/${tabId}/expenses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: "0.01",
+          note: note || "Receipt expense",
+          date,
+          paidByParticipantId: paidBy,
+          receiptMode: true,
+          evenSplit: true,
+          splitParticipantIds: participants.map((p) => p.id),
+        }),
+      });
+
+      if (!createRes.ok) {
+        const data = await createRes.json();
+        setError(data?.error?.message ?? "Could not create expense.");
+        setIsUploading(false);
+        return;
+      }
+
+      const { expense } = await createRes.json();
+      setReceiptExpenseId(expense.id);
+
+      // Upload the receipt
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadRes = await fetch(
+        `/api/tabs/${tabId}/expenses/${expense.id}/receipt`,
+        { method: "POST", body: formData }
+      );
+
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json();
+        setError(data?.error?.message ?? "Failed to upload receipt.");
+        setIsUploading(false);
+        return;
+      }
+
+      setIsUploading(false);
+      setIsParsing(true);
+
+      // Parse the receipt
+      const parseRes = await fetch(
+        `/api/tabs/${tabId}/expenses/${expense.id}/receipt/parse`,
+        { method: "POST" }
+      );
+
+      if (parseRes.ok) {
+        const parseData = await parseRes.json();
+        setReceiptItems(parseData.items || []);
+
+        // Store parsed receipt totals for tip calculation
+        const subtotal = parseData.parsed?.subtotalCents || 0;
+        const tax = parseData.parsed?.taxCents || 0;
+        const fees = parseData.parsed?.feeCents || 0;
+        setReceiptSubtotalCents(subtotal);
+        setReceiptTaxCents(tax);
+        setReceiptFeeCents(fees);
+
+        // Auto-fill amount from parsed total (without tip initially)
+        if (parseData.parsed?.totalCents) {
+          const totalAmount = formatCentsPlain(parseData.parsed.totalCents);
+          setAmount(totalAmount);
+
+          // Update the expense with the real amount
+          await fetch(`/api/tabs/${tabId}/expenses/${expense.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ amount: totalAmount }),
+          });
+        }
+
+        pushToast(`Parsed ${parseData.items?.length || 0} items!`);
+      } else {
+        let errorMsg = "Could not parse receipt";
+        try {
+          const parseError = await parseRes.json();
+          console.error("Parse failed:", parseError);
+          errorMsg = parseError?.error?.message || errorMsg;
+        } catch {
+          console.error("Parse failed with status:", parseRes.status);
+        }
+        setError(errorMsg);
+        pushToast(errorMsg);
+      }
+
+      setIsParsing(false);
+    } catch (err) {
+      console.error("Receipt processing error:", err);
+      const message = err instanceof Error ? err.message : "Failed to process receipt";
+      setError(message);
+      setIsUploading(false);
+      setIsParsing(false);
+    }
   };
 
   const handleClaimToggle = (itemId: string, participantId: string) => {
@@ -244,6 +459,51 @@ export default function NewExpensePage() {
       return;
     }
 
+    // If expense was already created from receipt upload, update with tip and claims
+    if (receiptExpenseId) {
+      try {
+        // Update expense with tip and final amount
+        const updatePayload: Record<string, unknown> = {
+          amount,
+          note,
+        };
+        if (tipValue) {
+          updatePayload.tipMode = tipMode;
+          updatePayload.tipValue = tipValue;
+        }
+        await fetch(`/api/tabs/${tabId}/expenses/${receiptExpenseId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatePayload),
+        });
+
+        // Save all claims
+        for (const item of receiptItems) {
+          for (const claim of item.claimedBy) {
+            await fetch(
+              `/api/tabs/${tabId}/expenses/${receiptExpenseId}/receipt/items/${item.id}/claims`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ participantId: claim.participantId }),
+              }
+            );
+          }
+        }
+
+        // Clear session storage for this expense flow
+        sessionStorage.removeItem(`expense-mode-${tabId}`);
+        sessionStorage.removeItem(`expense-receipt-id-${tabId}`);
+        pushToast("Expense saved!");
+        router.push(`/tabs/${tabId}`);
+      } catch (err) {
+        console.error("Failed to save expense:", err);
+        setError("Failed to save expense.");
+        setSaving(false);
+      }
+      return;
+    }
+
     const payload: Record<string, unknown> = {
       amount,
       note,
@@ -261,12 +521,9 @@ export default function NewExpensePage() {
         // Direct dollar amount
         return Math.round(tipNum * 100);
       } else {
-        // Percentage - but we don't know receipt total yet, so store as-is
-        // The API will need to handle this after parsing
-        // For now, we'll pass the percentage and let the expense detail page handle it
-        // Actually, we can't calculate % without knowing the total...
-        // So we'll pass both tipPercent and tipAmount, and API uses what it can
-        return 0; // Will be calculated after receipt is parsed
+        // For percentage, calculate from the current amount
+        // The amount should be the receipt total at this point
+        return Math.round(amountCents * (tipNum / 100));
       }
     };
 
@@ -292,26 +549,19 @@ export default function NewExpensePage() {
           })
         );
         payload.splits = splits;
-      } else if (receiptFile) {
-        // Receipt mode - amount will be populated after parsing
-        payload.receiptMode = true;
-        // For percentage tip, we need to calculate after receipt is parsed
-        // For fixed amount tip, we can calculate now
-        if (tipMode === "amount" && tipValue) {
+      } else {
+        // Even split as default
+        payload.evenSplit = true;
+        payload.splitParticipantIds = participants.map((p) => p.id);
+      }
+
+      // Add tip info if receipt was uploaded
+      if (receiptFile && tipValue) {
+        if (tipMode === "amount") {
           payload.tipCents = calculateTipCents();
-        } else if (tipMode === "percent" && tipValue) {
-          // Store tip percentage - will be calculated after parsing on the detail page
-          // For now, we'll store it but the parse endpoint will need the receipt total
-          // Actually, let's simplify: require user to enter tip as $ amount for now
-          // Or we can calculate based on a rough estimate
+        } else {
           payload.tipPercent = parseFloat(tipValue) || 0;
         }
-        payload.evenSplit = true;
-        payload.splitParticipantIds = participants.map((p) => p.id);
-      } else {
-        // No items yet - use even split as placeholder, will be updated after parsing
-        payload.evenSplit = true;
-        payload.splitParticipantIds = participants.map((p) => p.id);
       }
     } else {
       // Even split mode
@@ -336,36 +586,9 @@ export default function NewExpensePage() {
       return;
     }
 
-    const expenseId = data.expense?.id;
-
-    // If claim mode with receipt file, upload and parse it
-    if (splitMode === "claim" && receiptFile && expenseId) {
-      setIsUploading(true);
-      const formData = new FormData();
-      formData.append("file", receiptFile);
-
-      const uploadRes = await fetch(
-        `/api/tabs/${tabId}/expenses/${expenseId}/receipt`,
-        { method: "POST", body: formData }
-      );
-
-      if (uploadRes.ok) {
-        setIsUploading(false);
-        setIsParsing(true);
-        // Parse the receipt
-        await fetch(
-          `/api/tabs/${tabId}/expenses/${expenseId}/receipt/parse`,
-          { method: "POST" }
-        );
-        setIsParsing(false);
-      }
-
-      // Redirect to expense detail page to claim items
-      pushToast("Receipt uploaded! Claim your items.");
-      router.push(`/tabs/${tabId}/expenses/${expenseId}`);
-      return;
-    }
-
+    // Clear session storage for this expense flow
+    sessionStorage.removeItem(`expense-mode-${tabId}`);
+    sessionStorage.removeItem(`expense-receipt-id-${tabId}`);
     pushToast("Expense saved.");
     router.push(`/tabs/${tabId}`);
   };
@@ -508,17 +731,73 @@ export default function NewExpensePage() {
             )}
 
             {splitMode === "claim" && (
-              <ClaimPanel
-                items={receiptItems}
-                participants={participants}
-                currentParticipantId={currentParticipantId}
-                onClaimToggle={handleClaimToggle}
-                onReceiptUpload={handleReceiptUpload}
-                uploadedReceipt={receiptPreviewUrl ? { url: receiptPreviewUrl } : null}
-                isUploading={isUploading}
-                isParsing={isParsing}
-                disabled={isDisabled}
-              />
+              <>
+                <ClaimPanel
+                  items={receiptItems}
+                  participants={participants}
+                  currentParticipantId={currentParticipantId}
+                  onClaimToggle={handleClaimToggle}
+                  onReceiptUpload={handleReceiptUpload}
+                  uploadedReceipt={receiptPreviewUrl ? { url: receiptPreviewUrl } : null}
+                  isUploading={isUploading}
+                  isParsing={isParsing}
+                  disabled={isDisabled}
+                  subtotalCents={receiptSubtotalCents}
+                  taxCents={receiptTaxCents}
+                  feeCents={receiptFeeCents}
+                  tipCents={calculatedTipCents}
+                />
+
+                {/* Tip input - shown when receipt is uploaded */}
+                {receiptFile && (
+                  <div className="mt-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4 space-y-3">
+                    <p className="text-sm font-semibold">Add tip (optional)</p>
+                    <div className="flex gap-2 items-center">
+                      <button
+                        type="button"
+                        onClick={() => setTipMode("percent")}
+                        className={`shrink-0 px-4 py-2 text-sm font-medium rounded-lg transition ${
+                          tipMode === "percent"
+                            ? "bg-ink-900 text-white"
+                            : "bg-white text-ink-600 border border-sand-200 hover:bg-sand-100"
+                        }`}
+                      >
+                        %
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTipMode("amount")}
+                        className={`shrink-0 px-4 py-2 text-sm font-medium rounded-lg transition ${
+                          tipMode === "amount"
+                            ? "bg-ink-900 text-white"
+                            : "bg-white text-ink-600 border border-sand-200 hover:bg-sand-100"
+                        }`}
+                      >
+                        $
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={tipValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^[0-9]*\.?[0-9]*$/.test(value)) {
+                            setTipValue(value);
+                          }
+                        }}
+                        placeholder={tipMode === "percent" ? "20" : "15.00"}
+                        className="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+                        disabled={isDisabled}
+                      />
+                    </div>
+                    <p className="text-xs text-ink-400">
+                      {tipMode === "percent"
+                        ? `Tip: ${tipValue || 0}% of subtotal (${formatCents(calculatedTipCents)})`
+                        : `Tip: ${formatCents(calculatedTipCents)}`}
+                    </p>
+                  </div>
+                )}
+              </>
             )}
 
             {splitMode === "custom" && (
