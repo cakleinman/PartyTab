@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/db/prisma";
-import { error as apiError, ok, validationError } from "@/lib/api/response";
+import { error as apiError, ok } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 import { getSupabaseServer, RECEIPTS_BUCKET } from "@/lib/supabase/client";
 import { parseReceipt } from "@/lib/receipts/parser";
+import { canUseProFeatures } from "@/lib/auth/entitlements";
+import { checkReceiptLimit, incrementReceiptUsage } from "@/lib/billing/usage";
 
 export async function POST(
   _request: Request,
@@ -18,6 +20,21 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+
+    // Check Pro Entitlement
+    const isPro = await canUseProFeatures(user.id);
+    if (!isPro) {
+      throwApiError(403, "pro_required", "Pro subscription required for receipt parsing");
+    }
+
+    // Check Usage Limit
+    try {
+      await checkReceiptLimit(user.id);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Receipt limit exceeded";
+      throwApiError(429, "limit_exceeded", message);
+    }
+
     const tab = await requireTab(tabId);
     if (tab.status === "CLOSED") {
       throwApiError(409, "tab_closed", "Tab is closed");
@@ -83,17 +100,26 @@ export async function POST(
       });
     }
 
-    // Update expense with parsed totals and amount (including tip)
-    const updateData: { receiptSubtotalCents?: number; receiptTaxCents?: number; amountTotalCents?: number } = {};
+    // Update expense with parsed totals and amount (including tip and fees)
+    const updateData: { receiptSubtotalCents?: number; receiptTaxCents?: number; receiptFeeCents?: number; receiptTipCents?: number; amountTotalCents?: number } = {};
     if (parsed.subtotalCents) {
       updateData.receiptSubtotalCents = parsed.subtotalCents;
     }
     if (parsed.taxCents) {
       updateData.receiptTaxCents = parsed.taxCents;
     }
+    if (parsed.feeCents) {
+      updateData.receiptFeeCents = parsed.feeCents;
+    }
     if (parsed.totalCents) {
-      // Add tip to the total if present
-      const tipCents = expense.receiptTipCents ?? 0;
+      // Calculate tip: use fixed cents if set, otherwise calculate from percentage
+      let tipCents = expense.receiptTipCents ?? 0;
+      if (tipCents === 0 && expense.receiptTipPercent && expense.receiptTipPercent > 0) {
+        // Calculate tip from percentage of receipt total (before tip)
+        tipCents = Math.round(parsed.totalCents * (expense.receiptTipPercent / 100));
+        updateData.receiptTipCents = tipCents;
+      }
+      // Total = parsed total + tip (fees are already in parsed total)
       updateData.amountTotalCents = parsed.totalCents + tipCents;
     }
     if (Object.keys(updateData).length > 0) {
@@ -122,6 +148,9 @@ export async function POST(
       },
     });
 
+    // Increment Usage Count
+    await incrementReceiptUsage(user.id);
+
     return ok({
       items: items.map((item) => ({
         id: item.id,
@@ -136,6 +165,7 @@ export async function POST(
       parsed: {
         subtotalCents: parsed.subtotalCents,
         taxCents: parsed.taxCents,
+        feeCents: parsed.feeCents ?? 0,
         tipCents: expense.receiptTipCents ?? 0,
         totalCents: parsed.totalCents,
         grandTotalCents: (parsed.totalCents ?? 0) + (expense.receiptTipCents ?? 0),
@@ -146,6 +176,8 @@ export async function POST(
       return apiError(error.status, error.code, error.message);
     }
     console.error("Parse error:", error);
-    return validationError(error);
+    // Extract meaningful error message
+    const message = error instanceof Error ? error.message : "Failed to parse receipt";
+    return apiError(500, "internal_error", message);
   }
 }
