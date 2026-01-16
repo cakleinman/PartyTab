@@ -5,6 +5,8 @@ import { ToastProvider } from "@/app/components/ToastProvider";
 import { Header } from "@/app/components/Header";
 import { getEnvStatus } from "@/lib/env";
 
+import { ProBanner } from "@/app/components/ProBanner";
+
 const displayFont = Space_Grotesk({
   variable: "--font-display",
   subsets: ["latin"],
@@ -61,6 +63,7 @@ export default function RootLayout({
       <body className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
         <div className="min-h-screen bg-sand-50 text-ink-900">
           <Header />
+          <ProBanner />
           <ToastProvider>
             <main className="mx-auto w-full max-w-5xl px-6 py-10">{children}</main>
           </ToastProvider>

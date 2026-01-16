@@ -99,6 +99,9 @@ export async function GET(
         createdAt: expense.createdAt.toISOString(),
         receiptSubtotalCents: expense.receiptSubtotalCents,
         receiptTaxCents: expense.receiptTaxCents,
+        receiptFeeCents: expense.receiptFeeCents,
+        receiptTipCents: expense.receiptTipCents,
+        receiptTipPercent: expense.receiptTipPercent,
         splits: expense.splits.map((split) => ({
           participantId: split.participantId,
           amountCents: split.amountCents,
@@ -149,6 +152,29 @@ export async function PATCH(
     const date = body?.date ? parseDateInput(body.date) ?? expense.date : expense.date;
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? expense.paidByParticipantId, "paidByParticipantId");
 
+    // Handle tip fields
+    let receiptTipCents: number | null = expense.receiptTipCents;
+    let receiptTipPercent: number | null = expense.receiptTipPercent;
+
+    if (body?.tipMode === "amount" && body?.tipValue !== undefined) {
+      const tipValue = parseFloat(body.tipValue);
+      if (!isNaN(tipValue) && tipValue >= 0) {
+        receiptTipCents = Math.round(tipValue * 100);
+        receiptTipPercent = null;
+      }
+    } else if (body?.tipMode === "percent" && body?.tipValue !== undefined) {
+      const tipPercent = parseFloat(body.tipValue);
+      if (!isNaN(tipPercent) && tipPercent >= 0) {
+        receiptTipPercent = tipPercent;
+        // Calculate tip cents from subtotal
+        const subtotal = expense.receiptSubtotalCents ?? 0;
+        receiptTipCents = Math.round(subtotal * (tipPercent / 100));
+      }
+    } else if (body?.tipCents !== undefined) {
+      // Direct tip cents (backwards compatibility)
+      receiptTipCents = typeof body.tipCents === "number" ? body.tipCents : null;
+    }
+
     const participants = await prisma.participant.findMany({
       where: { tabId },
       select: { id: true },
@@ -175,6 +201,8 @@ export async function PATCH(
           note,
           date,
           paidByParticipantId,
+          receiptTipCents,
+          receiptTipPercent,
           splits: {
             create: splits.map((split) => ({
               participantId: split.participantId,
@@ -193,6 +221,8 @@ export async function PATCH(
         date: updated.date.toISOString().slice(0, 10),
         paidByParticipantId: updated.paidByParticipantId,
         createdAt: updated.createdAt.toISOString(),
+        receiptTipCents: updated.receiptTipCents,
+        receiptTipPercent: updated.receiptTipPercent,
       },
     });
   } catch (error) {

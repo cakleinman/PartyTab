@@ -12,12 +12,27 @@ export async function GET() {
     }
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
-      select: { id: true, displayName: true, authProvider: true, subscriptionTier: true },
+      select: {
+        id: true,
+        displayName: true,
+        authProvider: true,
+        subscriptionTier: true,
+        entitlement: {
+          select: {
+            state: true,
+          },
+        },
+      },
     });
     if (!user) {
       return ok({ user: null });
     }
-    return ok({ user });
+    return ok({
+      user: {
+        ...user,
+        entitlementState: user.entitlement?.state || "FREE",
+      },
+    });
   } catch {
     return apiError(500, "forbidden", "Unexpected error");
   }

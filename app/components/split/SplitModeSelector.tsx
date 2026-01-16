@@ -14,7 +14,6 @@ interface SplitModeSelectorProps {
 export function SplitModeSelector({
   mode,
   onChange,
-  hasReceiptItems,
   hasProFeatures,
   onProPreview,
   disabled,

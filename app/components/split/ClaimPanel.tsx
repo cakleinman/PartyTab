@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { formatCents } from "@/lib/money/cents";
 
 export interface ReceiptItem {
@@ -27,15 +27,57 @@ interface ClaimPanelProps {
   isUploading?: boolean;
   isParsing?: boolean;
   disabled?: boolean;
-  // For tax distribution
+  // For tax/tip/fee distribution
   subtotalCents?: number;
   taxCents?: number;
+  feeCents?: number;
+  tipCents?: number;
+}
+
+// Generate unique initials for participants
+function getUniqueInitials(participants: Participant[]): Record<string, string> {
+  const initialsMap: Record<string, string> = {};
+  const usedInitials: Record<string, string[]> = {}; // initial -> [participantIds]
+
+  // First pass: generate basic initials
+  participants.forEach((p) => {
+    const words = p.displayName.trim().split(/\s+/);
+    let initials = words.map((w) => w[0]?.toUpperCase() || "").join("").slice(0, 2);
+    if (!initials) initials = "??";
+
+    initialsMap[p.id] = initials;
+    if (!usedInitials[initials]) usedInitials[initials] = [];
+    usedInitials[initials].push(p.id);
+  });
+
+  // Second pass: disambiguate duplicates
+  Object.entries(usedInitials).forEach(([initials, ids]) => {
+    if (ids.length > 1) {
+      ids.forEach((id, index) => {
+        const p = participants.find((p) => p.id === id);
+        if (!p) return;
+        const firstName = p.displayName.split(/\s+/)[0] || "";
+        // Try first 2 chars of first name
+        let newInitials = firstName.slice(0, 2).toUpperCase();
+        // If still not unique or same as before, add number
+        if (newInitials === initials || ids.some((otherId, otherIdx) => {
+          if (otherIdx === index) return false;
+          const otherP = participants.find((p) => p.id === otherId);
+          return otherP?.displayName.slice(0, 2).toUpperCase() === newInitials;
+        })) {
+          newInitials = firstName[0]?.toUpperCase() + (index + 1);
+        }
+        initialsMap[id] = newInitials;
+      });
+    }
+  });
+
+  return initialsMap;
 }
 
 export function ClaimPanel({
   items,
   participants,
-  currentParticipantId,
   onClaimToggle,
   onReceiptUpload,
   onReceiptParse,
@@ -45,11 +87,16 @@ export function ClaimPanel({
   disabled,
   subtotalCents,
   taxCents,
+  feeCents,
+  tipCents,
 }: ClaimPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Calculate each participant's total based on claims (including proportional tax)
+  // Memoize unique initials
+  const uniqueInitials = useMemo(() => getUniqueInitials(participants), [participants]);
+
+  // Calculate each participant's total based on claims (including proportional tax/fees/tip)
   const calculateTotals = (): { totals: Record<string, number>; itemSubtotal: number } => {
     const totals: Record<string, number> = {};
     let itemSubtotal = 0;
@@ -66,13 +113,31 @@ export function ClaimPanel({
       }
     });
 
-    // Second pass: add proportional tax
-    if (taxCents && itemSubtotal > 0) {
-      const baseSubtotal = subtotalCents || itemSubtotal;
+    // Add proportional tax
+    const tax = taxCents || 0;
+    const baseSubtotal = subtotalCents || itemSubtotal;
+    if (tax > 0 && itemSubtotal > 0) {
       Object.keys(totals).forEach((participantId) => {
-        const participantShare = totals[participantId] / baseSubtotal;
-        const participantTax = Math.round(participantShare * taxCents);
-        totals[participantId] += participantTax;
+        const share = totals[participantId] / baseSubtotal;
+        totals[participantId] += Math.round(share * tax);
+      });
+    }
+
+    // Add proportional fees
+    const fees = feeCents || 0;
+    if (fees > 0 && itemSubtotal > 0) {
+      Object.keys(totals).forEach((participantId) => {
+        const share = totals[participantId] / (itemSubtotal + tax);
+        totals[participantId] += Math.round(share * fees);
+      });
+    }
+
+    // Add proportional tip
+    const tip = tipCents || 0;
+    if (tip > 0 && itemSubtotal > 0) {
+      Object.keys(totals).forEach((participantId) => {
+        const share = totals[participantId] / (itemSubtotal + tax + fees);
+        totals[participantId] += Math.round(share * tip);
       });
     }
 
@@ -95,7 +160,7 @@ export function ClaimPanel({
     }
   };
 
-  const { totals, itemSubtotal } = calculateTotals();
+  const { totals, itemSubtotal: _itemSubtotal } = calculateTotals();
   const unclaimedItems = items.filter((item) => item.claimedBy.length === 0);
 
   // Show upload UI when no items and upload handler is provided
@@ -132,10 +197,21 @@ export function ClaimPanel({
                   "Parse receipt items"
                 )}
               </button>
+            ) : isParsing ? (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="h-4 w-4 animate-spin text-amber-600" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <p className="text-sm font-medium text-amber-800">Parsing receipt...</p>
+                </div>
+                <p className="text-xs text-amber-600 mt-1">Add tip below while you wait</p>
+              </div>
             ) : (
               <div className="rounded-xl bg-green-50 border border-green-200 p-3 text-center">
-                <p className="text-sm font-medium text-green-800">Receipt ready!</p>
-                <p className="text-xs text-green-600 mt-1">Click "Save expense" below to extract items with AI</p>
+                <p className="text-sm font-medium text-green-800">Receipt uploaded!</p>
+                <p className="text-xs text-green-600 mt-1">Parsing will begin automatically</p>
               </div>
             )}
           </>
@@ -202,52 +278,70 @@ export function ClaimPanel({
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-ink-500">
-        Tap items you consumed. Shared items split among claimers.
-      </p>
+    <div className="space-y-3">
+      {/* Header with tax/fees badges */}
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-sm font-semibold">Receipt Items</p>
+          <p className="text-xs text-ink-500">
+            Tap initials to claim. Shared items split evenly.
+          </p>
+        </div>
+        <div className="flex gap-1">
+          {taxCents && taxCents > 0 && (
+            <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
+              +{formatCents(taxCents)} tax
+            </p>
+          )}
+          {feeCents && feeCents > 0 && (
+            <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
+              +{formatCents(feeCents)} fees
+            </p>
+          )}
+        </div>
+      </div>
 
       <div className="space-y-2">
-        {items.map((item) => {
-          const isClaimed = item.claimedBy.some(
-            (c) => c.participantId === currentParticipantId
-          );
-          return (
-            <div
-              key={item.id}
-              className={`flex items-center justify-between rounded-xl border p-3 ${
-                isClaimed
-                  ? "border-ink-300 bg-ink-50"
-                  : "border-sand-200 bg-white"
-              }`}
-            >
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="rounded-xl border border-sand-200 bg-white p-3"
+          >
+            <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{item.name}</p>
                 <div className="flex items-center gap-2 text-xs text-ink-500">
                   <span>{formatCents(item.priceCents)}</span>
                   {item.quantity > 1 && <span>× {item.quantity}</span>}
                 </div>
-                {item.claimedBy.length > 0 && (
-                  <p className="text-xs text-ink-400 mt-1 truncate">
-                    {item.claimedBy.map((c) => c.displayName).join(", ")}
-                  </p>
-                )}
               </div>
-              <button
-                type="button"
-                onClick={() => onClaimToggle(item.id, currentParticipantId)}
-                disabled={disabled}
-                className={`ml-3 shrink-0 rounded-full px-3 py-1 text-xs font-medium transition ${
-                  isClaimed
-                    ? "bg-ink-900 text-white"
-                    : "border border-ink-200 text-ink-500 hover:bg-sand-100"
-                }`}
-              >
-                {isClaimed ? "Claimed" : "Claim"}
-              </button>
             </div>
-          );
-        })}
+            {/* Participant claim buttons */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {participants.map((participant) => {
+                const isClaimed = item.claimedBy.some(
+                  (c) => c.participantId === participant.id
+                );
+                return (
+                  <button
+                    key={participant.id}
+                    type="button"
+                    onClick={() => onClaimToggle(item.id, participant.id)}
+                    disabled={disabled}
+                    title={participant.displayName}
+                    className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${
+                      isClaimed
+                        ? "bg-ink-900 text-white"
+                        : "bg-sand-100 text-ink-400 hover:bg-sand-200"
+                    } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    {uniqueInitials[participant.id] || "?"}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Unclaimed warning */}
@@ -263,9 +357,15 @@ export function ClaimPanel({
         <div className="rounded-xl bg-sand-100 p-3 space-y-1">
           <div className="flex justify-between items-center">
             <p className="text-xs font-medium text-ink-700">Split Summary</p>
-            {taxCents && taxCents > 0 && (
-              <p className="text-xs text-ink-500">incl. {formatCents(taxCents)} tax</p>
-            )}
+            {(() => {
+              const extras: string[] = [];
+              if (taxCents && taxCents > 0) extras.push(`${formatCents(taxCents)} tax`);
+              if (feeCents && feeCents > 0) extras.push(`${formatCents(feeCents)} fees`);
+              if (tipCents && tipCents > 0) extras.push(`${formatCents(tipCents)} tip`);
+              return extras.length > 0 ? (
+                <p className="text-xs text-ink-500">incl. {extras.join(", ")}</p>
+              ) : null;
+            })()}
           </div>
           {participants
             .filter((p) => totals[p.id])

@@ -16,12 +16,6 @@ type ReceiptData = {
   url: string;
 } | null;
 
-type ParticipantWithUserId = {
-  id: string;
-  userId: string;
-  displayName: string;
-};
-
 type ExpenseDetail = {
   id: string;
   amountTotalCents: number;
@@ -32,6 +26,9 @@ type ExpenseDetail = {
   createdByUserId: string;
   receiptSubtotalCents?: number | null;
   receiptTaxCents?: number | null;
+  receiptFeeCents?: number | null;
+  receiptTipCents?: number | null;
+  receiptTipPercent?: number | null;
   splits: { participantId: string; amountCents: number }[];
 };
 
@@ -39,6 +36,47 @@ type TabInfo = {
   status: "ACTIVE" | "CLOSED";
   isCreator: boolean;
 };
+
+// Generate unique initials for participants
+function getUniqueInitials(participants: Participant[]): Record<string, string> {
+  const initialsMap: Record<string, string> = {};
+  const usedInitials: Record<string, string[]> = {}; // initial -> [participantIds]
+
+  // First pass: generate basic initials
+  participants.forEach((p) => {
+    const words = p.displayName.trim().split(/\s+/);
+    let initials = words.map((w) => w[0]?.toUpperCase() || "").join("").slice(0, 2);
+    if (!initials) initials = "??";
+
+    initialsMap[p.id] = initials;
+    if (!usedInitials[initials]) usedInitials[initials] = [];
+    usedInitials[initials].push(p.id);
+  });
+
+  // Second pass: disambiguate duplicates
+  Object.entries(usedInitials).forEach(([initials, ids]) => {
+    if (ids.length > 1) {
+      ids.forEach((id, index) => {
+        const p = participants.find((p) => p.id === id);
+        if (!p) return;
+        const firstName = p.displayName.split(/\s+/)[0] || "";
+        // Try first 2 chars of first name
+        let newInitials = firstName.slice(0, 2).toUpperCase();
+        // If still not unique or same as before, add number
+        if (newInitials === initials || ids.some((otherId, otherIdx) => {
+          if (otherIdx === index) return false;
+          const otherP = participants.find((p) => p.id === otherId);
+          return otherP?.displayName.slice(0, 2).toUpperCase() === newInitials;
+        })) {
+          newInitials = firstName[0]?.toUpperCase() + (index + 1);
+        }
+        initialsMap[id] = newInitials;
+      });
+    }
+  });
+
+  return initialsMap;
+}
 
 export default function ExpenseDetailPage() {
   const params = useParams<{ tabId: string; expenseId: string }>();
@@ -62,8 +100,36 @@ export default function ExpenseDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData>(null);
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
-  const [participantsWithUserId, setParticipantsWithUserId] = useState<ParticipantWithUserId[]>([]);
+  const [tipMode, setTipMode] = useState<"percent" | "amount">("percent");
+  const [tipValue, setTipValue] = useState("");
   const { pushToast } = useToast();
+
+  // Memoize unique initials
+  const uniqueInitials = useMemo(() => getUniqueInitials(participants), [participants]);
+
+  // Calculate tip in cents based on current mode and value
+  const calculatedTipCents = useMemo(() => {
+    const val = parseFloat(tipValue) || 0;
+    if (tipMode === "percent" && expense?.receiptSubtotalCents) {
+      return Math.round((expense.receiptSubtotalCents * val) / 100);
+    } else if (tipMode === "amount") {
+      return Math.round(val * 100);
+    }
+    return 0;
+  }, [tipMode, tipValue, expense?.receiptSubtotalCents]);
+
+  // Auto-update amount when tip changes for receipt-based expenses
+  // This intentionally syncs derived state when receipt values change
+  useEffect(() => {
+    if (!expense?.receiptSubtotalCents) return;
+    const subtotal = expense.receiptSubtotalCents;
+    const tax = expense.receiptTaxCents || 0;
+    const fees = expense.receiptFeeCents || 0;
+    const total = subtotal + tax + fees + calculatedTipCents;
+    const formattedTotal = formatCentsPlain(total);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAmount((prev) => (prev !== formattedTotal ? formattedTotal : prev));
+  }, [calculatedTipCents, expense?.receiptSubtotalCents, expense?.receiptTaxCents, expense?.receiptFeeCents]);
 
   useEffect(() => {
     if (!tabId || !expenseId) return;
@@ -80,7 +146,6 @@ export default function ExpenseDetailPage() {
         setReceiptItems(itemsData?.items ?? []);
         const loadedParticipants = participantsData.participants ?? [];
         setParticipants(loadedParticipants);
-        setParticipantsWithUserId(loadedParticipants);
         setTab(tabData.tab ?? null);
         setUserId(meData?.user?.id ?? null);
         if (expenseData?.expense) {
@@ -103,6 +168,14 @@ export default function ExpenseDetailPage() {
           setCustomSplit(uniqueAmounts.size !== 1);
           setSplitParticipantIds(splitIds.length ? splitIds : loadedParticipants.map((p: Participant) => p.id));
           setSplitAmounts(splitMap);
+          // Initialize tip state
+          if (expenseData.expense.receiptTipPercent != null) {
+            setTipMode("percent");
+            setTipValue(String(expenseData.expense.receiptTipPercent));
+          } else if (expenseData.expense.receiptTipCents != null && expenseData.expense.receiptTipCents > 0) {
+            setTipMode("amount");
+            setTipValue(formatCentsPlain(expenseData.expense.receiptTipCents));
+          }
         } else {
           setError(expenseData?.error?.message ?? "Expense not found.");
         }
@@ -139,7 +212,10 @@ export default function ExpenseDetailPage() {
   const canSubmit =
     canEdit &&
     amountCents > 0 &&
-    (!customSplit || (splitSumCents === amountCents && splitParticipantIds.length > 0));
+    // For receipt-based expenses, claims determine the split
+    (receiptItems.length > 0 ||
+     !customSplit ||
+     (splitSumCents === amountCents && splitParticipantIds.length > 0));
   const canDelete =
     tabStatus === "ACTIVE" &&
     (expense?.createdByUserId === userId || tab?.isCreator);
@@ -177,6 +253,12 @@ export default function ExpenseDetailPage() {
       date,
       paidByParticipantId: paidBy,
     };
+
+    // Include tip if there's a receipt
+    if (receipt || receiptItems.length > 0) {
+      payload.tipMode = tipMode;
+      payload.tipValue = tipValue;
+    }
 
     if (customSplit) {
       payload.splits = splits;
@@ -364,11 +446,18 @@ export default function ExpenseDetailPage() {
                   Tap initials to claim. Shared items split evenly.
                 </p>
               </div>
-              {expense?.receiptTaxCents && expense.receiptTaxCents > 0 && (
-                <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
-                  +{formatCents(expense.receiptTaxCents)} tax
-                </p>
-              )}
+              <div className="flex gap-1">
+                {expense?.receiptTaxCents && expense.receiptTaxCents > 0 && (
+                  <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
+                    +{formatCents(expense.receiptTaxCents)} tax
+                  </p>
+                )}
+                {expense?.receiptFeeCents && expense.receiptFeeCents > 0 && (
+                  <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
+                    +{formatCents(expense.receiptFeeCents)} fees
+                  </p>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               {receiptItems.map((item) => {
@@ -413,12 +502,6 @@ export default function ExpenseDetailPage() {
                         const isClaimed = item.claimedBy.some(
                           (c) => c.participantId === participant.id
                         );
-                        const initials = participant.displayName
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase();
                         return (
                           <button
                             key={participant.id}
@@ -432,7 +515,7 @@ export default function ExpenseDetailPage() {
                                 : "bg-sand-100 text-ink-400 hover:bg-sand-200"
                             } ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
-                            {initials}
+                            {uniqueInitials[participant.id] || "?"}
                           </button>
                         );
                       })}
@@ -442,7 +525,7 @@ export default function ExpenseDetailPage() {
               })}
             </div>
 
-            {/* Split summary with tax distribution */}
+            {/* Split summary with tax and tip distribution */}
             {(() => {
               const totals: Record<string, number> = {};
               let itemSubtotal = 0;
@@ -457,6 +540,7 @@ export default function ExpenseDetailPage() {
               });
               // Add proportional tax
               const taxCents = expense?.receiptTaxCents || 0;
+              const feeCents = expense?.receiptFeeCents || 0;
               const baseSubtotal = expense?.receiptSubtotalCents || itemSubtotal;
               if (taxCents > 0 && itemSubtotal > 0) {
                 Object.keys(totals).forEach((participantId) => {
@@ -464,14 +548,33 @@ export default function ExpenseDetailPage() {
                   totals[participantId] += Math.round(share * taxCents);
                 });
               }
+              // Add proportional fees
+              if (feeCents > 0 && itemSubtotal > 0) {
+                Object.keys(totals).forEach((participantId) => {
+                  const share = totals[participantId] / (itemSubtotal + taxCents);
+                  totals[participantId] += Math.round(share * feeCents);
+                });
+              }
+              // Add proportional tip - use calculated tip from user input for real-time preview
+              const tipCents = calculatedTipCents;
+              if (tipCents > 0 && itemSubtotal > 0) {
+                Object.keys(totals).forEach((participantId) => {
+                  const share = totals[participantId] / (itemSubtotal + taxCents + feeCents);
+                  totals[participantId] += Math.round(share * tipCents);
+                });
+              }
               const hasAnyClaims = Object.keys(totals).length > 0;
               if (!hasAnyClaims) return null;
+              const extras: string[] = [];
+              if (taxCents > 0) extras.push(`${formatCents(taxCents)} tax`);
+              if (feeCents > 0) extras.push(`${formatCents(feeCents)} fees`);
+              if (tipCents > 0) extras.push(`${formatCents(tipCents)} tip`);
               return (
                 <div className="rounded-xl bg-sand-100 p-3 space-y-1 mt-3">
                   <div className="flex justify-between items-center">
                     <p className="text-xs font-medium text-ink-700">Split Summary</p>
-                    {taxCents > 0 && (
-                      <p className="text-xs text-ink-500">incl. tax</p>
+                    {extras.length > 0 && (
+                      <p className="text-xs text-ink-500">incl. {extras.join(", ")}</p>
                     )}
                   </div>
                   {participants
@@ -485,6 +588,60 @@ export default function ExpenseDetailPage() {
                 </div>
               );
             })()}
+          </div>
+        )}
+
+        {/* Tip section - shown when there's a receipt */}
+        {(receipt || receiptItems.length > 0) && (
+          <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4 space-y-3">
+            <p className="text-sm font-semibold">Tip</p>
+            <div className="flex gap-2">
+              <div className="flex rounded-lg border border-sand-200 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setTipMode("percent")}
+                  disabled={!canEdit}
+                  className={`px-3 py-1.5 text-sm font-medium transition ${
+                    tipMode === "percent"
+                      ? "bg-ink-900 text-white"
+                      : "bg-white text-ink-500 hover:bg-sand-50"
+                  } ${!canEdit ? "opacity-50" : ""}`}
+                >
+                  %
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTipMode("amount")}
+                  disabled={!canEdit}
+                  className={`px-3 py-1.5 text-sm font-medium transition ${
+                    tipMode === "amount"
+                      ? "bg-ink-900 text-white"
+                      : "bg-white text-ink-500 hover:bg-sand-50"
+                  } ${!canEdit ? "opacity-50" : ""}`}
+                >
+                  $
+                </button>
+              </div>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={tipValue}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (/^[0-9]*\.?[0-9]*$/.test(value)) {
+                    setTipValue(value);
+                  }
+                }}
+                placeholder={tipMode === "percent" ? "20" : "15.00"}
+                className="flex-1 rounded-xl border border-sand-200 px-3 py-2 text-sm"
+                disabled={!canEdit}
+              />
+            </div>
+            <p className="text-xs text-ink-400">
+              {tipMode === "percent"
+                ? `Tip: ${tipValue || 0}% of subtotal (${formatCents(calculatedTipCents)})`
+                : `Tip: ${formatCents(calculatedTipCents)}`}
+            </p>
           </div>
         )}
 
