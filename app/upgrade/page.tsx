@@ -1,13 +1,17 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type UserTier = "GUEST" | "BASIC" | "PRO" | null;
+type EntitlementState = "FREE" | "PRO_ACTIVE" | "PRO_PAST_DUE" | "PRO_CANCELED";
 
 export default function UpgradePage() {
   const [showProPreview, setShowProPreview] = useState(false);
   const [currentTier, setCurrentTier] = useState<UserTier>(null);
+  const [entitlementState, setEntitlementState] = useState<EntitlementState>("FREE");
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "annual">("monthly");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/me")
@@ -15,6 +19,9 @@ export default function UpgradePage() {
       .then((data) => {
         if (data?.user?.subscriptionTier) {
           setCurrentTier(data.user.subscriptionTier);
+        }
+        if (data?.user?.entitlementState) {
+          setEntitlementState(data.user.entitlementState);
         }
       })
       .catch(() => {
@@ -25,6 +32,65 @@ export default function UpgradePage() {
   const handleGoogleUpgrade = () => {
     signIn("google", { callbackUrl: "/tabs" });
   };
+
+  const handleProCheckout = useCallback(async () => {
+    if (!currentTier || currentTier === "GUEST") {
+      // Need to sign in first
+      signIn("google", { callbackUrl: `/upgrade?checkout=${selectedPlan}` });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: selectedPlan }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to start checkout");
+      }
+    } catch {
+      alert("Failed to start checkout");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentTier, selectedPlan]);
+
+  const handleManageBilling = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/billing/portal", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || "Failed to open billing portal");
+      }
+    } catch {
+      alert("Failed to open billing portal");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check for checkout redirect after sign in
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkoutPlan = params.get("checkout");
+    if (checkoutPlan === "monthly" || checkoutPlan === "annual") {
+      setSelectedPlan(checkoutPlan);
+      // Auto-trigger checkout after sign in
+      if (currentTier && currentTier !== "GUEST") {
+        handleProCheckout();
+      }
+    }
+  }, [currentTier, handleProCheckout]);
 
   return (
     <div className="min-h-[80vh] flex items-start justify-center bg-sand-50 px-4 pt-12">
@@ -84,8 +150,8 @@ export default function UpgradePage() {
                 <span className="text-ink-400">Cannot create tabs</span>
               </li>
               <li className="flex items-start gap-2">
-                <XIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-ink-300" />
-                <span className="text-ink-400">Data tied to single device</span>
+                <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-ink-400" />
+                <span>Access from any device with PIN</span>
               </li>
             </ul>
 
@@ -155,46 +221,54 @@ export default function UpgradePage() {
                 ✓ Current plan
               </div>
             ) : (
-              <button
-                onClick={handleGoogleUpgrade}
-                className="w-full flex items-center justify-center gap-3 rounded-full border border-sand-200 bg-white px-6 py-3 text-sm font-medium hover:bg-sand-50 transition"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Upgrade with Google
-              </button>
+              <div className="space-y-2">
+                <button
+                  onClick={handleGoogleUpgrade}
+                  className="w-full flex items-center justify-center gap-3 rounded-full border border-sand-200 bg-white px-6 py-3 text-sm font-medium hover:bg-sand-50 transition"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                  Upgrade with Google
+                </button>
+                <a
+                  href="/register"
+                  className="block w-full text-center text-sm text-ink-500 hover:text-ink-700 underline"
+                >
+                  or sign up with email
+                </a>
+              </div>
             )}
           </div>
 
           {/* Pro Tier */}
           <div className={`rounded-3xl border-2 p-6 space-y-5 relative overflow-hidden ${
-            currentTier === "PRO"
+            entitlementState === "PRO_ACTIVE"
               ? "border-amber-500 bg-amber-50"
               : "border-ink-900 bg-white/80"
           }`}>
-            <div className="absolute top-4 right-4">
-              <span className={`rounded-full px-3 py-1 text-xs font-medium text-white ${
-                currentTier === "PRO" ? "bg-amber-500" : "bg-ink-900"
-              }`}>
-                {currentTier === "PRO" ? "Your plan" : "Coming Soon"}
-              </span>
-            </div>
+            {entitlementState === "PRO_ACTIVE" && (
+              <div className="absolute top-4 right-4">
+                <span className="rounded-full px-3 py-1 text-xs font-medium text-white bg-amber-500">
+                  Your plan
+                </span>
+              </div>
+            )}
 
             <div>
               <h2 className="text-xl font-semibold">Pro</h2>
@@ -203,8 +277,39 @@ export default function UpgradePage() {
               </p>
             </div>
 
+            {/* Plan selector */}
+            <div className="flex rounded-full bg-sand-100 p-1">
+              <button
+                onClick={() => setSelectedPlan("monthly")}
+                className={`flex-1 rounded-full py-2 text-sm font-medium transition ${
+                  selectedPlan === "monthly"
+                    ? "bg-white shadow-sm"
+                    : "text-ink-500 hover:text-ink-700"
+                }`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setSelectedPlan("annual")}
+                className={`flex-1 rounded-full py-2 text-sm font-medium transition ${
+                  selectedPlan === "annual"
+                    ? "bg-white shadow-sm"
+                    : "text-ink-500 hover:text-ink-700"
+                }`}
+              >
+                Annual
+              </button>
+            </div>
+
             <div className="text-3xl font-bold">
-              $3<span className="text-base font-normal text-ink-400">/month</span>
+              {selectedPlan === "monthly" ? (
+                <>$3.99<span className="text-base font-normal text-ink-400">/month</span></>
+              ) : (
+                <>
+                  $34.99<span className="text-base font-normal text-ink-400">/year</span>
+                  <div className="text-sm font-normal text-green-600">Save 27%</div>
+                </>
+              )}
             </div>
 
             <ul className="space-y-3 text-sm">
@@ -214,7 +319,7 @@ export default function UpgradePage() {
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-                <span>Everything in Member</span>
+                <span>Everything in Basic</span>
               </li>
               <li className="flex items-start gap-2">
                 <SparkleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
@@ -234,13 +339,37 @@ export default function UpgradePage() {
               </li>
             </ul>
 
-            <button
-              onClick={() => setShowProPreview(true)}
-              className="w-full rounded-full bg-ink-200 px-6 py-3 text-sm font-semibold text-ink-500 cursor-not-allowed"
-              disabled
-            >
-              Join Waitlist
-            </button>
+            {entitlementState === "PRO_ACTIVE" ? (
+              <div className="space-y-2">
+                <button
+                  onClick={handleManageBilling}
+                  disabled={isLoading}
+                  className="w-full rounded-full border border-amber-300 bg-amber-50 px-6 py-3 text-sm font-medium text-amber-700 hover:bg-amber-100 transition disabled:opacity-50"
+                >
+                  {isLoading ? "Loading..." : "Manage Subscription"}
+                </button>
+                <button
+                  onClick={handleManageBilling}
+                  disabled={isLoading}
+                  className="w-full text-center text-sm text-ink-500 hover:text-ink-700 underline"
+                >
+                  Cancel subscription
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <button
+                  onClick={handleProCheckout}
+                  disabled={isLoading}
+                  className="w-full rounded-full bg-ink-900 px-6 py-3 text-sm font-semibold text-white hover:bg-ink-800 transition disabled:opacity-50"
+                >
+                  {isLoading ? "Loading..." : `Upgrade to Pro`}
+                </button>
+                <p className="text-center text-xs text-ink-400">
+                  Cancel anytime. No questions asked.
+                </p>
+              </div>
+            )}
 
             <button
               onClick={() => setShowProPreview(true)}
