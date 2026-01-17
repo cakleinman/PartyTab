@@ -17,6 +17,7 @@ export async function GET() {
         participants: {
           some: { userId: user.id },
         },
+        archivedAt: null,
       },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
       select: {

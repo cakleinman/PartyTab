@@ -71,6 +71,18 @@ export default function TabsPage() {
     }
   };
 
+  const handleArchive = async (e: React.MouseEvent, tabId: string) => {
+    e.preventDefault();
+    const res = await fetch(`/api/tabs/${tabId}/archive`, { method: "POST" });
+    if (res.ok) {
+      setTabs((prev) => prev.filter((t) => t.id !== tabId));
+      pushToast("Tab archived");
+    } else {
+      const data = await res.json();
+      pushToast(data.error?.message ?? "Failed to archive tab");
+    }
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -138,26 +150,36 @@ export default function TabsPage() {
                   </p>
                 </div>
                 {tab.status === "CLOSED" && progress ? (
-                  <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center">
-                    <svg className="h-12 w-12 -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        className="text-sand-200"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        fill="none"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                      <path
-                        className={isComplete ? "text-green-500" : "text-ink-900"}
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        fill="none"
-                        strokeDasharray={`${progress.percent}, 100`}
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                      />
-                    </svg>
-                    <span className="absolute text-xs font-semibold">{progress.percent}%</span>
+                  <div className="flex items-center gap-3">
+                    {isComplete && tab.isCreator && (
+                      <button
+                        onClick={(e) => handleArchive(e, tab.id)}
+                        className="rounded-full border border-sand-200 px-3 py-1.5 text-xs font-medium hover:bg-sand-100 transition"
+                      >
+                        Archive
+                      </button>
+                    )}
+                    <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center">
+                      <svg className="h-12 w-12 -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-sand-200"
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className={isComplete ? "text-green-500" : "text-ink-900"}
+                          stroke="currentColor"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                          fill="none"
+                          strokeDasharray={`${progress.percent}, 100`}
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <span className="absolute text-xs font-semibold">{progress.percent}%</span>
+                    </div>
                   </div>
                 ) : (
                   <span className="rounded-full border border-sand-200 px-3 py-1 text-xs uppercase tracking-wide text-ink-500">
@@ -172,13 +194,19 @@ export default function TabsPage() {
 
       {/* Account section */}
       {user && (
-        <div className="pt-4 border-t border-sand-200">
+        <div className="pt-4 border-t border-sand-200 flex items-center justify-between">
           <button
             onClick={handleLogout}
             className="text-sm text-ink-400 hover:text-ink-700 hover:underline cursor-pointer transition"
           >
             Log out
           </button>
+          <Link
+            href="/tabs/archive"
+            className="text-sm text-ink-400 hover:text-ink-700 hover:underline transition"
+          >
+            View archive
+          </Link>
         </div>
       )}
     </div>

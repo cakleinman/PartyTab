@@ -110,6 +110,7 @@ model Tab {
   createdByUserId String    @db.Uuid
   createdAt       DateTime  @default(now())
   closedAt        DateTime?
+  archivedAt      DateTime?
 
   createdBy        User                        @relation("TabCreator", fields: [createdByUserId], references: [id])
   participants     Participant[]
