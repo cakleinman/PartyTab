@@ -44,7 +44,11 @@ export function Header() {
           {isSignedIn ? (
             <Link
               href="/tabs"
-              className="animate-subtle-pulse rounded-full bg-green-600 px-3 py-1.5 font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md sm:px-4"
+              className={
+                pathname === "/"
+                  ? "animate-subtle-pulse rounded-full bg-green-600 px-3 py-1.5 font-medium text-white shadow-sm transition-all hover:bg-green-700 hover:shadow-md sm:px-4"
+                  : "rounded-full border border-sand-200 bg-white px-4 py-2 text-sm font-medium transition hover:bg-sand-50"
+              }
             >
               <span className="sm:hidden">My Tabs</span>
               <span className="hidden sm:inline">Keep the party going</span>
