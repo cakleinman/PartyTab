@@ -2,7 +2,8 @@ import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireUser } from "@/lib/api/guards";
-import { parseDateInput, parseDescription, parseTabName } from "@/lib/validators/schemas";
+import { parseDateInput, parseDescription, parseTabName, parseUuid } from "@/lib/validators/schemas";
+import { randomBytes } from "crypto";
 
 const BASIC_TAB_LIMIT = 3;
 
@@ -106,6 +107,32 @@ export async function POST(request: Request) {
       }
     }
 
+    // Parse optional copyFromTabId
+    const copyFromTabId = body?.copyFromTabId ? parseUuid(body.copyFromTabId, "copyFromTabId") : null;
+
+    // Get participants to copy if copying from another tab
+    let participantsToCopy: { userId: string; displayName: string; isPlaceholder: boolean }[] = [];
+    if (copyFromTabId) {
+      const sourceTab = await prisma.tab.findUnique({
+        where: { id: copyFromTabId },
+        include: {
+          participants: {
+            include: { user: true },
+          },
+        },
+      });
+      const isParticipant = sourceTab?.participants.some((p) => p.userId === user.id);
+      if (sourceTab && isParticipant) {
+        participantsToCopy = sourceTab.participants
+          .filter((p) => p.userId !== user.id) // exclude self
+          .map((p) => ({
+            userId: p.userId,
+            displayName: p.user.displayName,
+            isPlaceholder: !p.user.pinHash && !p.user.googleId && !p.user.passwordHash,
+          }));
+      }
+    }
+
     const tab = await prisma.tab.create({
       data: {
         name,
@@ -119,6 +146,29 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // Add copied participants
+    for (const p of participantsToCopy) {
+      if (p.isPlaceholder) {
+        // Create new placeholder user with same displayName
+        const newUser = await prisma.user.create({
+          data: { displayName: p.displayName, authProvider: "GUEST" },
+        });
+        await prisma.participant.create({
+          data: { tabId: tab.id, userId: newUser.id },
+        });
+        // Generate claim token
+        const token = randomBytes(32).toString("hex");
+        await prisma.userClaimToken.create({
+          data: { userId: newUser.id, token },
+        });
+      } else {
+        // Real user - add directly
+        await prisma.participant.create({
+          data: { tabId: tab.id, userId: p.userId },
+        });
+      }
+    }
 
     return created({
       tab: {

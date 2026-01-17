@@ -11,6 +11,12 @@ type UserInfo = {
   subscriptionTier: "GUEST" | "BASIC" | "PRO";
 } | null;
 
+type TabGroup = {
+  tabId: string;
+  tabName: string;
+  participants: { userId: string; displayName: string }[];
+};
+
 function NewTabForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,6 +27,8 @@ function NewTabForm() {
   const [startDate, setStartDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [groups, setGroups] = useState<TabGroup[]>([]);
+  const [copyFromTabId, setCopyFromTabId] = useState("");
 
   useEffect(() => {
     fetch("/api/me")
@@ -38,6 +46,15 @@ function NewTabForm() {
       });
   }, []);
 
+  useEffect(() => {
+    if (user && user.subscriptionTier !== "GUEST") {
+      fetch("/api/tabs/groups")
+        .then((res) => res.json())
+        .then((data) => setGroups(data.groups ?? []))
+        .catch(() => {});
+    }
+  }, [user]);
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
@@ -50,6 +67,7 @@ function NewTabForm() {
         name,
         description,
         startDate: startDate || undefined,
+        copyFromTabId: copyFromTabId || undefined,
       }),
     });
     const data = await response.json();
@@ -132,6 +150,26 @@ function NewTabForm() {
           required
         />
       </label>
+      {groups.length > 0 && (
+        <label className="grid gap-2 text-sm">
+          <span>
+            Start with group from
+            <InfoTooltip text="Copy participants from a previous tab. You can always add or remove people after creating." />
+          </span>
+          <select
+            value={copyFromTabId}
+            onChange={(e) => setCopyFromTabId(e.target.value)}
+            className="rounded-2xl border border-sand-200 px-4 py-2 bg-white"
+          >
+            <option value="">New group</option>
+            {groups.map((g) => (
+              <option key={g.tabId} value={g.tabId}>
+                {g.tabName} ({g.participants.length} {g.participants.length === 1 ? "person" : "people"})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <label className="grid gap-2 text-sm">
         Description (optional)
         <textarea
