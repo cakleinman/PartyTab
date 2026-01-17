@@ -249,7 +249,7 @@ export default function SettlementPage() {
         <p className="text-sm text-ink-500">
           {isPreview
             ? "See where things stand. You can settle debts early while the tab is still open."
-            : "Settle up using any payment app. Confirm payments here."}
+            : "Pay using Venmo, Zelle, or cash. Mark it paid, then the recipient confirms."}
         </p>
       </div>
 

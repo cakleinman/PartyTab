@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
+import { canUseProFeatures } from "@/lib/auth/entitlements";
 import { parseUuid } from "@/lib/validators/schemas";
 import {
   getSupabaseServer,
@@ -81,6 +82,12 @@ export async function POST(
       throwApiError(409, "tab_closed", "Tab is closed");
     }
     await requireParticipant(tabId, user.id);
+
+    // Receipt upload requires Pro
+    const isPro = await canUseProFeatures(user.id);
+    if (!isPro) {
+      throwApiError(403, "pro_required", "Pro subscription required for receipt uploads");
+    }
 
     const expense = await prisma.expense.findFirst({
       where: { id: expenseId, tabId },
@@ -171,6 +178,12 @@ export async function DELETE(
       throwApiError(409, "tab_closed", "Tab is closed");
     }
     await requireParticipant(tabId, user.id);
+
+    // Receipt management requires Pro
+    const isPro = await canUseProFeatures(user.id);
+    if (!isPro) {
+      throwApiError(403, "pro_required", "Pro subscription required for receipt management");
+    }
 
     const expense = await prisma.expense.findFirst({
       where: { id: expenseId, tabId },

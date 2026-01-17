@@ -115,18 +115,18 @@ export async function sendPaymentPendingEmail(
   await emailClient.sendEmail({
     From: fromEmail,
     To: to,
-    Subject: `${escapedPayerName} says they've paid you for "${escapedTabName}"`,
+    Subject: `Action needed: ${escapedPayerName} says they paid you for "${escapedTabName}"`,
     HtmlBody: `
       <p>Hi ${escapedPayeeName},</p>
-      <p><strong>${escapedPayerName}</strong> says they've paid you <strong>$${amountDollars}</strong> for the tab <strong>"${escapedTabName}"</strong>.</p>
-      <p>Please confirm that you received this payment.</p>
+      <p><strong>${escapedPayerName}</strong> marked that they paid you <strong>$${amountDollars}</strong> for <strong>"${escapedTabName}"</strong>.</p>
+      <p>Once you receive the money, please confirm so the tab can be settled:</p>
       <p>
-        <a href="${settlementUrl}" style="background: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm Payment</a>
+        <a href="${settlementUrl}" style="background: #16a34a; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm Received</a>
       </p>
       <p style="font-size: 12px; color: #666;">
         <a href="${unsubscribeUrl}">Unsubscribe from notifications</a>
       </p>
     `,
-    TextBody: `Hi ${escapedPayeeName}, ${escapedPayerName} says they've paid you $${amountDollars} for "${escapedTabName}": ${settlementUrl}`,
+    TextBody: `Hi ${escapedPayeeName}, ${escapedPayerName} says they paid you $${amountDollars} for "${escapedTabName}". Please confirm: ${settlementUrl}`,
   });
 }
