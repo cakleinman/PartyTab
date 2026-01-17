@@ -4,6 +4,7 @@ import "./globals.css";
 import { ToastProvider } from "@/app/components/ToastProvider";
 import { Header } from "@/app/components/Header";
 import { getEnvStatus } from "@/lib/env";
+import { Analytics } from "@vercel/analytics/react";
 
 import { ProBanner } from "@/app/components/ProBanner";
 
@@ -68,6 +69,7 @@ export default function RootLayout({
             <main className="mx-auto w-full max-w-5xl px-6 py-10">{children}</main>
           </ToastProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );
