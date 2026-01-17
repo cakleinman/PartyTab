@@ -1,6 +1,8 @@
 import type { PrismaClient } from "@prisma/client";
 import { throwApiError } from "@/lib/api/errors";
 import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
+import { sendPaymentPendingEmail } from "@/lib/email/client";
+import { createInAppNotification } from "@/lib/notifications/create";
 
 // Helper to compute transfers for active tabs
 async function computeTransfersForActiveTab(prisma: PrismaClient, tabId: string) {
@@ -152,7 +154,7 @@ export async function initiateAcknowledgement(
     throwApiError(409, "forbidden", "Already acknowledged");
   }
 
-  return prisma.settlementAcknowledgement.upsert({
+  const acknowledgement = await prisma.settlementAcknowledgement.upsert({
     where: {
       tabId_fromParticipantId_toParticipantId: {
         tabId: params.tabId,
@@ -178,6 +180,73 @@ export async function initiateAcknowledgement(
       initiatedAt: new Date(),
     },
   });
+
+  // Send confirmation email and in-app notification (non-blocking)
+  Promise.allSettled([
+    (async () => {
+      try {
+        // Fetch payee user with email preferences
+        const payeeUser = await prisma.user.findUnique({
+          where: { id: toParticipant.userId },
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            emailPreference: true,
+          },
+        });
+
+        if (!payeeUser?.email) return;
+
+        // Fetch payer display name
+        const payerUser = await prisma.user.findUnique({
+          where: { id: params.userId },
+          select: { displayName: true },
+        });
+
+        const payerName = payerUser?.displayName || "Someone";
+        const settlementUrl = `${process.env.APP_URL || ""}/tabs/${params.tabId}/settlement`;
+        const unsubscribeUrl = `${process.env.APP_URL || ""}/settings/notifications`;
+
+        // Send payment pending email
+        await sendPaymentPendingEmail(
+          payeeUser.email,
+          payeeUser.displayName || "User",
+          payerName,
+          tab.name,
+          transferAmount,
+          settlementUrl,
+          unsubscribeUrl
+        );
+      } catch (error) {
+        console.error("Failed to send payment pending email:", error);
+      }
+    })(),
+    (async () => {
+      try {
+        // Create in-app notification
+        const payerUser = await prisma.user.findUnique({
+          where: { id: params.userId },
+          select: { displayName: true },
+        });
+
+        const payerName = payerUser?.displayName || "Someone";
+        const amountDollars = (transferAmount / 100).toFixed(2);
+
+        await createInAppNotification(
+          toParticipant.userId,
+          "PAYMENT_RECEIVED",
+          `${payerName} says they paid you`,
+          `$${amountDollars} for "${tab.name}". Tap to confirm.`,
+          `/tabs/${params.tabId}/settlement`
+        );
+      } catch (error) {
+        console.error("Failed to create in-app notification:", error);
+      }
+    })(),
+  ]);
+
+  return acknowledgement;
 }
 
 export async function confirmAcknowledgement(

@@ -42,6 +42,7 @@ export default function SettlementPage() {
   const tabId = params?.tabId;
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isPro, setIsPro] = useState(false);
   const [settlement, setSettlement] = useState<Settlement | null>(null);
   const [acknowledgements, setAcknowledgements] = useState<Acknowledgement[]>([]);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
@@ -49,6 +50,7 @@ export default function SettlementPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [reminderError, setReminderError] = useState<string | null>(null);
   const { pushToast } = useToast();
 
   useEffect(() => {
@@ -63,6 +65,7 @@ export default function SettlementPage() {
       .then(([participantData, settlementData, acknowledgementData, meData, tabData]) => {
         setParticipants(participantData.participants ?? []);
         setUserId(meData?.user?.id ?? null);
+        setIsPro(meData?.user?.subscriptionTier === "PRO");
         setTabInfo(tabData?.tab ? { status: tabData.tab.status, isCreator: tabData.tab.isCreator } : null);
         setIsPreview(settlementData?.isPreview ?? false);
         if (settlementData?.settlement) {
@@ -182,6 +185,29 @@ export default function SettlementPage() {
       return [...filtered, data.acknowledgement];
     });
     pushToast("Confirmed received.");
+    setActionLoading(null);
+  };
+
+  const handleSendReminder = async (transfer: Transfer) => {
+    if (!tabId) return;
+    setReminderError(null);
+    setActionLoading(`reminder-${transfer.fromParticipantId}-${transfer.toParticipantId}`);
+    const res = await fetch(`/api/tabs/${tabId}/reminders/send`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        debtorParticipantId: transfer.fromParticipantId,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      const errorMessage = data?.error?.message ?? "Could not send reminder.";
+      setReminderError(errorMessage);
+      pushToast(errorMessage);
+      setActionLoading(null);
+      return;
+    }
+    pushToast("Reminder sent!");
     setActionLoading(null);
   };
 
@@ -320,26 +346,45 @@ export default function SettlementPage() {
                 {categorizedTransfers.waitingOnOthers.map((transfer) => {
                   const ack = acknowledgementMap.get(`${transfer.fromParticipantId}:${transfer.toParticipantId}`);
                   const actionKey = `${transfer.fromParticipantId}-${transfer.toParticipantId}`;
+                  const isCurrentUserCreditor = currentParticipantId === transfer.toParticipantId;
+                  const canSendReminder = isPro && isCurrentUserCreditor && ack?.status !== "ACKNOWLEDGED";
 
                   return (
                     <div
                       key={actionKey}
                       className="rounded-2xl border border-sand-200 bg-white/80 px-4 py-3"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="text-sm">
-                          <span className="font-medium text-ink-700">
-                            {nameById.get(transfer.fromParticipantId)}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="text-sm">
+                            <span className="font-medium text-ink-700">
+                              {nameById.get(transfer.fromParticipantId)}
+                            </span>
+                            {" → "}
+                            <span className="font-medium text-ink-700">
+                              {nameById.get(transfer.toParticipantId)}
+                            </span>
+                            <span className="ml-2">{formatCents(transfer.amountCents)}</span>
+                          </div>
+                          <span className="text-xs text-amber-600">
+                            {ack?.initiatedAt ? "Awaiting confirmation" : "Awaiting payment"}
                           </span>
-                          {" → "}
-                          <span className="font-medium text-ink-700">
-                            {nameById.get(transfer.toParticipantId)}
-                          </span>
-                          <span className="ml-2">{formatCents(transfer.amountCents)}</span>
                         </div>
-                        <span className="text-xs text-amber-600">
-                          {ack?.initiatedAt ? "Awaiting confirmation" : "Awaiting payment"}
-                        </span>
+                        {canSendReminder && (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleSendReminder(transfer)}
+                              disabled={actionLoading === `reminder-${actionKey}`}
+                              className="text-xs text-green-600 hover:text-green-700 disabled:opacity-50 font-medium"
+                            >
+                              {actionLoading === `reminder-${actionKey}` ? "Sending…" : "Send reminder"}
+                            </button>
+                            {reminderError && (
+                              <span className="text-xs text-red-600">{reminderError}</span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

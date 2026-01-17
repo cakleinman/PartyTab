@@ -26,6 +26,12 @@ enum AuthProvider {
   GOOGLE
 }
 
+enum NotificationType {
+  PAYMENT_RECEIVED   // "X says they paid you"
+  PAYMENT_CONFIRMED  // "X confirmed your payment"
+  PAYMENT_REMINDER   // "Reminder: You owe X"
+}
+
 enum SubscriptionTier {
   GUEST // Not signed up, using PIN only
   BASIC // Free account with Google/Email
@@ -37,6 +43,11 @@ model User {
   displayName  String
   email        String?      @unique
   phone        String?
+
+  // Guest email capture (set by Pro user with consent)
+  guestEmail           String?
+  guestEmailConsentAt  DateTime?
+  guestEmailSetByUserId String?  @db.Uuid
 
   // Auth fields
   authProvider     AuthProvider     @default(GUEST)
@@ -72,8 +83,10 @@ model User {
   // Reminders / Notifications
   createdReminderSettings TabReminderSetting[]
   reminderLogs            TabReminderLog[]
+  remindersSent           TabReminderLog[]     @relation("ReminderSentBy")
   pushSubscriptions       PushSubscription[]
   emailPreference         EmailPreference?
+  inAppNotifications      InAppNotification[]
 }
 
 // Claim token for placeholder users (added by others, claimed via link)
@@ -342,13 +355,18 @@ model TabReminderLog {
   id              String   @id @default(uuid()) @db.Uuid
   tabId           String   @db.Uuid @map("tab_id")
   recipientUserId String   @db.Uuid @map("recipient_user_id")
-  channel         String // push | email
+  channel         String // push | email | in_app
   sentAt          DateTime @default(now()) @map("sent_at")
   status          String // sent | skipped | failed
   reason          String?
 
-  tab           Tab  @relation(fields: [tabId], references: [id])
-  recipientUser User @relation(fields: [recipientUserId], references: [id])
+  // Track who sent manual reminders (Pro creditor)
+  sentByUserId   String?  @db.Uuid @map("sent_by_user_id")
+  manualReminder Boolean  @default(false) @map("manual_reminder")
+
+  tab           Tab   @relation(fields: [tabId], references: [id])
+  recipientUser User  @relation(fields: [recipientUserId], references: [id])
+  sentByUser    User? @relation("ReminderSentBy", fields: [sentByUserId], references: [id])
   @@map("tab_reminder_log")
 }
 
@@ -372,4 +390,19 @@ model EmailPreference {
 
   user User @relation(fields: [userId], references: [id])
   @@map("email_preferences")
+}
+
+model InAppNotification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  url       String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, read])
+  @@map("in_app_notifications")
 }

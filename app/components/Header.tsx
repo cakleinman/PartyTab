@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { InstallAppButton } from "./InstallAppButton";
+import { NotificationBell } from "./NotificationBell";
 
 type AuthStatus = "loading" | "signed_out" | "guest" | "basic" | "pro";
 
@@ -54,6 +55,7 @@ export function Header() {
             </Link>
           )}
           <InstallAppButton />
+          {isSignedIn && <NotificationBell />}
           {authStatus === "signed_out" && (
             <Link href="/login" className="font-medium text-green-700 hover:text-green-800">
               Login

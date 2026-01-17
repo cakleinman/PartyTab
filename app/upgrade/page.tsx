@@ -331,7 +331,11 @@ export default function UpgradePage() {
               </li>
               <li className="flex items-start gap-2">
                 <SparkleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
-                <span>Receipt image storage as proof</span>
+                <span><strong>Payment reminders</strong> — nudge people who owe you</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <SparkleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+                <span><strong>Email notifications</strong> for payment confirmations</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />

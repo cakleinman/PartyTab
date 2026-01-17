@@ -354,7 +354,7 @@ export default function LandingPage() {
             </span>
             <span className="flex items-center gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-600"></span>
-              Free for everyone
+              Free to use
             </span>
           </div>
         </div>
