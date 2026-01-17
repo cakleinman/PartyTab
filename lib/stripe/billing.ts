@@ -96,7 +96,6 @@ export async function createPortalSession(userId: string) {
  */
 export async function syncSubscription(
   subscription: Stripe.Subscription,
-  _eventId: string
 ) {
   const userId = subscription.metadata?.userId;
   if (!userId) {

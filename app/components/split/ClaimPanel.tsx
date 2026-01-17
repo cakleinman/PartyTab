@@ -160,7 +160,7 @@ export function ClaimPanel({
     }
   };
 
-  const { totals, itemSubtotal: _itemSubtotal } = calculateTotals();
+  const { totals } = calculateTotals();
   const unclaimedItems = items.filter((item) => item.claimedBy.length === 0);
 
   // Show upload UI when no items and upload handler is provided

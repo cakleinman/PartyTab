@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import NextAuth from "next-auth";
 import { authConfig } from "@/lib/auth/config";
 import { createPortalSession } from "@/lib/stripe/billing";
 
 const { auth: getSession } = NextAuth(authConfig);
 
-export async function POST(_req: NextRequest) {
+export async function POST() {
   try {
     const session = await getSession();
     if (!session?.user?.id) {

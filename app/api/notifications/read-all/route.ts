@@ -3,7 +3,7 @@ import { ok, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession } from "@/lib/api/guards";
 
-export async function POST(_request: Request) {
+export async function POST() {
   try {
     const user = await getUserFromSession();
     if (!user) {

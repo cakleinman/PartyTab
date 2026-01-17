@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       case "customer.subscription.updated":
       case "customer.subscription.deleted":
         const subscription = event.data.object as Stripe.Subscription;
-        await syncSubscription(subscription, event.id);
+        await syncSubscription(subscription);
         break;
 
       case "checkout.session.completed":
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
         if (invoice.subscription) {
            const subId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription.id;
            const sub = await stripe.subscriptions.retrieve(subId);
-           await syncSubscription(sub, event.id);
+           await syncSubscription(sub);
         }
         break;
 
