@@ -139,9 +139,9 @@ function LoginContent() {
 
           <div>
             <p className="text-xs text-ink-500">
-              Prefer to pay later?{" "}
+              Been added to a tab?{" "}
               <Link href="/signin" className="font-semibold text-ink-700 underline hover:text-ink-900">
-                Sign in as guest (PIN)
+                Sign in with PIN
               </Link>
             </p>
           </div>
