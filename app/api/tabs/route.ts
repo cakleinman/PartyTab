@@ -5,7 +5,7 @@ import { getUserFromSession, requireUser } from "@/lib/api/guards";
 import { parseDateInput, parseDescription, parseTabName, parseUuid } from "@/lib/validators/schemas";
 import { randomBytes } from "crypto";
 
-const BASIC_TAB_LIMIT = 3;
+const BASIC_TAB_LIMIT = 1;
 
 export async function GET() {
   try {
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         throwApiError(
           403,
           "tab_limit_reached",
-          `You've reached the limit of ${BASIC_TAB_LIMIT} active tabs. Close a tab or upgrade to Pro for unlimited tabs.`
+          "Basic accounts can have 1 active tab at a time. Close your current tab or upgrade to Pro for unlimited tabs."
         );
       }
     }

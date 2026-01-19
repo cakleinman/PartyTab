@@ -192,7 +192,7 @@ export default function UpgradePage() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
-                <span>Create up to <strong>3 active tabs</strong></span>
+                <span><strong>Host 1 tab</strong> at a time</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-green-600" />
