@@ -24,31 +24,94 @@ const BLOG_POSTS = [
         category: "Guides",
     },
     {
-        slug: "splitting-rent-fairly",
-        title: "How to Split Rent Fairly (When Rooms Aren't Equal)",
+        slug: "youth-sports-travel-expenses",
+        title: "Managing Youth Sports Travel Team Expenses",
         excerpt:
-            "The master bedroom shouldn't cost the same as the tiny room by the bathroom. 5 fair methods to split unequal rent.",
-        date: "2026-01-24",
-        readTime: "6 min read",
+            "Coordinating a travel team for tournaments? Here's how parent groups can fairly split hotel rooms, gas, meals, and tournament fees.",
+        date: "2026-01-21",
+        readTime: "7 min read",
+        category: "Guides",
+    },
+    {
+        slug: "splitting-group-project-expenses",
+        title: "How to Split Group Project Expenses Without Drama",
+        excerpt:
+            "Working on a group project with shared costs? Here's how to fairly split expenses for supplies, software, and food.",
+        date: "2026-01-18",
+        readTime: "5 min read",
         category: "Tips",
     },
     {
-        slug: "splitting-group-dinner-bills",
-        title: "How to Split a Group Dinner Bill Without the Awkwardness",
+        slug: "ski-trip-budget-guide",
+        title: "Ski Trip Budget: How to Split Costs With Your Crew",
         excerpt:
-            "6 ways to split a restaurant bill fairly, plus how to handle the friend who always orders the expensive steak.",
-        date: "2026-01-24",
-        readTime: "5 min read",
-        category: "Tips",
+            "Lift tickets, lodging, rentals, and après-ski—here's how to keep track without wiping out.",
+        date: "2026-01-15",
+        readTime: "6 min read",
+        category: "Guides",
+    },
+    {
+        slug: "group-cruise-expense-splitting",
+        title: "How to Split Expenses on a Group Cruise",
+        excerpt:
+            "Cruising with friends? Here's how to handle cabin costs, excursions, drink packages, and onboard expenses.",
+        date: "2026-01-12",
+        readTime: "6 min read",
+        category: "Guides",
+    },
+    {
+        slug: "bachelorette-party-budget-guide",
+        title: "The Ultimate Bachelorette Party Budget Guide",
+        excerpt:
+            "How to give the bride-to-be an amazing send-off without anyone going into debt.",
+        date: "2026-01-09",
+        readTime: "7 min read",
+        category: "Guides",
+    },
+    {
+        slug: "girls-trip-budget-planning",
+        title: "Girls Trip Budget Planning: Split Costs Without the Drama",
+        excerpt:
+            "A practical guide to planning, budgeting, and splitting expenses for your next girls getaway.",
+        date: "2026-01-06",
+        readTime: "6 min read",
+        category: "Guides",
+    },
+    {
+        slug: "splitting-holiday-expenses-family",
+        title: "How to Split Holiday Expenses With Family",
+        excerpt:
+            "Family holidays get expensive fast. Here's how to fairly split costs for Thanksgiving, Christmas, or reunions.",
+        date: "2026-01-03",
+        readTime: "7 min read",
+        category: "Guides",
     },
     {
         slug: "avoid-losing-friends-over-money",
         title: "How to Avoid Losing Friends Over Money",
         excerpt:
             "Money is the #1 cause of friendship conflicts. Here's how to handle shared expenses without ruining relationships.",
-        date: "2026-01-24",
+        date: "2025-12-30",
         readTime: "7 min read",
         category: "Advice",
+    },
+    {
+        slug: "splitting-group-dinner-bills",
+        title: "How to Split a Group Dinner Bill Without the Awkwardness",
+        excerpt:
+            "6 ways to split a restaurant bill fairly, plus how to handle the friend who always orders the expensive steak.",
+        date: "2025-12-27",
+        readTime: "5 min read",
+        category: "Tips",
+    },
+    {
+        slug: "splitting-rent-fairly",
+        title: "How to Split Rent Fairly (When Rooms Aren't Equal)",
+        excerpt:
+            "The master bedroom shouldn't cost the same as the tiny room by the bathroom. 5 fair methods to split unequal rent.",
+        date: "2025-12-24",
+        readTime: "6 min read",
+        category: "Tips",
     },
 ];
 
@@ -100,14 +163,6 @@ export default function BlogPage() {
                         </Link>
                     </article>
                 ))}
-            </div>
-
-            {/* Coming Soon Note */}
-            <div className="bg-sand-50 rounded-2xl p-6 text-center mb-12">
-                <p className="text-ink-600">
-                    📝 More posts coming soon! We&apos;re working on guides for ski trips,
-                    wedding expenses, and more.
-                </p>
             </div>
 
             {/* CTA */}

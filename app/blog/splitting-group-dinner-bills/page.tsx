@@ -41,7 +41,7 @@ export default function SplittingGroupDinnerBillsPage() {
                     <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
                         TIPS
                     </span>
-                    <span className="text-sm text-ink-400">January 24, 2026</span>
+                    <span className="text-sm text-ink-400">December 27, 2025</span>
                     <span className="text-sm text-ink-400">•</span>
                     <span className="text-sm text-ink-400">5 min read</span>
                 </div>

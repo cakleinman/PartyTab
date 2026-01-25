@@ -41,7 +41,7 @@ export default function SplittingRentFairlyPage() {
                     <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
                         TIPS
                     </span>
-                    <span className="text-sm text-ink-400">January 24, 2026</span>
+                    <span className="text-sm text-ink-400">December 24, 2025</span>
                     <span className="text-sm text-ink-400">•</span>
                     <span className="text-sm text-ink-400">6 min read</span>
                 </div>
