@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 
 export interface ReceiptItem {
   id: string;
@@ -157,11 +158,13 @@ export function ReceiptUpload({
     return (
       <div className="space-y-3">
         <div className="relative rounded-xl border border-sand-200 overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={receipt.url}
             alt="Receipt"
+            width={400}
+            height={256}
             className="w-full max-h-64 object-contain bg-sand-50"
+            unoptimized
           />
           {!disabled && (
             <button
@@ -255,13 +258,12 @@ export function ReceiptUpload({
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => !disabled && fileInputRef.current?.click()}
-        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition cursor-pointer ${
-          disabled
-            ? "border-sand-200 bg-sand-50 cursor-not-allowed opacity-50"
-            : dragOver
-              ? "border-ink-400 bg-ink-50"
-              : "border-sand-300 hover:border-sand-400 hover:bg-sand-50"
-        }`}
+        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition cursor-pointer ${disabled
+          ? "border-sand-200 bg-sand-50 cursor-not-allowed opacity-50"
+          : dragOver
+            ? "border-ink-400 bg-ink-50"
+            : "border-sand-300 hover:border-sand-400 hover:bg-sand-50"
+          }`}
       >
         {uploading ? (
           <>

@@ -1,0 +1,16 @@
+{
+  "name": "partytab-video-generator",
+  "version": "1.0.0",
+  "description": "Automated TikTok video generator for PartyTab",
+  "type": "module",
+  "scripts": {
+    "bot": "node src/telegram-bot.js",
+    "generate": "node src/generate-videos.js",
+    "record-demo": "node src/record-demo.js"
+  },
+  "dependencies": {
+    "node-telegram-bot-api": "^0.66.0",
+    "dotenv": "^16.0.0",
+    "puppeteer": "^22.0.0"
+  }
+}

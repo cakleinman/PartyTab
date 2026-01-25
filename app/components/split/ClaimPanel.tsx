@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useMemo } from "react";
+import Image from "next/image";
 import { formatCents } from "@/lib/money/cents";
 
 export interface ReceiptItem {
@@ -171,11 +172,13 @@ export function ClaimPanel({
           <>
             {/* Show uploaded receipt preview */}
             <div className="relative rounded-xl border border-sand-200 overflow-hidden">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src={uploadedReceipt.url}
                 alt="Receipt"
+                width={400}
+                height={192}
                 className="w-full max-h-48 object-contain bg-sand-50"
+                unoptimized
               />
             </div>
             {onReceiptParse ? (
@@ -223,13 +226,12 @@ export function ClaimPanel({
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition cursor-pointer ${
-                disabled || isUploading
-                  ? "border-sand-200 bg-sand-50 cursor-not-allowed opacity-50"
-                  : dragOver
-                    ? "border-ink-400 bg-ink-50"
-                    : "border-sand-300 hover:border-sand-400 hover:bg-sand-50"
-              }`}
+              className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition cursor-pointer ${disabled || isUploading
+                ? "border-sand-200 bg-sand-50 cursor-not-allowed opacity-50"
+                : dragOver
+                  ? "border-ink-400 bg-ink-50"
+                  : "border-sand-300 hover:border-sand-400 hover:bg-sand-50"
+                }`}
             >
               {isUploading ? (
                 <>
@@ -329,11 +331,10 @@ export function ClaimPanel({
                     onClick={() => onClaimToggle(item.id, participant.id)}
                     disabled={disabled}
                     title={participant.displayName}
-                    className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${
-                      isClaimed
-                        ? "bg-ink-900 text-white"
-                        : "bg-sand-100 text-ink-400 hover:bg-sand-200"
-                    } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                    className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${isClaimed
+                      ? "bg-ink-900 text-white"
+                      : "bg-sand-100 text-ink-400 hover:bg-sand-200"
+                      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {uniqueInitials[participant.id] || "?"}
                   </button>

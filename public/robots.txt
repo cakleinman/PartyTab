@@ -1,0 +1,25 @@
+# PartyTab robots.txt
+# https://partytab.app
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://partytab.app/sitemap.xml
+
+# Block auth and API routes from indexing
+Disallow: /login
+Disallow: /register
+Disallow: /signin
+Disallow: /claim/
+Disallow: /join/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /tabs/
+Disallow: /demo
+Disallow: /unsubscribe/
+
+# Allow main content pages
+Allow: /privacy
+Allow: /terms
+Allow: /upgrade

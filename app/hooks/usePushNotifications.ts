@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_PUSH_VAPID_PUBLIC_KEY;
 
@@ -15,9 +15,21 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
+// Check push support synchronously (during hydration)
+function getIsSupported() {
+  if (typeof window === "undefined") return false;
+  return "serviceWorker" in navigator && "PushManager" in window;
+}
+
+function subscribe() {
+  return () => { };
+}
+
 export function usePushNotifications() {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
+
+  // Use useSyncExternalStore for SSR-safe browser feature detection
+  const isSupported = useSyncExternalStore(subscribe, getIsSupported, () => false);
 
   async function registerServiceWorker() {
     try {
@@ -52,12 +64,13 @@ export function usePushNotifications() {
   }
 
   useEffect(() => {
-    if ("serviceWorker" in navigator && "PushManager" in window) {
+    if (isSupported) {
+      // Async state update from external system (service worker) is the intended pattern
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsSupported(true);
       registerServiceWorker();
     }
-  }, []);
+  }, [isSupported]);
 
   return { isSupported, subscription, subscribeToPush };
 }
+

@@ -5,8 +5,10 @@ import { ToastProvider } from "@/app/components/ToastProvider";
 import { Header } from "@/app/components/Header";
 import { getEnvStatus } from "@/lib/env";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { ProBanner } from "@/app/components/ProBanner";
+import { JsonLdSchema } from "@/app/components/JsonLdSchema";
 
 const displayFont = Space_Grotesk({
   variable: "--font-display",
@@ -19,11 +21,44 @@ const bodyFont = Work_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PartyTab",
-  description: "Track shared expenses, settle later.",
+  title: "PartyTab | Free Bill Splitting App - No Download Required",
+  description:
+    "Split group expenses for trips, dinners, and roommates. Track who paid what and settle up easily. Works in your browser—no app download needed. Free to use.",
+  keywords: [
+    "bill splitting app",
+    "split expenses",
+    "group expense tracker",
+    "no app download",
+    "free bill splitter",
+    "trip expense splitter",
+    "roommate expenses",
+  ],
   icons: {
     icon: "/icon.svg",
     apple: "/icon-192.png?v=2",
+  },
+  metadataBase: new URL("https://partytab.app"),
+  openGraph: {
+    title: "PartyTab - Split Group Expenses the Easy Way",
+    description:
+      "Track and share expenses with friends on trips, parties, and shared living. No app download required.",
+    url: "https://partytab.app",
+    siteName: "PartyTab",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "PartyTab | Free Bill Splitting App",
+    description:
+      "Split group expenses—no app download needed. Track who paid what and settle up the smart way.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "https://partytab.app",
   },
 };
 
@@ -61,6 +96,9 @@ export default function RootLayout({
   }
   return (
     <html lang="en">
+      <head>
+        <JsonLdSchema />
+      </head>
       <body className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
         <div className="min-h-screen bg-sand-50 text-ink-900">
           <Header />
@@ -70,6 +108,7 @@ export default function RootLayout({
           </ToastProvider>
         </div>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

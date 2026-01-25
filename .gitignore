@@ -45,3 +45,8 @@ supabase/.temp
 next-env.d.ts
 
 /app/generated/prisma
+
+# marketing video generator (separate project)
+/marketing/video-generator/node_modules
+/marketing/video-generator/temp
+/marketing/video-generator/output

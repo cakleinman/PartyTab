@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
@@ -118,18 +118,27 @@ export default function ExpenseDetailPage() {
     return 0;
   }, [tipMode, tipValue, expense?.receiptSubtotalCents]);
 
-  // Auto-update amount when tip changes for receipt-based expenses
-  // This intentionally syncs derived state when receipt values change
-  useEffect(() => {
-    if (!expense?.receiptSubtotalCents) return;
+  // Auto-compute the total for receipt-based expenses as a derived value
+  // This replaces the useEffect that was calling setAmount
+  const receiptComputedTotal = useMemo(() => {
+    if (!expense?.receiptSubtotalCents) return null;
     const subtotal = expense.receiptSubtotalCents;
     const tax = expense.receiptTaxCents || 0;
     const fees = expense.receiptFeeCents || 0;
-    const total = subtotal + tax + fees + calculatedTipCents;
-    const formattedTotal = formatCentsPlain(total);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setAmount((prev) => (prev !== formattedTotal ? formattedTotal : prev));
+    return subtotal + tax + fees + calculatedTipCents;
   }, [calculatedTipCents, expense?.receiptSubtotalCents, expense?.receiptTaxCents, expense?.receiptFeeCents]);
+
+  // Sync amount when receipt total changes (only update if different to avoid loops)
+  const prevReceiptTotal = useRef<number | null>(null);
+  useEffect(() => {
+    if (receiptComputedTotal !== null && receiptComputedTotal !== prevReceiptTotal.current) {
+      prevReceiptTotal.current = receiptComputedTotal;
+      const formattedTotal = formatCentsPlain(receiptComputedTotal);
+      // Intentionally syncing derived state - amount must reflect receipt total
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAmount((prev) => (prev !== formattedTotal ? formattedTotal : prev));
+    }
+  }, [receiptComputedTotal]);
 
   useEffect(() => {
     if (!tabId || !expenseId) return;
@@ -214,8 +223,8 @@ export default function ExpenseDetailPage() {
     amountCents > 0 &&
     // For receipt-based expenses, claims determine the split
     (receiptItems.length > 0 ||
-     !customSplit ||
-     (splitSumCents === amountCents && splitParticipantIds.length > 0));
+      !customSplit ||
+      (splitSumCents === amountCents && splitParticipantIds.length > 0));
   const canDelete =
     tabStatus === "ACTIVE" &&
     (expense?.createdByUserId === userId || tab?.isCreator);
@@ -509,11 +518,10 @@ export default function ExpenseDetailPage() {
                             onClick={() => handleClaimToggle(participant.id)}
                             disabled={!canEdit}
                             title={participant.displayName}
-                            className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${
-                              isClaimed
-                                ? "bg-ink-900 text-white"
-                                : "bg-sand-100 text-ink-400 hover:bg-sand-200"
-                            } ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
+                            className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${isClaimed
+                              ? "bg-ink-900 text-white"
+                              : "bg-sand-100 text-ink-400 hover:bg-sand-200"
+                              } ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
                           >
                             {uniqueInitials[participant.id] || "?"}
                           </button>
@@ -601,11 +609,10 @@ export default function ExpenseDetailPage() {
                   type="button"
                   onClick={() => setTipMode("percent")}
                   disabled={!canEdit}
-                  className={`px-3 py-1.5 text-sm font-medium transition ${
-                    tipMode === "percent"
-                      ? "bg-ink-900 text-white"
-                      : "bg-white text-ink-500 hover:bg-sand-50"
-                  } ${!canEdit ? "opacity-50" : ""}`}
+                  className={`px-3 py-1.5 text-sm font-medium transition ${tipMode === "percent"
+                    ? "bg-ink-900 text-white"
+                    : "bg-white text-ink-500 hover:bg-sand-50"
+                    } ${!canEdit ? "opacity-50" : ""}`}
                 >
                   %
                 </button>
@@ -613,11 +620,10 @@ export default function ExpenseDetailPage() {
                   type="button"
                   onClick={() => setTipMode("amount")}
                   disabled={!canEdit}
-                  className={`px-3 py-1.5 text-sm font-medium transition ${
-                    tipMode === "amount"
-                      ? "bg-ink-900 text-white"
-                      : "bg-white text-ink-500 hover:bg-sand-50"
-                  } ${!canEdit ? "opacity-50" : ""}`}
+                  className={`px-3 py-1.5 text-sm font-medium transition ${tipMode === "amount"
+                    ? "bg-ink-900 text-white"
+                    : "bg-white text-ink-500 hover:bg-sand-50"
+                    } ${!canEdit ? "opacity-50" : ""}`}
                 >
                   $
                 </button>
@@ -647,39 +653,39 @@ export default function ExpenseDetailPage() {
 
         {/* Hide split section when using claim mode (receipt items exist) */}
         {receiptItems.length === 0 && (
-        <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold">Split</p>
-              <p className="text-xs text-ink-500">Even split is the default.</p>
+          <div className="space-y-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold">Split</p>
+                <p className="text-xs text-ink-500">Even split is the default.</p>
+              </div>
+              <label className="flex items-center gap-2 text-xs text-ink-500">
+                <input
+                  type="checkbox"
+                  checked={customSplit}
+                  onChange={(event) => setCustomSplit(event.target.checked)}
+                  disabled={!canEdit}
+                />
+                Custom
+              </label>
             </div>
-            <label className="flex items-center gap-2 text-xs text-ink-500">
-              <input
-                type="checkbox"
-                checked={customSplit}
-                onChange={(event) => setCustomSplit(event.target.checked)}
-                disabled={!canEdit}
-              />
-              Custom
-            </label>
-          </div>
 
-          {!customSplit && (
-            <p className="text-sm text-ink-500">
-              Even split across {splitParticipantIds.length} people.
-            </p>
-          )}
-          {!customSplit && (
-            <p className="text-xs text-ink-500">
-              Any remainder cent goes to the last participant in alphabetical order.
-            </p>
-          )}
+            {!customSplit && (
+              <p className="text-sm text-ink-500">
+                Even split across {splitParticipantIds.length} people.
+              </p>
+            )}
+            {!customSplit && (
+              <p className="text-xs text-ink-500">
+                Any remainder cent goes to the last participant in alphabetical order.
+              </p>
+            )}
 
-          {customSplit && (
-            <div className="grid gap-3">
-              {participants.map((participant) => (
-                <label key={participant.id} className="grid gap-1 text-xs text-ink-500">
-                  {participant.displayName}
+            {customSplit && (
+              <div className="grid gap-3">
+                {participants.map((participant) => (
+                  <label key={participant.id} className="grid gap-1 text-xs text-ink-500">
+                    {participant.displayName}
                     <input
                       value={splitAmounts[participant.id] ?? ""}
                       onChange={(event) =>
@@ -692,48 +698,48 @@ export default function ExpenseDetailPage() {
                       className="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-700"
                       placeholder="0.00"
                     />
-                </label>
-              ))}
-              <p className="text-xs text-ink-500">
-                Split total: {splitSumCents ? formatCents(splitSumCents) : "$0.00"}
-              </p>
-              {amountCents > 0 && (
-                <p className="text-xs text-ink-500">
-                  Remaining: {formatCents(amountCents - splitSumCents)}
-                </p>
-              )}
-              {amountCents > 0 && splitSumCents !== amountCents && (
-                <p className="text-xs text-ink-500">
-                  Split total must match {formatCents(amountCents)}.
-                </p>
-              )}
-            </div>
-          )}
-          {!customSplit && (
-            <div className="grid gap-2 text-xs text-ink-500 sm:grid-cols-2">
-              {participants.map((participant) => {
-                const selected = splitParticipantIds.includes(participant.id);
-                return (
-                  <label key={participant.id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() =>
-                        setSplitParticipantIds((prev) =>
-                          selected
-                            ? prev.filter((id) => id !== participant.id)
-                            : [...prev, participant.id],
-                        )
-                      }
-                      disabled={!canEdit}
-                    />
-                    {participant.displayName}
                   </label>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                ))}
+                <p className="text-xs text-ink-500">
+                  Split total: {splitSumCents ? formatCents(splitSumCents) : "$0.00"}
+                </p>
+                {amountCents > 0 && (
+                  <p className="text-xs text-ink-500">
+                    Remaining: {formatCents(amountCents - splitSumCents)}
+                  </p>
+                )}
+                {amountCents > 0 && splitSumCents !== amountCents && (
+                  <p className="text-xs text-ink-500">
+                    Split total must match {formatCents(amountCents)}.
+                  </p>
+                )}
+              </div>
+            )}
+            {!customSplit && (
+              <div className="grid gap-2 text-xs text-ink-500 sm:grid-cols-2">
+                {participants.map((participant) => {
+                  const selected = splitParticipantIds.includes(participant.id);
+                  return (
+                    <label key={participant.id} className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() =>
+                          setSplitParticipantIds((prev) =>
+                            selected
+                              ? prev.filter((id) => id !== participant.id)
+                              : [...prev, participant.id],
+                          )
+                        }
+                        disabled={!canEdit}
+                      />
+                      {participant.displayName}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
 
         {error && <p className="text-sm text-ink-500">{error}</p>}
