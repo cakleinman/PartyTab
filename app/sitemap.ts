@@ -59,5 +59,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "monthly",
             priority: 0.8,
         },
+        // Informational pages
+        {
+            url: `${baseUrl}/how-it-works`,
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.8,
+        },
+        // Comparison pages
+        {
+            url: `${baseUrl}/compare/splitwise`,
+            lastModified: new Date(),
+            changeFrequency: "monthly",
+            priority: 0.8,
+        },
     ];
 }
