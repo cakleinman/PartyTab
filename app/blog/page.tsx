@@ -20,26 +20,8 @@ const BLOG_POSTS = [
         excerpt:
             "Planning a bachelor party? Here's how to set a realistic budget, split costs fairly, and avoid awkward money conversations.",
         date: "2026-01-24",
-        readTime: "5 min read",
+        readTime: "8 min read",
         category: "Guides",
-    },
-    {
-        slug: "splitting-rent-fairly",
-        title: "How to Split Rent Fairly (When Rooms Aren't Equal)",
-        excerpt:
-            "The master bedroom shouldn't cost the same as the tiny room by the bathroom. Here are fair ways to split unequal rent.",
-        date: "2026-01-20",
-        readTime: "4 min read",
-        category: "Tips",
-    },
-    {
-        slug: "avoid-losing-friends-over-money",
-        title: "How to Avoid Losing Friends Over Money",
-        excerpt:
-            "Money is the #1 cause of friendship conflicts. Here's how to handle shared expenses without damaging relationships.",
-        date: "2026-01-15",
-        readTime: "6 min read",
-        category: "Advice",
     },
 ];
 
