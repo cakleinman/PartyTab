@@ -23,6 +23,33 @@ const BLOG_POSTS = [
         readTime: "8 min read",
         category: "Guides",
     },
+    {
+        slug: "splitting-rent-fairly",
+        title: "How to Split Rent Fairly (When Rooms Aren't Equal)",
+        excerpt:
+            "The master bedroom shouldn't cost the same as the tiny room by the bathroom. 5 fair methods to split unequal rent.",
+        date: "2026-01-24",
+        readTime: "6 min read",
+        category: "Tips",
+    },
+    {
+        slug: "splitting-group-dinner-bills",
+        title: "How to Split a Group Dinner Bill Without the Awkwardness",
+        excerpt:
+            "6 ways to split a restaurant bill fairly, plus how to handle the friend who always orders the expensive steak.",
+        date: "2026-01-24",
+        readTime: "5 min read",
+        category: "Tips",
+    },
+    {
+        slug: "avoid-losing-friends-over-money",
+        title: "How to Avoid Losing Friends Over Money",
+        excerpt:
+            "Money is the #1 cause of friendship conflicts. Here's how to handle shared expenses without ruining relationships.",
+        date: "2026-01-24",
+        readTime: "7 min read",
+        category: "Advice",
+    },
 ];
 
 export default function BlogPage() {
