@@ -38,6 +38,9 @@ export const metadata: Metadata = {
     apple: "/icon-192.png?v=2",
   },
   metadataBase: new URL("https://partytab.app"),
+  verification: {
+    google: "eNE1fljaf9V4TK3in6_L1-wVyEhvdG9phAw5lblmAgU",
+  },
   openGraph: {
     title: "PartyTab - Split Group Expenses the Easy Way",
     description:
