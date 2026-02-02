@@ -51,3 +51,9 @@ next-env.d.ts
 /marketing/campaigns/social-video-launch/video-generator/temp
 /marketing/campaigns/social-video-launch/video-generator/output
 .env*.local
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
