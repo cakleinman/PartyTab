@@ -214,14 +214,14 @@ export default function MarketingGenerator() {
             return;
         }
 
-        // @ts-ignore
+        // @ts-expect-error html2canvas loaded via external script
         if (!window.html2canvas) {
             setStatus("Error: html2canvas not loaded");
             return;
         }
 
         try {
-            // @ts-ignore
+            // @ts-expect-error html2canvas loaded via external script
             const canvas = await window.html2canvas(element, {
                 scale: 1,
                 backgroundColor: '#fbf7f0',
@@ -245,9 +245,9 @@ export default function MarketingGenerator() {
                 console.error(data.error);
             }
 
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            setStatus("Error generating " + id + ": " + e.message);
+            setStatus("Error generating " + id + ": " + (e instanceof Error ? e.message : String(e)));
         }
     };
 

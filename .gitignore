@@ -50,3 +50,4 @@ next-env.d.ts
 /marketing/campaigns/social-video-launch/video-generator/node_modules
 /marketing/campaigns/social-video-launch/video-generator/temp
 /marketing/campaigns/social-video-launch/video-generator/output
+.env*.local

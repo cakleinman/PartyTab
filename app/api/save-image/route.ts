@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         console.log(`Saved ${filename} to ${filePath}`);
 
         return NextResponse.json({ success: true, path: filePath });
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("Error saving image:", e);
         return NextResponse.json({ error: String(e) }, { status: 500 });
     }
