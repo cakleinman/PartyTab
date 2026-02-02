@@ -39,6 +39,9 @@ export function getSupabaseClient() {
 // Storage bucket name for receipts
 export const RECEIPTS_BUCKET = "receipts";
 
+// Storage bucket name for marketing assets
+export const MARKETING_BUCKET = "marketing";
+
 /**
  * Generate a storage path for a receipt image.
  * Format: receipts/{tabId}/{expenseId}.{ext}

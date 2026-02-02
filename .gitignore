@@ -52,6 +52,15 @@ next-env.d.ts
 /marketing/campaigns/social-video-launch/video-generator/output
 .env*.local
 
+# marketing binary assets (stored in Supabase Storage)
+marketing/**/*.png
+marketing/**/*.jpg
+marketing/**/*.jpeg
+marketing/**/*.gif
+marketing/**/*.webp
+marketing/**/*.mp4
+marketing/**/*.mov
+
 # playwright
 /test-results/
 /playwright-report/
