@@ -94,6 +94,9 @@ describe("in-app notifications", () => {
             "Test Body"
         );
 
+        // Verify result matches what the mock returns
+        expect(result).toEqual(mockResult);
+
         // The create call doesn't explicitly set read - it uses DB default
         expect(prisma.inAppNotification.create).toHaveBeenCalledWith({
             data: expect.not.objectContaining({ read: expect.anything() }),

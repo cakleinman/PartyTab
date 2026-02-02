@@ -111,7 +111,7 @@ export default function HowItWorksPage() {
                     5 Simple Steps
                 </h2>
                 <div className="space-y-6">
-                    {STEPS.map((step, i) => (
+                    {STEPS.map((step) => (
                         <div
                             key={step.number}
                             className="flex gap-6 items-start bg-white rounded-2xl p-6 border border-sand-200"

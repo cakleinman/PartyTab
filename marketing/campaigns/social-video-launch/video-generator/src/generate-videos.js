@@ -136,14 +136,16 @@ function getInputVideos() {
 
 /**
  * Get video duration
+ * NOTE: Currently unused but kept for potential future use
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getVideoDuration(videoPath) {
   try {
     const { stdout } = await execAsync(
       `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${videoPath}"`
     );
     return parseFloat(stdout.trim());
-  } catch (error) {
+  } catch {
     return 10;
   }
 }
@@ -195,7 +197,7 @@ async function generateVoiceover(category, tempDir) {
     try {
       await generateTTS(lines[i], audioPath, VOICES.JESSIE);
       audioFiles.push(audioPath);
-    } catch (error) {
+    } catch {
       console.log(`      ⚠️ TTS failed, creating silence`);
       await execAsync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t 2 "${audioPath}"`);
       audioFiles.push(audioPath);

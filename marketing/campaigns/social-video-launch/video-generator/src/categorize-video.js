@@ -37,7 +37,7 @@ async function extractFrames(videoPath, tempDir, count = 3) {
       `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${videoPath}"`
     );
     duration = Math.min(parseFloat(stdout.trim()), 30); // Cap at 30 seconds
-  } catch (e) {
+  } catch {
     // Use default
   }
 
@@ -54,7 +54,7 @@ async function extractFrames(videoPath, tempDir, count = 3) {
     try {
       await extractFrame(videoPath, framePath, timestamp);
       frames.push(framePath);
-    } catch (e) {
+    } catch {
       console.error(`Failed to extract frame at ${timestamp}`);
     }
   }
@@ -141,7 +141,7 @@ async function checkOllama() {
     const hasLlava = models.some((m) => m.name.includes("llava"));
 
     return { running: true, hasLlava };
-  } catch (error) {
+  } catch {
     return { running: false, hasLlava: false };
   }
 }

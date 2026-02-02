@@ -27,7 +27,7 @@ function sleep(ms) {
 /**
  * Record a PartyTab demo for a specific trip category
  */
-export async function recordDemo(category, outputPath, options = {}) {
+export async function recordDemo(category, outputPath) {
   const template = getTemplate(category);
   const tempDir = path.join(__dirname, "..", "temp", `demo-${Date.now()}`);
   const framesDir = path.join(tempDir, "frames");
@@ -90,7 +90,7 @@ export async function recordDemo(category, outputPath, options = {}) {
       await sleep(800);
 
       // Look for "Add Expense" button
-      const addButton = await page.$$eval('button', buttons => {
+      await page.$$eval('button', buttons => {
         const btn = buttons.find(b =>
           b.textContent.toLowerCase().includes('add') ||
           b.textContent.includes('+')
@@ -99,7 +99,7 @@ export async function recordDemo(category, outputPath, options = {}) {
       });
 
       // Click add expense
-      await page.click('button:has-text("Add"), button:has-text("+"), [data-testid="add-expense"]').catch(() => {});
+      await page.click('button:has-text("Add"), button:has-text("+"), [data-testid="add-expense"]').catch(() => { });
       await sleep(500);
 
       // Fill in expense details (adjust selectors based on actual PartyTab UI)
@@ -117,10 +117,10 @@ export async function recordDemo(category, outputPath, options = {}) {
 
       // Select who paid (this will depend on PartyTab's actual UI)
       // For now, we'll try clicking on the payer name if visible
-      await page.click(`text=${expense.paidBy}`).catch(() => {});
+      await page.click(`text=${expense.paidBy}`).catch(() => { });
 
       // Submit/save the expense
-      await page.click('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').catch(() => {});
+      await page.click('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').catch(() => { });
       await sleep(500);
 
       console.log(`      + ${expense.description}: $${expense.amount} (${expense.paidBy})`);
@@ -131,7 +131,7 @@ export async function recordDemo(category, outputPath, options = {}) {
     await sleep(1000);
 
     // Look for settle up / summary button
-    await page.click('button:has-text("Settle"), button:has-text("Summary"), a:has-text("Settle")').catch(() => {});
+    await page.click('button:has-text("Settle"), button:has-text("Summary"), a:has-text("Settle")').catch(() => { });
     await sleep(2000);
 
     // Final pause on settlement screen

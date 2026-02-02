@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, it, vi, beforeEach } from "vitest";
 
 // Mock the postmark module
 vi.mock("postmark", () => ({
