@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 import { initiateAcknowledgement, listAcknowledgements } from "@/lib/settlement/acknowledgement";
 
@@ -16,6 +16,7 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    await requireParticipant(tabId, user.id);
     const acknowledgements = await listAcknowledgements(prisma, tabId, user.id);
     return ok({ acknowledgements });
   } catch (error) {
@@ -37,6 +38,7 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    await requireParticipant(tabId, user.id);
     const body = await request.json();
     const fromParticipantId = parseUuid(body?.fromParticipantId, "fromParticipantId");
     const toParticipantId = parseUuid(body?.toParticipantId, "toParticipantId");

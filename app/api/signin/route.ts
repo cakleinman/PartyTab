@@ -3,8 +3,26 @@ import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { hashPin, isValidPin } from "@/lib/auth/pin";
 import { setSessionUserId } from "@/lib/session/session";
+import {
+  checkRateLimit,
+  recordFailedAttempt,
+  clearRateLimit,
+  getClientIp,
+} from "@/lib/auth/rate-limit";
 
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+
+  // Check rate limit before processing
+  const rateLimitResult = checkRateLimit(clientIp);
+  if (rateLimitResult) {
+    return apiError(
+      429,
+      "rate_limited",
+      `Too many attempts. Please try again in ${rateLimitResult.retryAfter} seconds.`
+    );
+  }
+
   try {
     const body = await request.json();
     const displayName = body?.displayName?.trim();
@@ -17,7 +35,7 @@ export async function POST(request: Request) {
       throwApiError(400, "validation_error", "PIN must be 4 digits");
     }
 
-    const pinHash = hashPin(pin);
+    const pinHash = await hashPin(pin);
 
     // Find user by display name + PIN hash combo
     const user = await prisma.user.findFirst({
@@ -25,8 +43,12 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
+      recordFailedAttempt(clientIp);
       throwApiError(401, "unauthorized", "No account found with that name and PIN. Check your details or join a tab first.");
     }
+
+    // Clear rate limit on successful login
+    clearRateLimit(clientIp);
 
     // Set session cookie
     await setSessionUserId(user.id);
@@ -39,3 +61,4 @@ export async function POST(request: Request) {
     return validationError(error);
   }
 }
+

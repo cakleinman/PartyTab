@@ -46,7 +46,9 @@ export async function processTabReminders(tab: TabWithRelations, setting: TabRem
 
   // Compute nets and settlements to find who owes whom
   const nets = computeNets(participants, expenses, splits);
-  const transfers = computeSettlement(nets);
+  // Clone nets before computeSettlement since it mutates the array
+  const netsForSettlement = nets.map((n) => ({ ...n }));
+  const transfers = computeSettlement(netsForSettlement);
 
   // Find Pro creditors (participants with positive net balance who are Pro users)
   const creditors = nets
@@ -123,38 +125,38 @@ export async function processTabReminders(tab: TabWithRelations, setting: TabRem
             status = "sent";
             break;
           } else {
-             if (pushResult.expired) {
-                await prisma.pushSubscription.update({
-                  where: { id: sub.id },
-                  data: { revokedAt: new Date() }
-                });
-             }
+            if (pushResult.expired) {
+              await prisma.pushSubscription.update({
+                where: { id: sub.id },
+                data: { revokedAt: new Date() }
+              });
+            }
           }
         }
       }
 
       // Fallback to Email
       if (status !== "sent" && setting.channelEmail && debtorUser.emailPreference?.reminderEmailsEnabled !== false) {
-         if (debtorEmail) {
-           try {
-             await sendCreditorReminderEmail(
-               debtorEmail,
-               debtorUser.displayName,
-               creditorName,
-               tab.name,
-               transfer.amountCents,
-               `${BASE_URL}/tabs/${tab.id}`,
-               `${BASE_URL}/unsubscribe?token=${debtorUser.id}`
-             );
-             channel = "email";
-             status = "sent";
-           } catch (error) {
-             console.error("Failed to send reminder email:", error);
-             failureReason = "Email send failed";
-           }
-         } else {
-           failureReason = "No email address available";
-         }
+        if (debtorEmail) {
+          try {
+            await sendCreditorReminderEmail(
+              debtorEmail,
+              debtorUser.displayName,
+              creditorName,
+              tab.name,
+              transfer.amountCents,
+              `${BASE_URL}/tabs/${tab.id}`,
+              `${BASE_URL}/unsubscribe?token=${debtorUser.id}`
+            );
+            channel = "email";
+            status = "sent";
+          } catch (error) {
+            console.error("Failed to send reminder email:", error);
+            failureReason = "Email send failed";
+          }
+        } else {
+          failureReason = "No email address available";
+        }
       }
 
       // Always create in-app notification (independent channel)

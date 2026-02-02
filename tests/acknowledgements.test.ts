@@ -16,7 +16,7 @@ const prisma = runDbTests && databaseUrl ? new PrismaClient() : null;
 
 describe("settlement acknowledgements", () => {
   if (!runDbTests || !databaseUrl || !prisma) {
-    it.skip("RUN_DB_TESTS not set or DATABASE_URL missing", () => {});
+    it.skip("RUN_DB_TESTS not set or DATABASE_URL missing", () => { });
     return;
   }
 
@@ -79,12 +79,12 @@ describe("settlement acknowledgements", () => {
         },
       },
     });
-  });
+  }, 60000);
 
   afterAll(async () => {
     await resetDatabase(prisma);
     await prisma.$disconnect();
-  });
+  }, 60000);
 
   it("cannot initiate when tab is active", async () => {
     await expect(

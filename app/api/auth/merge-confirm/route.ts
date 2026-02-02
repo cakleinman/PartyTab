@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   }
 
   // Verify PIN
-  if (!verifyPin(pin, guestUser.pinHash)) {
+  if (!await verifyPin(pin, guestUser.pinHash)) {
     return NextResponse.json({ error: "Incorrect PIN" }, { status: 401 });
   }
 

@@ -46,7 +46,7 @@ next-env.d.ts
 
 /app/generated/prisma
 
-# marketing video generator (separate project)
-/marketing/video-generator/node_modules
-/marketing/video-generator/temp
-/marketing/video-generator/output
+# marketing video generator (in social-video-launch campaign)
+/marketing/campaigns/social-video-launch/video-generator/node_modules
+/marketing/campaigns/social-video-launch/video-generator/temp
+/marketing/campaigns/social-video-launch/video-generator/output

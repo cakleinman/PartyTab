@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PartyTab - Networking Presentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sand-50: #fbf7f0;
+            --sand-100: #f5efe2;
+            --sand-200: #eadfcd;
+            --ink-900: #1b1a18;
+            --ink-700: #3c3a36;
+            --ink-500: #6f6a61;
+            --ink-300: #a8a29a;
+            --teal-50: #f0f9f8;
+            --teal-100: #ccede8;
+            --teal-600: #54b9a7;
+            --teal-700: #429b8b;
+            --orange-50: #fff7ed;
+            --orange-600: #ea580c;
+            --green-50: #f0fdf4;
+            --green-600: #16a34a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', system-ui, sans-serif;
+            background: var(--ink-900);
+            color: var(--ink-900);
+            overflow: hidden;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+        }
+
+        .slides-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px 80px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Slide themes */
+        .slide-light {
+            background: var(--sand-50);
+        }
+
+        .slide-dark {
+            background: var(--ink-900);
+            color: var(--sand-50);
+        }
+
+        .slide-teal {
+            background: linear-gradient(135deg, var(--teal-600) 0%, var(--teal-700) 100%);
+            color: white;
+        }
+
+        /* Typography */
+        .slide-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+
+        .slide-subtitle {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            max-width: 800px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .highlight {
+            color: var(--teal-600);
+        }
+
+        .slide-dark .highlight {
+            color: var(--teal-600);
+        }
+
+        /* Navigation */
+        .nav-controls {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 1000;
+            background: rgba(27, 26, 24, 0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--sand-100);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .slide-counter {
+            color: var(--sand-100);
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* App mockup styling */
+        .phone-mockup {
+            background: white;
+            border-radius: 32px;
+            padding: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            width: 340px;
+            border: 8px solid var(--ink-900);
+        }
+
+        .phone-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .phone-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--ink-900);
+        }
+
+        .phone-badge {
+            background: var(--ink-900);
+            color: white;
+            font-size: 0.65rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--sand-50);
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--sand-100);
+        }
+
+        .stat-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-500);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--ink-900);
+        }
+
+        .stat-value.positive {
+            color: var(--teal-600);
+        }
+
+        .stat-value.negative {
+            color: var(--orange-600);
+        }
+
+        .expense-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .expense-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            background: white;
+            border: 1px solid var(--sand-100);
+            border-radius: 14px;
+        }
+
+        .expense-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .expense-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--sand-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--ink-700);
+            border: 1px solid var(--sand-200);
+        }
+
+        .expense-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .expense-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--ink-900);
+        }
+
+        .expense-meta {
+            font-size: 0.65rem;
+            color: var(--ink-500);
+        }
+
+        .expense-amount {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--ink-900);
+        }
+
+        /* Two column layouts */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .col-text {
+            text-align: left;
+        }
+
+        .col-text .slide-title {
+            font-size: 2.8rem;
+            text-align: left;
+        }
+
+        .col-text .slide-subtitle {
+            text-align: left;
+            font-size: 1.2rem;
+        }
+
+        /* Problem slide */
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .person-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .person-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .person-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Payment arrows */
+        .chaos-visual {
+            position: relative;
+            width: 400px;
+            height: 300px;
+        }
+
+        .chaos-visual svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Comparison styles */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .comparison-card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            border: 2px solid var(--sand-200);
+        }
+
+        .comparison-card.winner {
+            border-color: var(--teal-600);
+            box-shadow: 0 0 0 4px rgba(84, 185, 167, 0.2);
+        }
+
+        .comparison-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .comparison-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .comparison-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--ink-900);
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--sand-100);
+            font-size: 0.95rem;
+            color: var(--ink-700);
+        }
+
+        .feature-item:last-child {
+            border-bottom: none;
+        }
+
+        .feature-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .feature-icon.yes {
+            background: var(--green-50);
+            color: var(--green-600);
+        }
+
+        .feature-icon.no {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        /* Advantages slide */
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .advantage-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: left;
+        }
+
+        .advantage-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .advantage-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .advantage-desc {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+
+        /* Settlement mockup */
+        .settlement-card {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            width: 360px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .settlement-header {
+            margin-bottom: 24px;
+        }
+
+        .settlement-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ink-900);
+        }
+
+        .settlement-subtitle {
+            font-size: 0.85rem;
+            color: var(--ink-500);
+        }
+
+        .progress-bar {
+            background: var(--sand-100);
+            height: 8px;
+            border-radius: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: var(--teal-600);
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .transfer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+        }
+
+        .transfer-item.pending {
+            background: var(--sand-50);
+            border: 2px solid var(--ink-900);
+        }
+
+        .transfer-item.waiting {
+            background: var(--sand-50);
+            border: 1px solid var(--sand-200);
+        }
+
+        .transfer-item.complete {
+            background: var(--green-50);
+            border: 1px solid #86efac;
+        }
+
+        .transfer-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .transfer-people {
+            font-size: 0.85rem;
+            color: var(--ink-700);
+        }
+
+        .transfer-amount {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--ink-900);
+        }
+
+        .transfer-btn {
+            background: var(--ink-900);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .transfer-btn.confirm {
+            background: var(--teal-600);
+        }
+
+        .transfer-status {
+            font-size: 0.75rem;
+            color: var(--ink-500);
+        }
+
+        .transfer-status.complete {
+            color: var(--green-600);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Form mockup */
+        .form-mockup {
+            background: white;
+            border-radius: 24px;
+            padding: 28px;
+            width: 360px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--ink-900);
+            margin-bottom: 8px;
+        }
+
+        .form-subtitle {
+            font-size: 0.85rem;
+            color: var(--ink-500);
+            margin-bottom: 24px;
+        }
+
+        .form-field {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--ink-700);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--sand-200);
+            border-radius: 16px;
+            font-size: 1rem;
+            color: var(--ink-900);
+            background: var(--sand-50);
+        }
+
+        .form-input::placeholder {
+            color: var(--ink-300);
+        }
+
+        .form-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--ink-900);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* Scenario expense */
+        .scenario-expense {
+            background: var(--teal-50);
+            border: 1px solid var(--teal-100);
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+
+        .scenario-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--teal-700);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .scenario-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .scenario-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .scenario-field-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--ink-500);
+            font-weight: 600;
+        }
+
+        .scenario-field-value {
+            font-size: 0.95rem;
+            color: var(--ink-900);
+            font-weight: 500;
+        }
+
+        /* Logo */
+        .logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .logo-large {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        /* Keyframes */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Slide-specific styles */
+        .centered-content {
+            text-align: center;
+            max-width: 900px;
+        }
+
+        .small-text {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 16px;
+        }
+
+        .tagline {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: var(--teal-600);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            margin-top: 32px;
+        }
+
+        .contact-info {
+            margin-top: 40px;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* Bullet points for light slides */
+        .bullet-list {
+            list-style: none;
+            text-align: left;
+            margin-top: 24px;
+        }
+
+        .bullet-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+
+        .bullet-list li::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--teal-600);
+            border-radius: 50%;
+            margin-top: 8px;
+            flex-shrink: 0;
+        }
+
+        .emoji-bullet {
+            font-size: 1.5rem;
+            margin-top: -4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="slides-container">
+
+        <!-- Slide 1: Title -->
+        <div class="slide slide-dark active" data-slide="1">
+            <div class="centered-content">
+                <div class="logo logo-large">PartyTab</div>
+                <h1 class="slide-title">Enjoy the trip.<br><span class="highlight">We'll handle the tab.</span></h1>
+                <p class="slide-subtitle">Split expenses with friends. No more spreadsheets, no more chasing payments.</p>
+                <p class="small-text">Networking Presentation • 2026</p>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Problem - Holiday Story -->
+        <div class="slide slide-dark" data-slide="2">
+            <div class="centered-content">
+                <p style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.6; margin-bottom: 16px;">The Problem</p>
+                <h1 class="slide-title">8 siblings.<br>2 week holiday.<br><span class="highlight">Chaos.</span></h1>
+                <p class="slide-subtitle" style="margin-top: 24px;">I went home for the holidays. Between my 8 siblings and their families, people were constantly making purchases and doing grocery runs for each other. Someone paid for dinner, someone else grabbed gas, another person bought supplies...</p>
+            </div>
+        </div>
+
+        <!-- Slide 3: The Mess -->
+        <div class="slide slide-light" data-slide="3">
+            <div class="centered-content">
+                <h1 class="slide-title" style="color: var(--ink-900);">The payment web got <span style="color: var(--orange-600);">complicated</span></h1>
+                <p class="slide-subtitle" style="color: var(--ink-700);">Alex owes Jamie $60. Jamie owes Sam $40. Sam owes Alex $40. Sound familiar?</p>
+
+                <svg viewBox="0 0 500 280" style="width: 100%; max-width: 600px; height: auto; margin-top: 40px;">
+                    <!-- People circles -->
+                    <circle cx="100" cy="80" r="40" fill="#f5efe2" stroke="#eadfcd" stroke-width="3"/>
+                    <text x="100" y="88" text-anchor="middle" font-size="32">👨</text>
+                    <text x="100" y="140" text-anchor="middle" font-size="16" fill="#6f6a61" font-weight="600">Alex</text>
+
+                    <circle cx="400" cy="80" r="40" fill="#f5efe2" stroke="#eadfcd" stroke-width="3"/>
+                    <text x="400" y="88" text-anchor="middle" font-size="32">👩</text>
+                    <text x="400" y="140" text-anchor="middle" font-size="16" fill="#6f6a61" font-weight="600">Jamie</text>
+
+                    <circle cx="250" cy="220" r="40" fill="#f5efe2" stroke="#eadfcd" stroke-width="3"/>
+                    <text x="250" y="228" text-anchor="middle" font-size="32">🧔</text>
+                    <text x="250" y="280" text-anchor="middle" font-size="16" fill="#6f6a61" font-weight="600">Sam</text>
+
+                    <!-- Arrows -->
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#a8a29a"/>
+                        </marker>
+                    </defs>
+
+                    <path d="M150,70 L350,70" stroke="#a8a29a" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="5"/>
+                    <text x="250" y="55" text-anchor="middle" font-size="14" font-weight="bold" fill="#a8a29a">$60</text>
+
+                    <path d="M380,115 L280,190" stroke="#a8a29a" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="5"/>
+                    <text x="350" y="165" text-anchor="middle" font-size="14" font-weight="bold" fill="#a8a29a">$40</text>
+
+                    <path d="M220,190 L120,115" stroke="#a8a29a" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="5"/>
+                    <text x="150" y="165" text-anchor="middle" font-size="14" font-weight="bold" fill="#a8a29a">$40</text>
+                </svg>
+
+                <p style="color: var(--ink-500); margin-top: 24px; font-size: 1rem;">That's 3 separate payments when only 1 is needed.</p>
+            </div>
+        </div>
+
+        <!-- Slide 4: The Solution -->
+        <div class="slide slide-teal" data-slide="4">
+            <div class="centered-content">
+                <h1 class="slide-title">PartyTab simplifies it.</h1>
+                <p class="slide-subtitle">We track all the IOUs and calculate the minimum number of payments to settle everyone up.</p>
+
+                <svg viewBox="0 0 500 220" style="width: 100%; max-width: 600px; height: auto; margin-top: 40px;">
+                    <!-- People circles -->
+                    <!-- Alex (left) -->
+                    <circle cx="100" cy="110" r="50" fill="white" stroke="white" stroke-width="3"/>
+                    <text x="100" y="120" text-anchor="middle" font-size="40">👨</text>
+                    <text x="100" y="180" text-anchor="middle" font-size="16" fill="white" font-weight="600">Alex</text>
+
+                    <!-- Jamie (right) -->
+                    <circle cx="400" cy="110" r="50" fill="white" stroke="white" stroke-width="3"/>
+                    <text x="400" y="120" text-anchor="middle" font-size="40">👩</text>
+                    <text x="400" y="180" text-anchor="middle" font-size="16" fill="white" font-weight="600">Jamie</text>
+
+                    <!-- Arrow -->
+                    <defs>
+                        <marker id="arrow-white" markerWidth="12" markerHeight="12" refX="10" refY="4" orient="auto">
+                            <path d="M0,0 L0,8 L12,4 z" fill="white"/>
+                        </marker>
+                    </defs>
+
+                    <!-- Alex to Jamie: $20 -->
+                    <path d="M165,110 L335,110" stroke="white" stroke-width="4" marker-end="url(#arrow-white)"/>
+                    <rect x="220" y="85" width="60" height="35" rx="10" fill="white"/>
+                    <text x="250" y="110" text-anchor="middle" font-size="18" font-weight="bold" fill="#429b8b">$20</text>
+                </svg>
+
+                <p style="font-size: 1.3rem; margin-top: 16px; font-weight: 600;">One payment. Done.</p>
+            </div>
+        </div>
+
+        <!-- Slide 5: Let's See It - Create Tab -->
+        <div class="slide slide-light" data-slide="5">
+            <div class="two-col">
+                <div class="col-text">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--teal-600); margin-bottom: 12px; font-weight: 600;">Step 1</p>
+                    <h1 class="slide-title" style="color: var(--ink-900);">Create a tab in seconds</h1>
+                    <p class="slide-subtitle" style="color: var(--ink-700);">Give it a name, and you're ready to start tracking expenses.</p>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <div class="form-mockup float">
+                        <h2 class="form-title">Create a new tab</h2>
+                        <p class="form-subtitle">Set the basics. Invite people after.</p>
+
+                        <div class="form-field">
+                            <label class="form-label">Tab name</label>
+                            <input type="text" class="form-input" value="Ski Weekend 2026 🎿" readonly>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">Description (optional)</label>
+                            <input type="text" class="form-input" value="Aspen trip with the crew" readonly>
+                        </div>
+
+                        <button class="form-btn">Create tab →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Add Friends -->
+        <div class="slide slide-light" data-slide="6">
+            <div class="two-col">
+                <div class="col-text">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--teal-600); margin-bottom: 12px; font-weight: 600;">Step 2</p>
+                    <h1 class="slide-title" style="color: var(--ink-900);">Invite the crew</h1>
+                    <p class="slide-subtitle" style="color: var(--ink-700);">Share a link. Friends can join without creating an account. They just enter their name.</p>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <div class="phone-mockup float">
+                        <div class="phone-header">
+                            <span class="phone-title">Ski Weekend 🎿</span>
+                            <span class="phone-badge">5 people</span>
+                        </div>
+
+                        <div style="background: var(--sand-50); border-radius: 16px; padding: 16px; margin-bottom: 16px;">
+                            <p style="font-size: 0.65rem; text-transform: uppercase; color: var(--ink-500); margin-bottom: 12px; font-weight: 600; letter-spacing: 0.1em;">Participants</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--sand-200);">
+                                    <span>👨</span>
+                                    <span style="font-size: 0.85rem; font-weight: 500;">You</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--sand-200);">
+                                    <span>👩</span>
+                                    <span style="font-size: 0.85rem; font-weight: 500;">Sarah</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--sand-200);">
+                                    <span>🧔</span>
+                                    <span style="font-size: 0.85rem; font-weight: 500;">Mike</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--sand-200);">
+                                    <span>👱</span>
+                                    <span style="font-size: 0.85rem; font-weight: 500;">Jake</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; background: white; padding: 8px 12px; border-radius: 20px; border: 1px solid var(--sand-200);">
+                                    <span>👩‍🦰</span>
+                                    <span style="font-size: 0.85rem; font-weight: 500;">Emma</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--teal-50); border: 1px solid var(--teal-100); border-radius: 12px; padding: 12px; text-align: center;">
+                            <p style="font-size: 0.75rem; color: var(--teal-700); font-weight: 500;">🔗 Invite link copied!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Add Expenses - Airbnb -->
+        <div class="slide slide-light" data-slide="7">
+            <div class="two-col">
+                <div class="col-text">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--teal-600); margin-bottom: 12px; font-weight: 600;">Step 3</p>
+                    <h1 class="slide-title" style="color: var(--ink-900);">Log expenses as you go</h1>
+                    <p class="slide-subtitle" style="color: var(--ink-700);">Anyone in the group can add expenses. We track who paid and split it fairly.</p>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <div class="phone-mockup float">
+                        <div class="phone-header">
+                            <span class="phone-title">Ski Weekend 🎿</span>
+                            <span class="phone-badge">+ Add</span>
+                        </div>
+
+                        <div class="stats-row">
+                            <div class="stat-card">
+                                <p class="stat-label">Total Spent</p>
+                                <p class="stat-value">$2,400</p>
+                            </div>
+                            <div class="stat-card" style="background: var(--teal-50); border-color: var(--teal-100);">
+                                <p class="stat-label">Your Net</p>
+                                <p class="stat-value positive">+$280</p>
+                            </div>
+                        </div>
+
+                        <div class="scenario-expense">
+                            <p class="scenario-label">New Expense Added</p>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <span style="font-weight: 700; font-size: 1.1rem; color: var(--ink-900);">Airbnb Cabin</span>
+                                <span style="font-weight: 700; font-size: 1.2rem; color: var(--ink-900);">$2,400</span>
+                            </div>
+                            <div class="scenario-row">
+                                <div class="scenario-field">
+                                    <span class="scenario-field-label">Paid by</span>
+                                    <span class="scenario-field-value">You</span>
+                                </div>
+                                <div class="scenario-field">
+                                    <span class="scenario-field-label">Split with</span>
+                                    <span class="scenario-field-value">Everyone (5)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: More Expenses -->
+        <div class="slide slide-light" data-slide="8">
+            <div class="two-col">
+                <div class="col-text">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--teal-600); margin-bottom: 12px; font-weight: 600;">The Weekend Continues...</p>
+                    <h1 class="slide-title" style="color: var(--ink-900);">Expenses pile up</h1>
+                    <p class="slide-subtitle" style="color: var(--ink-700);">Lift tickets, groceries, gas, dinners out—everyone just logs what they pay for.</p>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <div class="phone-mockup float">
+                        <div class="phone-header">
+                            <span class="phone-title">Ski Weekend 🎿</span>
+                            <span class="phone-badge">5 expenses</span>
+                        </div>
+
+                        <div class="stats-row">
+                            <div class="stat-card">
+                                <p class="stat-label">Total Spent</p>
+                                <p class="stat-value">$3,835</p>
+                            </div>
+                            <div class="stat-card" style="background: var(--teal-50); border-color: var(--teal-100);">
+                                <p class="stat-label">Your Net</p>
+                                <p class="stat-value positive">+$1,572</p>
+                            </div>
+                        </div>
+
+                        <div class="expense-list">
+                            <div class="expense-item">
+                                <div class="expense-left">
+                                    <div class="expense-avatar">YO</div>
+                                    <div class="expense-info">
+                                        <span class="expense-name">Airbnb Cabin</span>
+                                        <span class="expense-meta">You paid • 5 people</span>
+                                    </div>
+                                </div>
+                                <span class="expense-amount">$2,400</span>
+                            </div>
+                            <div class="expense-item">
+                                <div class="expense-left">
+                                    <div class="expense-avatar">MI</div>
+                                    <div class="expense-info">
+                                        <span class="expense-name">Lift tickets</span>
+                                        <span class="expense-meta">Mike paid • 5 people</span>
+                                    </div>
+                                </div>
+                                <span class="expense-amount">$750</span>
+                            </div>
+                            <div class="expense-item">
+                                <div class="expense-left">
+                                    <div class="expense-avatar">SA</div>
+                                    <div class="expense-info">
+                                        <span class="expense-name">Groceries</span>
+                                        <span class="expense-meta">Sarah paid • 5 people</span>
+                                    </div>
+                                </div>
+                                <span class="expense-amount">$385</span>
+                            </div>
+                            <div class="expense-item">
+                                <div class="expense-left">
+                                    <div class="expense-avatar">JA</div>
+                                    <div class="expense-info">
+                                        <span class="expense-name">Ski lessons</span>
+                                        <span class="expense-meta">Jake paid • You, Sarah</span>
+                                    </div>
+                                </div>
+                                <span class="expense-amount">$180</span>
+                            </div>
+                            <div class="expense-item">
+                                <div class="expense-left">
+                                    <div class="expense-avatar">EM</div>
+                                    <div class="expense-info">
+                                        <span class="expense-name">Hot tub rental</span>
+                                        <span class="expense-meta">Emma paid • Emma, Mike, Jake</span>
+                                    </div>
+                                </div>
+                                <span class="expense-amount">$120</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Receipt Splitting -->
+        <div class="slide slide-teal" data-slide="9">
+            <div class="centered-content">
+                <h1 class="slide-title">Even split receipts<br>with tax & tip</h1>
+                <p class="slide-subtitle">Someone only had an appetizer? No problem. Itemize the receipt, and PartyTab calculates each person's fair share—including their portion of tax and tip.</p>
+
+                <div style="display: flex; gap: 24px; justify-content: center; margin-top: 40px;">
+                    <div style="background: white; border-radius: 20px; padding: 24px; width: 280px; text-align: left;">
+                        <p style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-500); margin-bottom: 12px; font-weight: 600;">Receipt Items</p>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--sand-100); font-size: 0.9rem;">
+                            <span style="color: var(--ink-700);">Ribeye Steak</span>
+                            <span style="color: var(--ink-900); font-weight: 600;">$58</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--sand-100); font-size: 0.9rem;">
+                            <span style="color: var(--ink-700);">Salmon</span>
+                            <span style="color: var(--ink-900); font-weight: 600;">$42</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--sand-100); font-size: 0.9rem;">
+                            <span style="color: var(--ink-700);">Appetizer</span>
+                            <span style="color: var(--ink-900); font-weight: 600;">$16</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.85rem; color: var(--ink-500);">
+                            <span>Tax (8.5%)</span>
+                            <span>$9.86</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.85rem; color: var(--ink-500);">
+                            <span>Tip (20%)</span>
+                            <span>$23.20</span>
+                        </div>
+                    </div>
+
+                    <div style="background: white; border-radius: 20px; padding: 24px; width: 240px; text-align: left;">
+                        <p style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--teal-700); margin-bottom: 12px; font-weight: 600;">Each Person Owes</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--sand-100);">
+                            <span style="color: var(--ink-700); font-size: 0.9rem;">👨 You (Steak)</span>
+                            <span style="color: var(--ink-900); font-weight: 700;">$74.53</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--sand-100);">
+                            <span style="color: var(--ink-700); font-size: 0.9rem;">👩 Sarah (Salmon)</span>
+                            <span style="color: var(--ink-900); font-weight: 700;">$53.97</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                            <span style="color: var(--ink-700); font-size: 0.9rem;">🧔 Mike (App only)</span>
+                            <span style="color: var(--ink-900); font-weight: 700;">$20.56</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Time to Settle -->
+        <div class="slide slide-light" data-slide="10">
+            <div class="two-col">
+                <div class="col-text">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--teal-600); margin-bottom: 12px; font-weight: 600;">Step 4</p>
+                    <h1 class="slide-title" style="color: var(--ink-900);">Settle up with one tap</h1>
+                    <p class="slide-subtitle" style="color: var(--ink-700);">When the trip ends, we calculate who owes whom—optimized for the fewest payments possible.</p>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <div class="settlement-card float">
+                        <div class="settlement-header">
+                            <h2 class="settlement-title">Final Settlement</h2>
+                            <p class="settlement-subtitle">4 payments to settle everything</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 25%;"></div>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--ink-500); margin-top: 8px;">1 of 4 complete</p>
+                        </div>
+
+                        <div class="transfer-item pending">
+                            <div class="transfer-info">
+                                <span class="transfer-people">You owe <strong>Sarah</strong></span>
+                                <span class="transfer-amount">$157.00</span>
+                            </div>
+                            <button class="transfer-btn">I've paid</button>
+                        </div>
+
+                        <div class="transfer-item waiting">
+                            <div class="transfer-info">
+                                <span class="transfer-people">Mike → You</span>
+                                <span class="transfer-amount">$123.00</span>
+                            </div>
+                            <span class="transfer-status">Awaiting payment</span>
+                        </div>
+
+                        <div class="transfer-item waiting">
+                            <div class="transfer-info">
+                                <span class="transfer-people">Jake → Sarah</span>
+                                <span class="transfer-amount">$89.00</span>
+                            </div>
+                            <span class="transfer-status">Awaiting payment</span>
+                        </div>
+
+                        <div class="transfer-item complete">
+                            <div class="transfer-info">
+                                <span class="transfer-people">Emma → You</span>
+                                <span class="transfer-amount">$64.00</span>
+                            </div>
+                            <span class="transfer-status complete">✓ Confirmed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Settlement Confirmed -->
+        <div class="slide slide-light" data-slide="11">
+            <div class="two-col">
+                <div class="col-text">
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--green-600); margin-bottom: 12px; font-weight: 600;">All Done!</p>
+                    <h1 class="slide-title" style="color: var(--ink-900);">Everyone's squared up</h1>
+                    <p class="slide-subtitle" style="color: var(--ink-700);">Pay however you want—Venmo, Zelle, cash. Just mark it paid, and the recipient confirms.</p>
+                </div>
+                <div style="display: flex; justify-content: center;">
+                    <div class="settlement-card float">
+                        <div class="settlement-header">
+                            <h2 class="settlement-title">🎉 All Settled!</h2>
+                            <p class="settlement-subtitle">Great trip, everyone!</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100%; background: var(--green-600);"></div>
+                            </div>
+                            <p style="font-size: 0.8rem; color: var(--green-600); margin-top: 8px; font-weight: 500;">4 of 4 complete</p>
+                        </div>
+
+                        <div class="transfer-item complete">
+                            <div class="transfer-info">
+                                <span class="transfer-people">You → Sarah</span>
+                                <span class="transfer-amount">$157.00</span>
+                            </div>
+                            <span class="transfer-status complete">✓ Confirmed</span>
+                        </div>
+
+                        <div class="transfer-item complete">
+                            <div class="transfer-info">
+                                <span class="transfer-people">Mike → You</span>
+                                <span class="transfer-amount">$123.00</span>
+                            </div>
+                            <span class="transfer-status complete">✓ Confirmed</span>
+                        </div>
+
+                        <div class="transfer-item complete">
+                            <div class="transfer-info">
+                                <span class="transfer-people">Jake → Sarah</span>
+                                <span class="transfer-amount">$89.00</span>
+                            </div>
+                            <span class="transfer-status complete">✓ Confirmed</span>
+                        </div>
+
+                        <div class="transfer-item complete">
+                            <div class="transfer-info">
+                                <span class="transfer-people">Emma → You</span>
+                                <span class="transfer-amount">$64.00</span>
+                            </div>
+                            <span class="transfer-status complete">✓ Confirmed</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Competitors -->
+        <div class="slide slide-light" data-slide="12">
+            <div class="centered-content" style="max-width: 1100px;">
+                <h1 class="slide-title" style="color: var(--ink-900); margin-bottom: 40px;">How we compare</h1>
+
+                <div class="comparison-grid">
+                    <div class="comparison-card">
+                        <div class="comparison-header">
+                            <div class="comparison-logo" style="background: #1cc29f;">💸</div>
+                            <span class="comparison-title">Splitwise</span>
+                        </div>
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <span class="feature-icon no">✕</span>
+                                Requires app download
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon no">✕</span>
+                                Everyone needs an account
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon no">✕</span>
+                                $5/mo for receipt scanning
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon yes">✓</span>
+                                Debt simplification
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon no">✕</span>
+                                No proportional tax/tip
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="comparison-card winner">
+                        <div class="comparison-header">
+                            <div class="comparison-logo" style="background: var(--teal-600); color: white; font-weight: 700; font-family: 'Space Grotesk';">P</div>
+                            <span class="comparison-title">PartyTab</span>
+                        </div>
+                        <ul class="feature-list">
+                            <li class="feature-item">
+                                <span class="feature-icon yes">✓</span>
+                                Works in any browser
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon yes">✓</span>
+                                Guests join with just a name
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon yes">✓</span>
+                                $3.99 for receipt scanning
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon yes">✓</span>
+                                Debt simplification
+                            </li>
+                            <li class="feature-item">
+                                <span class="feature-icon yes">✓</span>
+                                Proportional tax & tip splits
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Unique Advantages -->
+        <div class="slide slide-dark" data-slide="13">
+            <div class="centered-content">
+                <h1 class="slide-title">Why PartyTab wins</h1>
+                <p class="slide-subtitle" style="margin-bottom: 40px;">Built for real groups, not just tech-savvy friends.</p>
+
+                <div class="advantages-grid">
+                    <div class="advantage-card">
+                        <div class="advantage-icon">💰</div>
+                        <h3 class="advantage-title">Free to Join</h3>
+                        <p class="advantage-desc">Anyone can join a tab with just their name. No account required for guests.</p>
+                    </div>
+
+                    <div class="advantage-card">
+                        <div class="advantage-icon">📱</div>
+                        <h3 class="advantage-title">No Download Required</h3>
+                        <p class="advantage-desc">Works in any browser. Share a link and everyone can join instantly.</p>
+                    </div>
+
+                    <div class="advantage-card">
+                        <div class="advantage-icon">👤</div>
+                        <h3 class="advantage-title">No Account to Join</h3>
+                        <p class="advantage-desc">Guests can participate with just their name. No email, no password.</p>
+                    </div>
+
+                    <div class="advantage-card">
+                        <div class="advantage-icon">🧾</div>
+                        <h3 class="advantage-title">Smart Receipt Splits</h3>
+                        <p class="advantage-desc">Proportionally allocate tax and tip based on what each person ordered.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Use Cases -->
+        <div class="slide slide-light" data-slide="14">
+            <div class="centered-content">
+                <h1 class="slide-title" style="color: var(--ink-900);">Perfect for...</h1>
+
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; margin-top: 40px;">
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🎿</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Ski weekends</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🎉</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Bachelor parties</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🚗</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Road trips</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🍕</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Group dinners</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🏠</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Roommate bills</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🎫</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Concert tickets</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🏖️</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Beach vacations</span>
+                    </div>
+                    <div style="background: white; border: 1px solid var(--sand-200); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; gap: 12px;">
+                        <span style="font-size: 2rem;">🎄</span>
+                        <span style="font-weight: 600; color: var(--ink-900);">Family holidays</span>
+                    </div>
+                </div>
+
+                <p style="color: var(--ink-500); margin-top: 40px; font-size: 1.1rem;">Anywhere money changes hands in a group.</p>
+            </div>
+        </div>
+
+        <!-- Slide 15: CTA / End -->
+        <div class="slide slide-dark" data-slide="15">
+            <div class="centered-content">
+                <div class="logo logo-large">PartyTab</div>
+                <p class="tagline">Enjoy the trip. We'll handle the tab.</p>
+
+                <a href="https://partytab.app" class="cta-btn">Try it free at partytab.app</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn" id="prev-btn">←</button>
+        <span class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">15</span></span>
+        <button class="nav-btn" id="next-btn">→</button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        let currentSlide = 0;
+
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === index);
+            });
+            document.getElementById('current-slide').textContent = index + 1;
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        document.getElementById('next-btn').addEventListener('click', nextSlide);
+        document.getElementById('prev-btn').addEventListener('click', prevSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Click to advance (on slide area, not nav)
+        document.querySelector('.slides-container').addEventListener('click', (e) => {
+            if (!e.target.closest('.nav-controls')) {
+                nextSlide();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -2,12 +2,38 @@ import { PrismaClient, TabStatus } from "@prisma/client";
 import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
 
 export async function resetDatabase(prisma: PrismaClient) {
+  // Delete in order of dependencies (children before parents)
+
+  // Notifications and reminders
+  await prisma.inAppNotification.deleteMany();
+  await prisma.tabReminderLog.deleteMany();
+  await prisma.tabReminderSetting.deleteMany();
+  await prisma.pushSubscription.deleteMany();
+  await prisma.emailPreference.deleteMany();
+
+  // Receipts
+  await prisma.receiptItemClaim.deleteMany();
+  await prisma.receiptItem.deleteMany();
+  await prisma.receipt.deleteMany();
+  await prisma.receiptUsage.deleteMany();
+
+  // Billing
+  await prisma.stripeSubscription.deleteMany();
+  await prisma.stripeCustomer.deleteMany();
+  await prisma.entitlement.deleteMany();
+
+  // Settlement
   await prisma.settlementAcknowledgement.deleteMany();
   await prisma.settlementTransfer.deleteMany();
   await prisma.settlement.deleteMany();
+
+  // Expenses
   await prisma.expenseSplit.deleteMany();
   await prisma.expense.deleteMany();
+
+  // Core entities
   await prisma.invite.deleteMany();
+  await prisma.userClaimToken.deleteMany();
   await prisma.participant.deleteMany();
   await prisma.tab.deleteMany();
   await prisma.user.deleteMany();

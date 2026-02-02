@@ -41,7 +41,7 @@ export async function POST(
         if (!pin) {
           throwApiError(400, "validation_error", "PIN is required for closed tabs");
         }
-        const pinHash = hashPin(String(pin));
+        const pinHash = await hashPin(String(pin));
         user = await prisma.user.findFirst({
           where: { displayName, pinHash },
         });
@@ -52,7 +52,7 @@ export async function POST(
       } else {
         // Active tab - generate PIN for new user
         generatedPin = generatePin();
-        const pinHash = hashPin(generatedPin);
+        const pinHash = await hashPin(generatedPin);
 
         // Check for existing user (unlikely with random PIN, but handle anyway)
         const existingUser = await prisma.user.findFirst({

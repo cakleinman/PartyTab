@@ -82,7 +82,7 @@ export async function POST(
 
     // Generate a random 4-digit PIN server-side
     const pin = generatePin();
-    const pinHash = hashPin(pin);
+    const pinHash = await hashPin(pin);
 
     await prisma.$transaction([
       prisma.user.update({

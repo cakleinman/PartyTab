@@ -45,7 +45,8 @@ export async function POST(request: Request) {
       where: { email: emailLower },
     });
     if (existingUser) {
-      throwApiError(409, "email_exists", "An account with this email already exists");
+      // Generic message to prevent email enumeration
+      throwApiError(400, "validation_error", "Unable to create account. Please try again or contact support.");
     }
 
     // Hash password and create user

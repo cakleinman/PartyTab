@@ -1,19 +1,22 @@
-import { createHash, randomInt } from "crypto";
+import bcrypt from "bcrypt";
+import { randomInt } from "crypto";
+
+const PIN_SALT_ROUNDS = 10;
 
 /**
- * Hash a 4-digit PIN for storage.
- * Uses SHA-256 with a salt for basic security.
+ * Hash a 4-digit PIN for storage using bcrypt.
+ * bcrypt provides per-hash salt and key stretching.
  */
-export function hashPin(pin: string): string {
-  const salt = "partytab-pin-salt-v1";
-  return createHash("sha256").update(`${salt}:${pin}`).digest("hex");
+export async function hashPin(pin: string): Promise<string> {
+  return bcrypt.hash(pin, PIN_SALT_ROUNDS);
 }
 
 /**
- * Verify a PIN against a stored hash.
+ * Verify a PIN against a stored hash using bcrypt.
+ * bcrypt.compare is timing-safe.
  */
-export function verifyPin(pin: string, hash: string): boolean {
-  return hashPin(pin) === hash;
+export async function verifyPin(pin: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(pin, hash);
 }
 
 /**

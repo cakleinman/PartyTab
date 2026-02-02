@@ -53,11 +53,13 @@ export async function getSessionUserId(): Promise<string | null> {
 export async function setSessionUserId(userId: string) {
   const cookieStore = await cookies();
   const value = serialize(userId);
+  const thirtyDaysInSeconds = 30 * 24 * 60 * 60;
   cookieStore.set(SESSION_COOKIE, value, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: thirtyDaysInSeconds,
   });
 }
 

@@ -35,7 +35,7 @@ export async function requireUser(displayNameValue?: unknown, pinValue?: unknown
     throwApiError(400, "validation_error", "PIN must be exactly 4 digits");
   }
 
-  const pinHash = hashPin(pin);
+  const pinHash = await hashPin(pin);
 
   // Check if user with this exact name + PIN combo exists (reconnect flow)
   const existingUser = await prisma.user.findFirst({

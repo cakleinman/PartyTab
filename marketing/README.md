@@ -27,14 +27,15 @@ This folder contains all marketing, outreach, and growth materials for PartyTab.
 ```
 marketing/
 ├── README.md                 # This file
-├── SOCIAL_HANDLES.md        # Handle availability & registration status
-│
-├── content/
-│   ├── CONTENT_CALENDAR.md  # Posting schedule & content pillars
-│   └── TIKTOK_SCRIPTS.md    # Ready-to-use video scripts
+├── SOCIAL_HANDLES.md        # Handle availability & login info (shared)
 │
 ├── campaigns/
-│   └── PRODUCT_HUNT_LAUNCH.md  # Full PH launch playbook
+│   ├── PRODUCT_HUNT_LAUNCH.md       # Product Hunt launch playbook
+│   └── social-video-launch/         # TikTok/Instagram/X video campaign
+│       ├── README.md                # Campaign overview
+│       ├── CONTENT_CALENDAR.md      # Posting schedule
+│       ├── TIKTOK_SCRIPTS.md        # Video scripts
+│       └── video-generator/         # Automated video tool
 │
 ├── seo/
 │   └── SEO_STRATEGY.md      # Keywords, content plan, technical SEO
@@ -52,10 +53,9 @@ marketing/
 ## Key Documents
 
 | Document | Purpose |
-|----------|---------|
-| `SOCIAL_HANDLES.md` | Track which handles to register and status |
-| `content/CONTENT_CALENDAR.md` | What to post, when, and content ideas |
-| `content/TIKTOK_SCRIPTS.md` | Copy-paste video scripts |
+|----------|---------| 
+| `SOCIAL_HANDLES.md` | Track handles & login info (shared across campaigns) |
+| `campaigns/social-video-launch/` | TikTok/Instagram/X video campaign |
 | `campaigns/PRODUCT_HUNT_LAUNCH.md` | Complete launch checklist and copy |
 | `seo/SEO_STRATEGY.md` | Keywords to target and blog post ideas |
 | `templates/COMMUNITY_OUTREACH.md` | Reddit/community engagement templates |
