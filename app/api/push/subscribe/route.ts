@@ -1,20 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import NextAuth from "next-auth";
 import { authConfig } from "@/lib/auth/config";
 import { prisma } from "@/lib/db/prisma";
+import { ok, error as apiError } from "@/lib/api/response";
 
 const { auth: getSession } = NextAuth(authConfig);
 
 export async function POST(req: NextRequest) {
   const session = await getSession();
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError(401, "unauthorized", "Authentication required");
   }
 
   const { subscription } = await req.json();
 
   if (!subscription || !subscription.endpoint) {
-    return NextResponse.json({ error: "Invalid subscription" }, { status: 400 });
+    return apiError(400, "validation_error", "Invalid subscription");
   }
 
   // Store subscription
@@ -27,5 +28,5 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ success: true });
+  return ok({ success: true });
 }

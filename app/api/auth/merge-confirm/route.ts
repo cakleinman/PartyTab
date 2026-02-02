@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import { verifyPin, isValidPin } from "@/lib/auth/pin";
 import { mergeGuestToAccount } from "@/lib/auth/merge";
+import { ok, error as apiError } from "@/lib/api/response";
 
 type PendingMerge = {
   guestUserId: string;
@@ -30,10 +30,10 @@ export async function GET() {
   const pendingMerge = getPendingMerge(pendingMergeCookie);
 
   if (!pendingMerge) {
-    return NextResponse.json({ pendingMerge: null });
+    return ok({ pendingMerge: null });
   }
 
-  return NextResponse.json({ pendingMerge });
+  return ok({ pendingMerge });
 }
 
 // POST: Verify PIN and perform merge
@@ -43,20 +43,20 @@ export async function POST(request: Request) {
   const pendingMerge = getPendingMerge(pendingMergeCookie);
 
   if (!pendingMerge) {
-    return NextResponse.json({ error: "No pending merge" }, { status: 400 });
+    return apiError(400, "validation_error", "No pending merge");
   }
 
   let body;
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    return apiError(400, "validation_error", "Invalid request body");
   }
 
   const { pin } = body;
 
   if (!pin || !isValidPin(pin)) {
-    return NextResponse.json({ error: "Invalid PIN format" }, { status: 400 });
+    return apiError(400, "validation_error", "Invalid PIN format");
   }
 
   // Get the guest user and verify PIN
@@ -68,12 +68,12 @@ export async function POST(request: Request) {
   if (!guestUser || !guestUser.pinHash) {
     // Clear cookie and return error
     cookieStore.delete("pending_merge");
-    return NextResponse.json({ error: "Guest account not found" }, { status: 404 });
+    return apiError(404, "not_found", "Guest account not found");
   }
 
   // Verify PIN
   if (!await verifyPin(pin, guestUser.pinHash)) {
-    return NextResponse.json({ error: "Incorrect PIN" }, { status: 401 });
+    return apiError(401, "unauthorized", "Incorrect PIN");
   }
 
   // PIN verified! Perform the merge
@@ -85,10 +85,10 @@ export async function POST(request: Request) {
     cookieStore.delete("pending_merge");
     cookieStore.delete("partytab_session");
 
-    return NextResponse.json({ success: true, message: "Accounts linked successfully" });
-  } catch (error) {
-    console.error("Merge failed:", error);
-    return NextResponse.json({ error: "Failed to merge accounts" }, { status: 500 });
+    return ok({ success: true, message: "Accounts linked successfully" });
+  } catch (err) {
+    console.error("Merge failed:", err);
+    return apiError(500, "internal_error", "Failed to merge accounts");
   }
 }
 
@@ -100,5 +100,5 @@ export async function DELETE() {
   cookieStore.delete("pending_merge");
   cookieStore.delete("partytab_session");
 
-  return NextResponse.json({ success: true });
+  return ok({ success: true });
 }
