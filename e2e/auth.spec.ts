@@ -4,38 +4,39 @@ test.describe('Authentication Page', () => {
     test('should display sign-in page', async ({ page }) => {
         await page.goto('/signin');
 
-        // Page should load
-        await expect(page).toHaveURL(/signin/);
+        // Page should load with sign-in heading
+        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
     });
 
-    test('should have email sign-in form', async ({ page }) => {
+    test('should have display name input', async ({ page }) => {
         await page.goto('/signin');
 
-        // Look for email input
-        const emailInput = page.getByPlaceholder(/email/i).or(
-            page.getByLabel(/email/i)
-        ).first();
-
-        await expect(emailInput).toBeVisible();
+        // Look for display name input (the actual field on the page)
+        const nameInput = page.locator('input').first();
+        await expect(nameInput).toBeVisible();
     });
 
-    test('should display OAuth provider buttons', async ({ page }) => {
+    test('should have PIN input', async ({ page }) => {
         await page.goto('/signin');
 
-        // Check for Google OAuth button
-        const googleButton = page.getByRole('button', { name: /google/i }).or(
-            page.locator('[aria-label*="Google"]')
-        ).first();
+        // Look for PIN input (password type with placeholder "4 digits")
+        const pinInput = page.getByPlaceholder(/4 digits/i);
+        await expect(pinInput).toBeVisible();
+    });
 
-        // Check for Apple OAuth button
-        const appleButton = page.getByRole('button', { name: /apple/i }).or(
-            page.locator('[aria-label*="Apple"]')
-        ).first();
+    test('should have sign-in button', async ({ page }) => {
+        await page.goto('/signin');
 
-        // At least one OAuth provider should be visible
-        const googleVisible = await googleButton.isVisible().catch(() => false);
-        const appleVisible = await appleButton.isVisible().catch(() => false);
+        // Sign in button should be visible
+        const signInButton = page.getByRole('button', { name: /sign in/i });
+        await expect(signInButton).toBeVisible();
+    });
 
-        expect(googleVisible || appleVisible).toBe(true);
+    test('should have link to create a tab', async ({ page }) => {
+        await page.goto('/signin');
+
+        // Link to create a tab should exist
+        const createTabLink = page.getByRole('link', { name: /create a tab/i });
+        await expect(createTabLink).toBeVisible();
     });
 });
