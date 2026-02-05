@@ -9,6 +9,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { ProBanner } from "@/app/components/ProBanner";
 import { JsonLdSchema } from "@/app/components/JsonLdSchema";
+import { FeedbackButton } from "@/app/components/FeedbackButton";
 
 const displayFont = Space_Grotesk({
   variable: "--font-display",
@@ -110,6 +111,7 @@ export default function RootLayout({
             <main className="mx-auto w-full max-w-5xl px-6 py-10">{children}</main>
           </ToastProvider>
         </div>
+        <FeedbackButton />
         <Analytics />
         <SpeedInsights />
       </body>
