@@ -99,3 +99,10 @@ Optional:
 ## Demo Mode (dev-only)
 
 - Visit `/demo` to reset demo data and jump to seeded tabs.
+
+## TODO
+
+- [ ] **Upstash Redis** - Set up distributed rate limiting for production
+  - Create free account at [upstash.com](https://upstash.com)
+  - Add to Vercel env vars: `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+  - Priority: Low (in-memory fallback works, just resets on cold start)
