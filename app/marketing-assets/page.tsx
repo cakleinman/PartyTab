@@ -202,6 +202,18 @@ function SettleUp() {
 // --- Main Page ---
 
 export default function MarketingGenerator() {
+    // SECURITY: Block access in production - this is a dev-only tool
+    if (process.env.NODE_ENV === 'production') {
+        return (
+            <div className="min-h-screen bg-neutral-900 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-2xl text-white mb-4">🔒 Development Only</p>
+                    <p className="text-neutral-400">This page is only available in development mode.</p>
+                </div>
+            </div>
+        );
+    }
+
     const [status, setStatus] = useState("Loading...");
     const [isLoaded, setIsLoaded] = useState(false);
 
