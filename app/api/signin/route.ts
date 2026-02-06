@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const clientIp = getClientIp(request);
 
   // Check rate limit before processing
-  const rateLimitResult = checkRateLimit(clientIp);
+  const rateLimitResult = await checkRateLimit(clientIp);
   if (rateLimitResult) {
     return apiError(
       429,

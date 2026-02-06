@@ -4,11 +4,23 @@ import { isApiError, throwApiError } from "@/lib/api/errors";
 import { generatePin, hashPin } from "@/lib/auth/pin";
 import { getSessionUserId, setSessionUserId } from "@/lib/session/session";
 import { parseDisplayName } from "@/lib/validators/schemas";
+import { getClientIp, checkGenericRateLimit } from "@/lib/auth/rate-limit";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ token: string }> },
 ) {
+  // Rate limiting to prevent token enumeration
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkGenericRateLimit(clientIp, "invite-join");
+  if (rateLimitResult) {
+    return apiError(
+      429,
+      "rate_limited",
+      `Too many requests. Please try again in ${rateLimitResult.retryAfter} seconds.`
+    );
+  }
+
   try {
     const { token } = await params;
     const invite = await prisma.invite.findUnique({

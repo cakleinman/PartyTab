@@ -1,5 +1,13 @@
 import type { NextConfig } from "next";
 
+// CSP is stricter in production (no unsafe-eval)
+// Development needs unsafe-eval for hot reloading
+const isDev = process.env.NODE_ENV === "development";
+
+const cspScriptSrc = isDev
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval';"
+  : "script-src 'self' 'unsafe-inline';";
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -11,8 +19,7 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Content-Security-Policy",
-            value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
+            value: `default-src 'self'; ${cspScriptSrc} style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';`,
           },
           {
             key: "Permissions-Policy",
@@ -25,3 +32,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
