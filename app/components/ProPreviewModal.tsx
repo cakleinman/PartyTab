@@ -30,59 +30,68 @@ export function ProPreviewModal({ isOpen, onClose }: ProPreviewModalProps) {
           </button>
         </div>
 
-        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-4">
-          <h3 className="font-medium text-ink-700 mb-3">Receipt Scanning & Claim Mode</h3>
-
-          {/* Mock receipt preview */}
-          <div className="rounded-xl border border-sand-200 bg-white p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm text-ink-500 border-b border-sand-100 pb-2">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              AI-parsed receipt items
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-4 space-y-3">
+          {/* Header matching real ClaimPanel */}
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-sm font-semibold">Receipt Items</p>
+              <p className="text-xs text-ink-500">
+                Tap initials to claim. Shared items split evenly.
+              </p>
             </div>
+            <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
+              +$3.12 tax
+            </p>
+          </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between py-2 border-b border-sand-50">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm">Margherita Pizza</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">$18.00</span>
-                  <div className="flex -space-x-1">
-                    <div className="h-6 w-6 rounded-full bg-blue-200 border-2 border-white flex items-center justify-center text-xs font-medium">A</div>
-                    <div className="h-6 w-6 rounded-full bg-green-200 border-2 border-white flex items-center justify-center text-xs font-medium">B</div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-sand-50">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm">Caesar Salad</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">$12.00</span>
-                  <div className="flex -space-x-1">
-                    <div className="h-6 w-6 rounded-full bg-purple-200 border-2 border-white flex items-center justify-center text-xs font-medium">C</div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between py-2 border-b border-sand-50">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm">Garlic Bread</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">$6.00</span>
-                  <div className="flex -space-x-1">
-                    <div className="h-6 w-6 rounded-full bg-blue-200 border-2 border-white flex items-center justify-center text-xs font-medium">A</div>
-                    <div className="h-6 w-6 rounded-full bg-green-200 border-2 border-white flex items-center justify-center text-xs font-medium">B</div>
-                    <div className="h-6 w-6 rounded-full bg-purple-200 border-2 border-white flex items-center justify-center text-xs font-medium">C</div>
-                  </div>
-                </div>
+          {/* Mock items matching real ClaimPanel card style */}
+          <div className="space-y-2">
+            <div className="rounded-xl border border-sand-200 bg-white p-3">
+              <p className="font-medium text-sm">Margherita Pizza</p>
+              <p className="text-xs text-ink-500">$18.00</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-ink-900 text-white">AL</div>
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-ink-900 text-white">BE</div>
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-sand-100 text-ink-400">CK</div>
               </div>
             </div>
+            <div className="rounded-xl border border-sand-200 bg-white p-3">
+              <p className="font-medium text-sm">Caesar Salad</p>
+              <p className="text-xs text-ink-500">$12.00</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-sand-100 text-ink-400">AL</div>
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-sand-100 text-ink-400">BE</div>
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-ink-900 text-white">CK</div>
+              </div>
+            </div>
+            <div className="rounded-xl border border-sand-200 bg-white p-3">
+              <p className="font-medium text-sm">Garlic Bread</p>
+              <p className="text-xs text-ink-500">$6.00</p>
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-ink-900 text-white">AL</div>
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-ink-900 text-white">BE</div>
+                <div className="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center bg-ink-900 text-white">CK</div>
+              </div>
+            </div>
+          </div>
 
-            <div className="pt-2 text-xs text-ink-400">
-              Guests claim what they ate. Splits calculated automatically.
+          {/* Split summary matching real ClaimPanel */}
+          <div className="rounded-xl bg-sand-100 p-3 space-y-1">
+            <div className="flex justify-between items-center">
+              <p className="text-xs font-medium text-ink-700">Split Summary</p>
+              <p className="text-xs text-ink-500">incl. $3.12 tax</p>
+            </div>
+            <div className="flex justify-between text-xs text-ink-600">
+              <span>Alex</span>
+              <span>$13.06</span>
+            </div>
+            <div className="flex justify-between text-xs text-ink-600">
+              <span>Beth</span>
+              <span>$13.06</span>
+            </div>
+            <div className="flex justify-between text-xs text-ink-600">
+              <span>Chris</span>
+              <span>$13.00</span>
             </div>
           </div>
         </div>
@@ -92,8 +101,8 @@ export function ProPreviewModal({ isOpen, onClose }: ProPreviewModalProps) {
           <ol className="list-decimal list-inside space-y-1 text-ink-500">
             <li>Snap a photo of your receipt</li>
             <li>AI extracts each item and price</li>
-            <li>Guests claim the items they ordered</li>
-            <li>Splits are calculated automatically</li>
+            <li>Tap your initials on the items you ordered</li>
+            <li>Tax, tip &amp; fees split proportionally</li>
           </ol>
         </div>
 
@@ -102,7 +111,7 @@ export function ProPreviewModal({ isOpen, onClose }: ProPreviewModalProps) {
             href="/upgrade"
             className="block w-full rounded-full bg-ink-900 px-6 py-3 text-sm font-semibold text-white text-center hover:bg-ink-800 transition"
           >
-            Upgrade to Pro — $3/month
+            Upgrade to Pro — $3.99/month
           </a>
           <button
             onClick={onClose}
