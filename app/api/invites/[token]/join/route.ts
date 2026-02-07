@@ -1,15 +1,12 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, validationError } from "@/lib/api/response";
-import { isApiError, throwApiError } from "@/lib/api/errors";
-import { generatePin, hashPin } from "@/lib/auth/pin";
-import { getSessionUserId, setSessionUserId } from "@/lib/session/session";
-import { parseDisplayName } from "@/lib/validators/schemas";
+import { isApiError } from "@/lib/api/errors";
+import { getSessionUserId } from "@/lib/session/session";
 import { getClientIp, checkGenericRateLimit } from "@/lib/auth/rate-limit";
+import { resolveUserForInvite, joinTabAsParticipant } from "@/lib/auth/invite-join";
+import { withApiHandler } from "@/lib/api/handler";
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ token: string }> },
-) {
+export const POST = withApiHandler<{ token: string }>(async (request, { params }) => {
   // Rate limiting to prevent token enumeration
   const clientIp = getClientIp(request);
   const rateLimitResult = await checkGenericRateLimit(clientIp, "invite-join");
@@ -21,109 +18,53 @@ export async function POST(
     );
   }
 
-  try {
-    const { token } = await params;
-    const invite = await prisma.invite.findUnique({
-      where: { token },
-      include: { tab: true },
-    });
-    if (!invite || invite.revokedAt) {
-      throwApiError(404, "not_found", "Invite not found");
-    }
-    const body = await request.json();
+  const { token } = await params;
+  const invite = await prisma.invite.findUnique({
+    where: { token },
+    include: { tab: true },
+  });
+  if (!invite || invite.revokedAt) {
+    return apiError(404, "not_found", "Invite not found");
+  }
 
-    // Check for existing session
-    const sessionUserId = await getSessionUserId();
-    let user;
-    let generatedPin: string | undefined;
+  const body = await request.json();
+  const sessionUserId = await getSessionUserId();
 
-    if (sessionUserId) {
-      // Existing session - use that user
-      user = await prisma.user.findUnique({ where: { id: sessionUserId } });
-      if (!user) {
-        throwApiError(401, "unauthorized", "Session expired");
-      }
-    } else {
-      // No session - need to create/find user
-      const displayName = parseDisplayName(body?.displayName);
+  // Resolve user (handles session, new user creation, or closed-tab re-auth)
+  const { user, generatedPin } = await resolveUserForInvite({
+    sessionUserId,
+    displayName: body?.displayName,
+    pin: body?.pin,
+    tabStatus: invite.tab.status,
+  });
 
-      if (invite.tab.status === "CLOSED") {
-        // Closed tab re-auth - require existing PIN from body
-        const pin = body?.pin;
-        if (!pin) {
-          throwApiError(400, "validation_error", "PIN is required for closed tabs");
-        }
-        const pinHash = await hashPin(String(pin));
-        user = await prisma.user.findFirst({
-          where: { displayName, pinHash },
-        });
-        if (!user) {
-          throwApiError(401, "unauthorized", "Invalid name or PIN");
-        }
-        await setSessionUserId(user.id);
-      } else {
-        // Active tab - generate PIN for new user
-        generatedPin = generatePin();
-        const pinHash = await hashPin(generatedPin);
+  // Join the tab (handles participant creation and closed-tab validation)
+  const { redirectToSettlement } = await joinTabAsParticipant({
+    tabId: invite.tabId,
+    userId: user.id,
+    tabStatus: invite.tab.status,
+  });
 
-        // Check for existing user (unlikely with random PIN, but handle anyway)
-        const existingUser = await prisma.user.findFirst({
-          where: { displayName, pinHash },
-        });
-
-        if (existingUser) {
-          user = existingUser;
-        } else {
-          user = await prisma.user.create({
-            data: { displayName, pinHash },
-          });
-        }
-
-        await setSessionUserId(user.id);
-      }
-    }
-
-    const existing = await prisma.participant.findUnique({
-      where: { tabId_userId: { tabId: invite.tabId, userId: user.id } },
-    });
-
-    // If tab is closed, only allow existing participants to re-authenticate
-    if (invite.tab.status === "CLOSED") {
-      if (!existing) {
-        throwApiError(409, "tab_closed", "This tab is closed and not accepting new participants.");
-      }
-      // Existing participant re-authenticating - redirect to settlement
-      return created({
-        joined: true,
-        tabId: invite.tabId,
-        redirectToSettlement: true,
-      });
-    }
-
-    if (!existing) {
-      await prisma.participant.create({
-        data: { tabId: invite.tabId, userId: user.id },
-      });
-    }
-
-    // Return generated PIN and display name for new users on active tabs
-    if (generatedPin) {
-      return created({
-        joined: true,
-        tabId: invite.tabId,
-        pin: generatedPin,
-        displayName: user.displayName,
-      });
-    }
-
+  // Return appropriate response based on scenario
+  if (redirectToSettlement) {
     return created({
       joined: true,
       tabId: invite.tabId,
+      redirectToSettlement: true,
     });
-  } catch (error) {
-    if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
-    }
-    return validationError(error);
   }
-}
+
+  if (generatedPin) {
+    return created({
+      joined: true,
+      tabId: invite.tabId,
+      pin: generatedPin,
+      displayName: user.displayName,
+    });
+  }
+
+  return created({
+    joined: true,
+    tabId: invite.tabId,
+  });
+});
