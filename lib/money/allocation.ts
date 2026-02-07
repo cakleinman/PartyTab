@@ -81,6 +81,38 @@ export function allocateProportionally(
 }
 
 /**
+ * Distributes tax and tip across custom per-person splits.
+ *
+ * Each person's share of tax and tip is proportional to their base amount.
+ * Uses allocateProportionally (Hamilton method) for exact cent distribution.
+ *
+ * @param splits Array of { participantId, baseCents } — the base custom amounts
+ * @param taxCents Total tax to distribute
+ * @param tipCents Total tip to distribute
+ * @returns Array of { participantId, amountCents } — base + proportional tax + tip
+ */
+export function distributeCustomExtras(
+  splits: { participantId: string; baseCents: number }[],
+  taxCents: number,
+  tipCents: number,
+): { participantId: string; amountCents: number }[] {
+  if (splits.length === 0) return [];
+
+  const items: ItemSubtotal[] = splits.map((s) => ({
+    id: s.participantId,
+    subtotalCents: s.baseCents,
+  }));
+
+  const taxAlloc = taxCents > 0 ? allocateProportionally(items, taxCents) : {};
+  const tipAlloc = tipCents > 0 ? allocateProportionally(items, tipCents) : {};
+
+  return splits.map((s) => ({
+    participantId: s.participantId,
+    amountCents: s.baseCents + (taxAlloc[s.participantId] || 0) + (tipAlloc[s.participantId] || 0),
+  }));
+}
+
+/**
  * Full allocation for a receipt, distributing tax, tip, and fees.
  */
 export function allocateReceiptProportionally(

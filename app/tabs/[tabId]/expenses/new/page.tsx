@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
+import { distributeCustomExtras } from "@/lib/money/allocation";
 import { useToast } from "@/app/components/ToastProvider";
 import { ProPreviewModal } from "@/app/components/ProPreviewModal";
 import {
@@ -616,41 +617,19 @@ export default function NewExpensePage() {
 
     if (splitMode === "custom") {
       try {
-        const extraCents = customTaxCents + customTipCents;
+        const baseSplits = participants.map((participant) => ({
+          participantId: participant.id,
+          baseCents: parseCents(splitAmounts[participant.id] || "0", true),
+        }));
 
-        if (extraCents > 0) {
-          // Distribute tax and tip proportionally across each person's base amount
-          const baseTotal = splitSumCents;
-          const baseSplits = participants.map((participant) => ({
-            participantId: participant.id,
-            baseCents: parseCents(splitAmounts[participant.id] || "0", true),
-          }));
-
-          let taxRemaining = customTaxCents;
-          let tipRemaining = customTipCents;
-          const withExtras = baseSplits.map((split, index) => {
-            const isLast = index === baseSplits.length - 1;
-            const share = baseTotal > 0 ? split.baseCents / baseTotal : 0;
-
-            const taxShare = isLast ? taxRemaining : Math.round(share * customTaxCents);
-            const tipShare = isLast ? tipRemaining : Math.round(share * customTipCents);
-            taxRemaining -= taxShare;
-            tipRemaining -= tipShare;
-
-            return {
-              participantId: split.participantId,
-              amountCents: split.baseCents + taxShare + tipShare,
-            };
-          });
-
-          payload.splits = withExtras;
+        if (customTaxCents > 0 || customTipCents > 0) {
+          payload.splits = distributeCustomExtras(baseSplits, customTaxCents, customTipCents);
           payload.amount = formatCentsPlain(customAdjustedTotalCents);
         } else {
-          const splits = participants.map((participant) => ({
-            participantId: participant.id,
-            amountCents: parseCents(splitAmounts[participant.id] || "0", true),
+          payload.splits = baseSplits.map((s) => ({
+            participantId: s.participantId,
+            amountCents: s.baseCents,
           }));
-          payload.splits = splits;
         }
       } catch {
         setError("Split amounts must be valid dollars and cents.");
