@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { ok, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
+import { parseEmail } from "@/lib/validators/schemas";
 
 /**
  * POST /api/auth/register
@@ -16,11 +17,7 @@ export async function POST(request: Request) {
     if (!email || typeof email !== "string") {
       throwApiError(400, "validation_error", "Email is required");
     }
-    const emailLower = email.toLowerCase().trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailLower)) {
-      throwApiError(400, "validation_error", "Invalid email format");
-    }
+    const emailLower = parseEmail(email);
 
     // Validate password
     if (!password || typeof password !== "string") {

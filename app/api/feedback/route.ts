@@ -1,7 +1,8 @@
 import { ok, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { emailClient } from "@/lib/email/client";
+import { emailClient, escapeHtml } from "@/lib/email/client";
 import { headers } from "next/headers";
+import { EMAIL_REGEX } from "@/lib/validators/schemas";
 
 const fromEmail = process.env.EMAIL_FROM;
 const feedbackEmail = process.env.FEEDBACK_EMAIL || fromEmail;
@@ -13,7 +14,6 @@ const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 
 function getClientIp(headersList: Headers): string {
-  // Check common headers for client IP (Vercel, Cloudflare, etc.)
   const forwardedFor = headersList.get("x-forwarded-for");
   if (forwardedFor) {
     return forwardedFor.split(",")[0].trim();
@@ -25,7 +25,6 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfterSeconds?: num
   const now = Date.now();
   const record = rateLimitMap.get(ip);
 
-  // Clean up expired entries periodically (every 100 checks)
   if (Math.random() < 0.01) {
     for (const [key, value] of rateLimitMap.entries()) {
       if (now > value.resetAt) {
@@ -35,7 +34,6 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfterSeconds?: num
   }
 
   if (!record || now > record.resetAt) {
-    // First request or window expired - reset
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return { allowed: true };
   }
@@ -45,23 +43,8 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfterSeconds?: num
     return { allowed: false, retryAfterSeconds };
   }
 
-  // Increment count
   record.count++;
   return { allowed: true };
-}
-
-/**
- * Escapes HTML special characters to prevent XSS vulnerabilities
- */
-function escapeHtml(text: string): string {
-  const map: { [key: string]: string } = {
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  };
-  return text.replace(/[&<>"']/g, (char) => map[char]);
 }
 
 /**
@@ -98,8 +81,7 @@ export async function POST(request: Request) {
 
     // Validate optional email format if provided
     if (email && typeof email === "string" && email.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
+      if (!EMAIL_REGEX.test(email)) {
         throwApiError(400, "validation_error", "Invalid email format");
       }
     }

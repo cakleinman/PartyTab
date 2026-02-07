@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/app/components/ToastProvider";
+import { LoadingSpinner } from "@/app/components/LoadingSpinner";
+import { EMAIL_REGEX } from "@/lib/validators/schemas";
 
 interface GuestEmailCaptureFormProps {
   tabId: string;
@@ -36,7 +38,7 @@ export function GuestEmailCaptureForm({
     return () => clearTimeout(timeoutId);
   }, [success]);
 
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isValidEmail = EMAIL_REGEX.test(email);
   const isSubmitDisabled = !email || !isValidEmail || !consentConfirmed || loading;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,14 +143,7 @@ export function GuestEmailCaptureForm({
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
-            <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
+            <LoadingSpinner />
             Adding email...
           </span>
         ) : (

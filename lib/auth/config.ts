@@ -2,31 +2,16 @@ import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { cookies } from "next/headers";
-import crypto from "crypto";
 import { prisma } from "@/lib/db/prisma";
+import { SESSION_COOKIE, parseSession } from "@/lib/session/parse";
 import { verifyPassword } from "./password";
-
-// Session parsing (duplicated from session.ts to avoid circular deps)
-function parseGuestSession(value: string): string | null {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 32) return null;
-
-  const [userId, signature] = value.split(".");
-  if (!userId || !signature) return null;
-
-  const expected = crypto.createHmac("sha256", secret).update(userId).digest("hex");
-  const signatureBuf = Buffer.from(signature);
-  const expectedBuf = Buffer.from(expected);
-  if (signatureBuf.length !== expectedBuf.length) return null;
-  return crypto.timingSafeEqual(signatureBuf, expectedBuf) ? userId : null;
-}
 
 async function getGuestUserId(): Promise<string | null> {
   try {
     const cookieStore = await cookies();
-    const raw = cookieStore.get("partytab_session")?.value;
+    const raw = cookieStore.get(SESSION_COOKIE)?.value;
     if (!raw) return null;
-    return parseGuestSession(raw);
+    return parseSession(raw);
   } catch {
     return null;
   }

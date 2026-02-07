@@ -712,7 +712,6 @@ export default function NewExpensePage() {
             <SplitModeSelector
               mode={splitMode}
               onChange={setSplitMode}
-              hasReceiptItems={hasReceiptItems}
               hasProFeatures={hasProFeatures}
               onProPreview={() => setShowProPreview(true)}
               disabled={isDisabled}

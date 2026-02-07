@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireTab, requireOpenTab } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 function generateToken(): string {
@@ -51,12 +51,9 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    const tab = await requireTab(tabId);
+    const tab = await requireOpenTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can create invites");
-    }
-    if (tab.status === "CLOSED") {
-      throwApiError(409, "tab_closed", "Tab is closed");
     }
 
     // Find existing active invite or create a new one

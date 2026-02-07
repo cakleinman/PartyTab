@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireTab, requireOpenTab } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function DELETE(
@@ -18,13 +18,9 @@ export async function DELETE(
       throwApiError(401, "unauthorized", "Unauthorized");
     }
 
-    const tab = await requireTab(tabId);
+    const tab = await requireOpenTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the tab owner can remove participants");
-    }
-
-    if (tab.status === "CLOSED") {
-      throwApiError(409, "tab_closed", "Cannot remove participants from a closed tab");
     }
 
     // Find the participant to remove

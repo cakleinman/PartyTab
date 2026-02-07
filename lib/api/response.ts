@@ -52,5 +52,3 @@ export function validationError(err: unknown, status = 400) {
   return error(status, "validation_error", message);
 }
 
-export const errorResponse = error;
-export const okResponse = ok;

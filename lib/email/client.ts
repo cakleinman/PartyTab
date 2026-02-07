@@ -5,10 +5,7 @@ const fromEmail = process.env.EMAIL_FROM;
 
 export const emailClient = token ? new ServerClient(token) : null;
 
-/**
- * Escapes HTML special characters to prevent XSS vulnerabilities
- */
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   const map: { [key: string]: string } = {
     "&": "&amp;",
     "<": "&lt;",

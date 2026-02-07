@@ -1,70 +1,9 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
 import { parseAmountToCents, parseDateInput, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
-import { distributeEvenSplit } from "@/lib/money/cents";
-
-interface Split {
-  participantId: string;
-  amountCents: number;
-}
-
-function parseSplits(
-  body: Record<string, unknown>,
-  amountTotalCents: number,
-  participantIds: string[],
-): Split[] {
-  if (body?.evenSplit) {
-    const targetIds = Array.isArray(body?.splitParticipantIds) && body.splitParticipantIds.length
-      ? body.splitParticipantIds.map((id: string) => parseUuid(id, "participantId"))
-      : participantIds;
-    const uniqueIds = new Set<string>();
-    targetIds.forEach((participantId: string) => {
-      if (!participantIds.includes(participantId)) {
-        throwApiError(400, "validation_error", "Split participant must be in tab");
-      }
-      if (uniqueIds.has(participantId)) {
-        throwApiError(400, "validation_error", "Split participants must be unique");
-      }
-      uniqueIds.add(participantId);
-    });
-    if (uniqueIds.size === 0) {
-      throwApiError(400, "validation_error", "Split participants are required");
-    }
-    return distributeEvenSplit(amountTotalCents, targetIds);
-  }
-
-  if (!Array.isArray(body?.splits) || body.splits.length === 0) {
-    throwApiError(400, "validation_error", "Splits are required");
-  }
-
-  const seen = new Set<string>();
-  const rawSplits = body.splits as Array<{ participantId?: string; amountCents?: number }>;
-  const splits = rawSplits.map((split) => {
-    if (!split?.participantId || typeof split?.amountCents !== "number") {
-      throwApiError(400, "validation_error", "Invalid split format");
-    }
-    const participantId = parseUuid(split.participantId, "participantId");
-    if (!participantIds.includes(participantId)) {
-      throwApiError(400, "validation_error", "Split participant must be in tab");
-    }
-    if (!Number.isInteger(split.amountCents) || split.amountCents <= 0) {
-      throwApiError(400, "validation_error", "Split amount must be greater than zero");
-    }
-    if (seen.has(participantId)) {
-      throwApiError(400, "validation_error", "Split participants must be unique");
-    }
-    seen.add(participantId);
-    return { participantId, amountCents: split.amountCents };
-  });
-
-  const sum = splits.reduce((total, split) => total + split.amountCents, 0);
-  if (sum !== amountTotalCents) {
-    throwApiError(400, "validation_error", "Split amounts must equal total");
-  }
-  return splits;
-}
+import { parseSplits } from "@/lib/validators/splits";
 
 export async function GET(
   _request: Request,
@@ -149,10 +88,7 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    const tab = await requireTab(tabId);
-    if (tab.status === "CLOSED") {
-      throwApiError(409, "tab_closed", "Tab is closed");
-    }
+    await requireOpenTab(tabId);
 
     const participant = await requireParticipant(tabId, user.id);
     const body = await request.json();

@@ -65,6 +65,14 @@ export async function requireTab(tabId: string) {
   return tab;
 }
 
+export async function requireOpenTab(tabId: string) {
+  const tab = await requireTab(tabId);
+  if (tab.status === "CLOSED") {
+    throwApiError(409, "tab_closed", "This tab is closed");
+  }
+  return tab;
+}
+
 export async function requireParticipant(tabId: string, userId: string) {
   const participant = await prisma.participant.findUnique({
     where: {

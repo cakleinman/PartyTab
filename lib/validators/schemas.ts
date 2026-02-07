@@ -77,3 +77,15 @@ export function parseOptionalString(value: unknown, maxLength: number): string |
 export function parseUuid(value: unknown, label = "id"): string {
   return uuidSchema.parse(value, { path: [label] });
 }
+
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const emailSchema = z
+  .string({ required_error: "Email is required" })
+  .trim()
+  .toLowerCase()
+  .refine((val) => EMAIL_REGEX.test(val), "Invalid email format");
+
+export function parseEmail(value: unknown): string {
+  return emailSchema.parse(value);
+}

@@ -5,7 +5,6 @@ export type SplitMode = "split" | "claim" | "custom";
 interface SplitModeSelectorProps {
   mode: SplitMode;
   onChange: (mode: SplitMode) => void;
-  hasReceiptItems: boolean;
   hasProFeatures: boolean;
   onProPreview?: () => void;
   disabled?: boolean;

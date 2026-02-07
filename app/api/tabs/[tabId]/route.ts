@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireTab, requireOpenTab } from "@/lib/api/guards";
 import { computeNets } from "@/lib/settlement/computeSettlement";
 import { parseDateInput, parseDescription, parseTabName, parseUuid } from "@/lib/validators/schemas";
 
@@ -68,12 +68,9 @@ export async function PATCH(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    const tab = await requireTab(tabId);
+    const tab = await requireOpenTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can edit the tab");
-    }
-    if (tab.status === "CLOSED") {
-      throwApiError(409, "tab_closed", "Tab is closed");
     }
 
     const body = await request.json();

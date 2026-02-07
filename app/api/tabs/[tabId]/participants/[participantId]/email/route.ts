@@ -1,13 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab } from "@/lib/api/guards";
-import { parseUuid } from "@/lib/validators/schemas";
+import { getUserFromSession, requireTab, requireOpenTab } from "@/lib/api/guards";
+import { parseUuid, parseEmail } from "@/lib/validators/schemas";
 import { requirePro } from "@/lib/auth/entitlements";
 import { computeNets } from "@/lib/settlement/computeSettlement";
-
-// Simple email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(
   request: Request,
@@ -50,19 +47,12 @@ export async function POST(
       throwApiError(400, "validation_error", "Email is required");
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!EMAIL_REGEX.test(normalizedEmail)) {
-      throwApiError(400, "validation_error", "Invalid email format");
-    }
+    const normalizedEmail = parseEmail(email);
 
     // 4. Get the tab and verify caller is creator
-    const tab = await requireTab(tabId);
+    const tab = await requireOpenTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the tab owner can add guest emails");
-    }
-
-    if (tab.status === "CLOSED") {
-      throwApiError(409, "tab_closed", "Cannot modify participants in a closed tab");
     }
 
     // 5. Get the participant and verify they belong to the tab
