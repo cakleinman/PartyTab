@@ -56,6 +56,13 @@ export default function NewExpensePage() {
     if (typeof window !== "undefined" && tabId) {
       sessionStorage.setItem(`expense-mode-${tabId}`, mode);
     }
+    // Reset custom tax/tip when switching away from custom mode
+    if (mode !== "custom") {
+      setShowCustomTax(false);
+      setCustomTaxValue("");
+      setShowCustomTip(false);
+      setCustomTipValue("");
+    }
   };
 
   // Restore split mode from sessionStorage on mount (handles mobile camera return)
@@ -65,6 +72,23 @@ export default function NewExpensePage() {
     if (saved === "claim" || saved === "custom" || saved === "split") {
       setSplitModeInternal(saved);
     }
+
+    // Restore custom tax/tip state
+    const savedTax = sessionStorage.getItem(`expense-custom-tax-${tabId}`);
+    if (savedTax) {
+      setCustomTaxValue(savedTax);
+      setShowCustomTax(true);
+    }
+    const savedTipVal = sessionStorage.getItem(`expense-custom-tip-value-${tabId}`);
+    if (savedTipVal) {
+      setCustomTipValue(savedTipVal);
+      setShowCustomTip(true);
+    }
+    const savedTipMode = sessionStorage.getItem(`expense-custom-tip-mode-${tabId}`);
+    if (savedTipMode === "percent" || savedTipMode === "amount") {
+      setCustomTipMode(savedTipMode);
+    }
+
     setHasRestoredState(true);
   }, [tabId, hasRestoredState]);
 
@@ -112,6 +136,41 @@ export default function NewExpensePage() {
   const [receiptSubtotalCents, setReceiptSubtotalCents] = useState(0);
   const [receiptTaxCents, setReceiptTaxCents] = useState(0);
   const [receiptFeeCents, setReceiptFeeCents] = useState(0);
+
+  // Custom mode tax/tip state
+  const [showCustomTax, setShowCustomTax] = useState(false);
+  const [customTaxValue, setCustomTaxValueInternal] = useState("");
+  const [showCustomTip, setShowCustomTip] = useState(false);
+  const [customTipMode, setCustomTipModeInternal] = useState<"percent" | "amount">("percent");
+  const [customTipValue, setCustomTipValueInternal] = useState("");
+
+  // Wrap custom tax/tip setters to persist to sessionStorage
+  const setCustomTaxValue = (value: string) => {
+    setCustomTaxValueInternal(value);
+    if (typeof window !== "undefined" && tabId) {
+      if (value) {
+        sessionStorage.setItem(`expense-custom-tax-${tabId}`, value);
+      } else {
+        sessionStorage.removeItem(`expense-custom-tax-${tabId}`);
+      }
+    }
+  };
+  const setCustomTipValue = (value: string) => {
+    setCustomTipValueInternal(value);
+    if (typeof window !== "undefined" && tabId) {
+      if (value) {
+        sessionStorage.setItem(`expense-custom-tip-value-${tabId}`, value);
+      } else {
+        sessionStorage.removeItem(`expense-custom-tip-value-${tabId}`);
+      }
+    }
+  };
+  const setCustomTipMode = (mode: "percent" | "amount") => {
+    setCustomTipModeInternal(mode);
+    if (typeof window !== "undefined" && tabId) {
+      sessionStorage.setItem(`expense-custom-tip-mode-${tabId}`, mode);
+    }
+  };
 
   // Get current participant ID for claim panel
   const currentParticipantId = useMemo(() => {
@@ -222,6 +281,34 @@ export default function NewExpensePage() {
       }
     }, 0);
   }, [splitMode, participants, splitAmounts]);
+
+  // Custom mode: calculate tax in cents from user input
+  const customTaxCents = useMemo(() => {
+    if (!showCustomTax || !customTaxValue) return 0;
+    try {
+      return parseCents(customTaxValue);
+    } catch {
+      return 0;
+    }
+  }, [showCustomTax, customTaxValue]);
+
+  // Custom mode: calculate tip in cents from user input
+  const customTipCents = useMemo(() => {
+    if (!showCustomTip || !customTipValue) return 0;
+    const val = parseFloat(customTipValue) || 0;
+    if (customTipMode === "percent" && amountCents > 0) {
+      return Math.round((amountCents * val) / 100);
+    } else if (customTipMode === "amount") {
+      return Math.round(val * 100);
+    }
+    return 0;
+  }, [showCustomTip, customTipMode, customTipValue, amountCents]);
+
+  // Custom mode: adjusted total including tax and tip
+  const customAdjustedTotalCents = useMemo(() => {
+    if (splitMode !== "custom") return amountCents;
+    return amountCents + customTaxCents + customTipCents;
+  }, [splitMode, amountCents, customTaxCents, customTipCents]);
 
   // Calculate totals from claim mode
   const claimTotals = useMemo(() => {
@@ -529,11 +616,42 @@ export default function NewExpensePage() {
 
     if (splitMode === "custom") {
       try {
-        const splits = participants.map((participant) => ({
-          participantId: participant.id,
-          amountCents: parseCents(splitAmounts[participant.id] || "0", true),
-        }));
-        payload.splits = splits;
+        const extraCents = customTaxCents + customTipCents;
+
+        if (extraCents > 0) {
+          // Distribute tax and tip proportionally across each person's base amount
+          const baseTotal = splitSumCents;
+          const baseSplits = participants.map((participant) => ({
+            participantId: participant.id,
+            baseCents: parseCents(splitAmounts[participant.id] || "0", true),
+          }));
+
+          let taxRemaining = customTaxCents;
+          let tipRemaining = customTipCents;
+          const withExtras = baseSplits.map((split, index) => {
+            const isLast = index === baseSplits.length - 1;
+            const share = baseTotal > 0 ? split.baseCents / baseTotal : 0;
+
+            const taxShare = isLast ? taxRemaining : Math.round(share * customTaxCents);
+            const tipShare = isLast ? tipRemaining : Math.round(share * customTipCents);
+            taxRemaining -= taxShare;
+            tipRemaining -= tipShare;
+
+            return {
+              participantId: split.participantId,
+              amountCents: split.baseCents + taxShare + tipShare,
+            };
+          });
+
+          payload.splits = withExtras;
+          payload.amount = formatCentsPlain(customAdjustedTotalCents);
+        } else {
+          const splits = participants.map((participant) => ({
+            participantId: participant.id,
+            amountCents: parseCents(splitAmounts[participant.id] || "0", true),
+          }));
+          payload.splits = splits;
+        }
       } catch {
         setError("Split amounts must be valid dollars and cents.");
         setSaving(false);
@@ -589,6 +707,9 @@ export default function NewExpensePage() {
     // Clear session storage for this expense flow
     sessionStorage.removeItem(`expense-mode-${tabId}`);
     sessionStorage.removeItem(`expense-receipt-id-${tabId}`);
+    sessionStorage.removeItem(`expense-custom-tax-${tabId}`);
+    sessionStorage.removeItem(`expense-custom-tip-value-${tabId}`);
+    sessionStorage.removeItem(`expense-custom-tip-mode-${tabId}`);
     pushToast("Expense saved.");
     router.push(`/tabs/${tabId}`);
   };
@@ -809,6 +930,155 @@ export default function NewExpensePage() {
               />
             )}
           </div>
+
+          {/* Tax and Tip for custom mode */}
+          {splitMode === "custom" && !isDisabled && (
+            <div className="border-t border-sand-200 pt-3 space-y-3">
+              {/* Tax */}
+              {showCustomTax ? (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-ink-500 w-8">Tax</span>
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">$</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={customTaxValue}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^[0-9]*\.?[0-9]*$/.test(value)) {
+                            setCustomTaxValue(value);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          if (!value) return;
+                          try {
+                            const cents = parseCents(value);
+                            setCustomTaxValue(formatCentsPlain(cents));
+                          } catch {
+                            // leave as-is
+                          }
+                        }}
+                        placeholder="0.00"
+                        className="w-full rounded-xl border border-sand-200 pl-7 pr-3 py-2 text-sm"
+                        autoFocus
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomTax(false);
+                        setCustomTaxValue("");
+                      }}
+                      className="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-500"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  {customTaxCents > 0 && (
+                    <p className="text-xs text-ink-400 ml-10">
+                      Tax: {formatCents(customTaxCents)} distributed proportionally
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowCustomTax(true)}
+                  className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add tax
+                </button>
+              )}
+
+              {/* Tip */}
+              {showCustomTip ? (
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-ink-500 w-8">Tip</span>
+                    <button
+                      type="button"
+                      onClick={() => setCustomTipMode("percent")}
+                      className={`shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition ${
+                        customTipMode === "percent"
+                          ? "bg-ink-900 text-white"
+                          : "bg-white text-ink-600 border border-sand-200 hover:bg-sand-100"
+                      }`}
+                    >
+                      %
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCustomTipMode("amount")}
+                      className={`shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition ${
+                        customTipMode === "amount"
+                          ? "bg-ink-900 text-white"
+                          : "bg-white text-ink-600 border border-sand-200 hover:bg-sand-100"
+                      }`}
+                    >
+                      $
+                    </button>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={customTipValue}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (/^[0-9]*\.?[0-9]*$/.test(value)) {
+                          setCustomTipValue(value);
+                        }
+                      }}
+                      placeholder={customTipMode === "percent" ? "20" : "15.00"}
+                      className="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomTip(false);
+                        setCustomTipValue("");
+                      }}
+                      className="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-500"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <p className="text-xs text-ink-400 ml-10">
+                    {customTipMode === "percent"
+                      ? `Tip: ${customTipValue || 0}% of subtotal (${formatCents(customTipCents)})`
+                      : `Tip: ${formatCents(customTipCents)}`}
+                  </p>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setShowCustomTip(true)}
+                  className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add tip
+                </button>
+              )}
+
+              {/* Summary when tax/tip are active */}
+              {(customTaxCents > 0 || customTipCents > 0) && amountCents > 0 && (
+                <div className="rounded-xl bg-sand-100 px-3 py-2 text-xs text-ink-600 space-y-0.5">
+                  <p>Subtotal: {formatCents(amountCents)}</p>
+                  {customTaxCents > 0 && <p>Tax: {formatCents(customTaxCents)}</p>}
+                  {customTipCents > 0 && <p>Tip: {formatCents(customTipCents)}</p>}
+                  <p className="font-semibold pt-0.5 border-t border-sand-200">
+                    Total: {formatCents(customAdjustedTotalCents)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Add participant inline */}
           {!isDisabled && (
