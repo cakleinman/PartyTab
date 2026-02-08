@@ -95,13 +95,15 @@ export const authConfig: NextAuthConfig = {
             : null;
 
           if (emailUser) {
-            // Link Google to existing email account
+            // Link Google to existing email account — preserve existing tier if higher than BASIC
             await prisma.user.update({
               where: { id: emailUser.id },
               data: {
                 googleId: account.providerAccountId,
                 authProvider: "GOOGLE",
-                subscriptionTier: "BASIC",
+                ...(emailUser.subscriptionTier === "GUEST"
+                  ? { subscriptionTier: "BASIC" }
+                  : {}),
               },
             });
             existingGoogleUser = await prisma.user.findUnique({

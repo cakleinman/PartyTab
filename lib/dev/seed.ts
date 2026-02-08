@@ -1,7 +1,23 @@
 import { PrismaClient, TabStatus } from "@prisma/client";
 import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
 
+function isProductionDatabase(): boolean {
+  const dbUrl = process.env.DATABASE_URL || "";
+  return (
+    process.env.NODE_ENV === "production" ||
+    dbUrl.includes(".supabase.com") ||
+    dbUrl.includes("pooler.supabase.com")
+  );
+}
+
 export async function resetDatabase(prisma: PrismaClient) {
+  if (isProductionDatabase() && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    throw new Error(
+      "resetDatabase() refused to run: production database detected. " +
+        "Set ALLOW_PRODUCTION_SEED=true to override.",
+    );
+  }
+
   // Delete in order of dependencies (children before parents)
 
   // Notifications and reminders
