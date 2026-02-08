@@ -3,6 +3,7 @@ import { ok, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { parseEmail } from "@/lib/validators/schemas";
+import { checkRateLimit, recordFailedAttempt, getClientIp } from "@/lib/auth/rate-limit";
 
 /**
  * POST /api/auth/register
@@ -10,6 +11,16 @@ import { parseEmail } from "@/lib/validators/schemas";
  */
 export async function POST(request: Request) {
   try {
+    const clientIp = getClientIp(request);
+    const rateLimitResult = await checkRateLimit(clientIp);
+    if (rateLimitResult) {
+      return apiError(
+        429,
+        "rate_limited",
+        `Too many attempts. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+      );
+    }
+
     const body = await request.json();
     const { email, password, displayName } = body;
 
@@ -42,6 +53,8 @@ export async function POST(request: Request) {
       where: { email: emailLower },
     });
     if (existingUser) {
+      recordFailedAttempt(clientIp);
+      console.warn(`Auth failure: register (email exists) | ip=${clientIp}`);
       // Generic message to prevent email enumeration
       throwApiError(400, "validation_error", "Unable to create account. Please try again or contact support.");
     }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { verifyPin, isValidPin } from "@/lib/auth/pin";
 import { mergeGuestToAccount } from "@/lib/auth/merge";
 import { ok, error as apiError } from "@/lib/api/response";
+import { checkRateLimit, recordFailedAttempt, getClientIp } from "@/lib/auth/rate-limit";
 
 type PendingMerge = {
   guestUserId: string;
@@ -38,6 +39,16 @@ export async function GET() {
 
 // POST: Verify PIN and perform merge
 export async function POST(request: Request) {
+  const clientIp = getClientIp(request);
+  const rateLimitResult = await checkRateLimit(clientIp);
+  if (rateLimitResult) {
+    return apiError(
+      429,
+      "rate_limited",
+      `Too many attempts. Please try again in ${rateLimitResult.retryAfter} seconds.`,
+    );
+  }
+
   const cookieStore = await cookies();
   const pendingMergeCookie = cookieStore.get("pending_merge")?.value;
   const pendingMerge = getPendingMerge(pendingMergeCookie);
@@ -73,6 +84,8 @@ export async function POST(request: Request) {
 
   // Verify PIN
   if (!await verifyPin(pin, guestUser.pinHash)) {
+    recordFailedAttempt(clientIp);
+    console.warn(`Auth failure: merge-confirm (bad PIN) | ip=${clientIp} | guest=${pendingMerge.guestUserId}`);
     return apiError(401, "unauthorized", "Incorrect PIN");
   }
 

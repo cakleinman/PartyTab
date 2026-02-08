@@ -21,22 +21,23 @@ export async function POST(
       throwApiError(401, "unauthorized", "Unauthorized");
     }
 
-    // Check Pro Entitlement
+    // Authorization first — verify user can access this tab
+    await requireOpenTab(tabId);
+    await requireParticipant(tabId, user.id);
+
+    // Then check Pro entitlement
     const isPro = await canUseProFeatures(user.id);
     if (!isPro) {
       throwApiError(403, "pro_required", "Pro subscription required for receipt parsing");
     }
 
-    // Check Usage Limit
+    // Then check usage limit
     try {
       await checkReceiptLimit(user.id);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Receipt limit exceeded";
       throwApiError(429, "limit_exceeded", message);
     }
-
-    await requireOpenTab(tabId);
-    await requireParticipant(tabId, user.id);
 
     // Get expense with receipt URL and tip settings
     const expense = await prisma.expense.findFirst({

@@ -44,6 +44,7 @@ export const POST = withSimpleApiHandler(async (request: Request) => {
 
   if (!user) {
     recordFailedAttempt(clientIp);
+    console.warn(`Auth failure: signin | ip=${clientIp} | name=${displayName}`);
     throwApiError(401, "unauthorized", "No account found with that name and PIN. Check your details or join a tab first.");
   }
 
