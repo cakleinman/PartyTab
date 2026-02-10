@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Work+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+  <!-- Shield/badge shape -->
+  <path d="M100 10 L185 45 L185 110 Q185 160 100 190 Q15 160 15 110 L15 45 Z" fill="#1b1a18"/>
+  <path d="M100 20 L175 50 L175 108 Q175 152 100 180 Q25 152 25 108 L25 50 Z" fill="#fbf7f0"/>
+  <!-- Decorative elements -->
+  <circle cx="100" cy="60" r="25" fill="none" stroke="#54b9a7" stroke-width="3"/>
+  <!-- Checkmark in circle -->
+  <polyline points="88,60 96,70 115,48" fill="none" stroke="#54b9a7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Text -->
+  <text x="100" y="105" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="13" fill="#1b1a18">MONEY DRAMA</text>
+  <text x="100" y="125" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="17" fill="#54b9a7">FREE ZONE</text>
+  <!-- URL -->
+  <text x="100" y="155" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="500" font-size="11" fill="#6f6a61">partytab.app</text>
+</svg>

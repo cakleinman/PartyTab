@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Work+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="192" height="192" rx="24" fill="#fbf7f0" stroke="#eadfcd" stroke-width="4"/>
+  <!-- Crossed out spreadsheet icon -->
+  <g transform="translate(100, 55)">
+    <rect x="-20" y="-15" width="40" height="30" rx="3" fill="none" stroke="#a8a29a" stroke-width="2"/>
+    <line x1="-10" y1="-15" x2="-10" y2="15" stroke="#a8a29a" stroke-width="1"/>
+    <line x1="0" y1="-15" x2="0" y2="15" stroke="#a8a29a" stroke-width="1"/>
+    <line x1="10" y1="-15" x2="10" y2="15" stroke="#a8a29a" stroke-width="1"/>
+    <line x1="-20" y1="-5" x2="20" y2="-5" stroke="#a8a29a" stroke-width="1"/>
+    <line x1="-20" y1="5" x2="20" y2="5" stroke="#a8a29a" stroke-width="1"/>
+    <!-- Red X -->
+    <line x1="-25" y1="-20" x2="25" y2="20" stroke="#1b1a18" stroke-width="4" stroke-linecap="round"/>
+    <line x1="25" y1="-20" x2="-25" y2="20" stroke="#1b1a18" stroke-width="4" stroke-linecap="round"/>
+  </g>
+  <!-- Text -->
+  <text x="100" y="105" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="15" fill="#1b1a18">No spreadsheets.</text>
+  <text x="100" y="125" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="15" fill="#1b1a18">No drama.</text>
+  <!-- URL -->
+  <text x="100" y="160" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="600" font-size="14" fill="#54b9a7">partytab.app</text>
+</svg>

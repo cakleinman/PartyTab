@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Work+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="192" height="192" rx="24" fill="#1b1a18"/>
+  <!-- Inner content area -->
+  <rect x="12" y="12" width="176" height="176" rx="20" fill="#fbf7f0"/>
+  <!-- Mint accent bar -->
+  <rect x="40" y="60" width="120" height="4" rx="2" fill="#54b9a7"/>
+  <!-- PartyTab text -->
+  <text x="100" y="100" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="26" fill="#1b1a18">PartyTab</text>
+  <!-- URL text -->
+  <text x="100" y="130" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="600" font-size="16" fill="#3c3a36">partytab.app</text>
+  <!-- Bottom accent bar -->
+  <rect x="40" y="145" width="120" height="4" rx="2" fill="#54b9a7"/>
+</svg>

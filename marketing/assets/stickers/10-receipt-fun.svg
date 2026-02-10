@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Work+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+  <!-- Circle background -->
+  <circle cx="100" cy="100" r="96" fill="#f5efe2" stroke="#1b1a18" stroke-width="4"/>
+  <!-- Receipt shape -->
+  <g transform="translate(100, 95)">
+    <!-- Receipt body -->
+    <path d="M-35 -55 L35 -55 L35 55 L28 48 L21 55 L14 48 L7 55 L0 48 L-7 55 L-14 48 L-21 55 L-28 48 L-35 55 Z" fill="#fbf7f0" stroke="#eadfcd" stroke-width="2"/>
+    <!-- Receipt lines -->
+    <line x1="-25" y1="-40" x2="25" y2="-40" stroke="#eadfcd" stroke-width="2"/>
+    <line x1="-25" y1="-25" x2="15" y2="-25" stroke="#eadfcd" stroke-width="2"/>
+    <line x1="-25" y1="-10" x2="20" y2="-10" stroke="#eadfcd" stroke-width="2"/>
+    <line x1="-25" y1="5" x2="10" y2="5" stroke="#eadfcd" stroke-width="2"/>
+    <!-- Total line -->
+    <line x1="-25" y1="25" x2="25" y2="25" stroke="#1b1a18" stroke-width="2"/>
+    <!-- Checkmark over receipt -->
+    <circle cx="15" cy="35" r="12" fill="#54b9a7"/>
+    <polyline points="9,35 13,40 22,29" fill="none" stroke="#fbf7f0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- Curved text at top -->
+  <text x="100" y="25" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="14" fill="#1b1a18">SETTLED!</text>
+  <!-- URL at bottom -->
+  <text x="100" y="180" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="600" font-size="14" fill="#1b1a18">partytab.app</text>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Work+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+  <!-- Circle background with mint accent -->
+  <circle cx="100" cy="100" r="96" fill="#54b9a7"/>
+  <circle cx="100" cy="100" r="88" fill="#fbf7f0"/>
+  <!-- Main text -->
+  <text x="100" y="75" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="18" fill="#1b1a18">Split</text>
+  <text x="100" y="100" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="18" fill="#1b1a18">without the</text>
+  <text x="100" y="125" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="22" fill="#54b9a7">drama</text>
+  <!-- URL at bottom -->
+  <text x="100" y="155" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="500" font-size="11" fill="#6f6a61">partytab.app</text>
+</svg>

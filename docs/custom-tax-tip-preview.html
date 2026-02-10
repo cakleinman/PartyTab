@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Tax & Tip — UI Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: {
+              400: '#9ca3af',
+              500: '#6b7280',
+              600: '#4b5563',
+              700: '#374151',
+              900: '#111827',
+            },
+            sand: {
+              50: '#fafaf9',
+              100: '#f5f5f4',
+              200: '#e7e5e4',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body { background: #fafaf9; font-family: system-ui, -apple-system, sans-serif; }
+    .demo-card { max-width: 480px; margin: 2rem auto; }
+  </style>
+</head>
+<body>
+  <div class="demo-card p-4">
+    <p class="text-xs text-ink-400 text-center mb-2">UI Preview — Custom Split Mode</p>
+
+    <!-- Outer split section card -->
+    <div class="space-y-4 rounded-2xl border border-sand-200 bg-white/80 p-6" id="app">
+
+      <!-- Mode selector (static mock) -->
+      <div class="space-y-3">
+        <p class="text-sm font-semibold">How to split</p>
+        <div class="flex gap-2">
+          <button class="px-4 py-2 text-sm font-medium rounded-xl bg-white text-ink-600 border border-sand-200">Even</button>
+          <button disabled class="px-4 py-2 text-sm font-medium rounded-xl bg-white text-ink-400 border border-sand-200 opacity-50 relative">
+            Claim
+            <span class="absolute -top-1 -right-1 text-[10px] bg-amber-100 text-amber-700 px-1 rounded-full">Pro</span>
+          </button>
+          <button class="px-4 py-2 text-sm font-medium rounded-xl bg-ink-900 text-white">Custom</button>
+        </div>
+      </div>
+
+      <!-- Custom split panel mock -->
+      <div class="pt-2 space-y-3">
+        <p class="text-sm text-ink-500">Enter custom amounts for each person</p>
+        <div class="grid gap-3">
+          <label class="grid gap-1 text-xs text-ink-500">
+            Chris
+            <input value="45.00" class="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-700" readonly />
+          </label>
+          <label class="grid gap-1 text-xs text-ink-500">
+            Alex
+            <input value="30.00" class="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-700" readonly />
+          </label>
+          <label class="grid gap-1 text-xs text-ink-500">
+            Jordan
+            <input value="25.00" class="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-700" readonly />
+          </label>
+        </div>
+        <div class="space-y-1 text-xs text-ink-500">
+          <p>Split total: $100.00</p>
+          <p class="text-green-600">✓ Amounts match</p>
+        </div>
+      </div>
+
+      <!-- ======================== -->
+      <!-- NEW: Tax & Tip section   -->
+      <!-- ======================== -->
+      <div class="border-t border-sand-200 pt-3 space-y-3" id="tax-tip-section">
+
+        <!-- Tax: collapsed state -->
+        <div id="tax-collapsed">
+          <button
+            onclick="document.getElementById('tax-collapsed').style.display='none'; document.getElementById('tax-expanded').style.display='block';"
+            class="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add tax
+          </button>
+        </div>
+
+        <!-- Tax: expanded state (hidden by default) -->
+        <div id="tax-expanded" style="display:none" class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-ink-500 w-8">Tax</span>
+            <div class="relative flex-1">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-400">$</span>
+              <input
+                id="tax-input"
+                type="text" inputmode="decimal" placeholder="0.00"
+                class="w-full rounded-xl border border-sand-200 pl-7 pr-3 py-2 text-sm"
+                oninput="updateSummary()"
+              />
+            </div>
+            <button
+              onclick="document.getElementById('tax-expanded').style.display='none'; document.getElementById('tax-collapsed').style.display='block'; document.getElementById('tax-input').value=''; updateSummary();"
+              class="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-500"
+            >Remove</button>
+          </div>
+          <p class="text-xs text-ink-400 ml-10" id="tax-hint"></p>
+        </div>
+
+        <!-- Tip: collapsed state -->
+        <div id="tip-collapsed">
+          <button
+            onclick="document.getElementById('tip-collapsed').style.display='none'; document.getElementById('tip-expanded').style.display='block';"
+            class="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add tip
+          </button>
+        </div>
+
+        <!-- Tip: expanded state (hidden by default) -->
+        <div id="tip-expanded" style="display:none" class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-ink-500 w-8">Tip</span>
+            <button id="btn-pct" onclick="setTipMode('percent')"
+              class="shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition bg-ink-900 text-white">%</button>
+            <button id="btn-dollar" onclick="setTipMode('amount')"
+              class="shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition bg-white text-ink-600 border border-sand-200 hover:bg-sand-100">$</button>
+            <input
+              id="tip-input"
+              type="text" inputmode="decimal" placeholder="20"
+              class="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+              oninput="updateSummary()"
+            />
+            <button
+              onclick="document.getElementById('tip-expanded').style.display='none'; document.getElementById('tip-collapsed').style.display='block'; document.getElementById('tip-input').value=''; updateSummary();"
+              class="rounded-xl border border-sand-200 px-3 py-2 text-sm text-ink-500"
+            >Remove</button>
+          </div>
+          <p class="text-xs text-ink-400 ml-10" id="tip-hint">Tip: 0% of subtotal ($0.00)</p>
+        </div>
+
+        <!-- Summary (hidden until values entered) -->
+        <div id="summary" style="display:none" class="rounded-xl bg-sand-100 px-3 py-2 text-xs text-ink-600 space-y-0.5">
+          <p>Subtotal: $100.00</p>
+          <p id="summary-tax" style="display:none">Tax: $0.00</p>
+          <p id="summary-tip" style="display:none">Tip: $0.00</p>
+          <p class="font-semibold pt-0.5 border-t border-sand-200" id="summary-total">Total: $100.00</p>
+        </div>
+      </div>
+
+      <!-- Add person button (existing, for context) -->
+      <div class="border-t border-sand-200 pt-3">
+        <button class="flex items-center gap-1.5 text-sm text-ink-500 hover:text-ink-700 cursor-default">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Add person to tab
+        </button>
+      </div>
+    </div>
+
+    <!-- Save button -->
+    <button class="mt-4 w-full rounded-full bg-ink-900 px-6 py-3 text-sm font-semibold text-white">
+      Save expense
+    </button>
+  </div>
+
+  <script>
+    let tipMode = 'percent';
+    const subtotal = 100_00; // $100.00 in cents
+
+    function setTipMode(mode) {
+      tipMode = mode;
+      const btnPct = document.getElementById('btn-pct');
+      const btnDollar = document.getElementById('btn-dollar');
+      const tipInput = document.getElementById('tip-input');
+      if (mode === 'percent') {
+        btnPct.className = 'shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition bg-ink-900 text-white';
+        btnDollar.className = 'shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition bg-white text-ink-600 border border-sand-200 hover:bg-sand-100';
+        tipInput.placeholder = '20';
+      } else {
+        btnDollar.className = 'shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition bg-ink-900 text-white';
+        btnPct.className = 'shrink-0 px-3 py-2 text-sm font-medium rounded-lg transition bg-white text-ink-600 border border-sand-200 hover:bg-sand-100';
+        tipInput.placeholder = '15.00';
+      }
+      updateSummary();
+    }
+
+    function fmt(cents) {
+      return '$' + (cents / 100).toFixed(2);
+    }
+
+    function updateSummary() {
+      const taxVal = parseFloat(document.getElementById('tax-input').value) || 0;
+      const tipVal = parseFloat(document.getElementById('tip-input').value) || 0;
+      const taxCents = Math.round(taxVal * 100);
+      const tipCents = tipMode === 'percent'
+        ? Math.round((subtotal * tipVal) / 100)
+        : Math.round(tipVal * 100);
+      const total = subtotal + taxCents + tipCents;
+
+      // Tax hint
+      const taxHint = document.getElementById('tax-hint');
+      taxHint.textContent = taxCents > 0 ? `Tax: ${fmt(taxCents)} distributed proportionally` : '';
+
+      // Tip hint
+      const tipHint = document.getElementById('tip-hint');
+      if (tipMode === 'percent') {
+        tipHint.textContent = `Tip: ${tipVal || 0}% of subtotal (${fmt(tipCents)})`;
+      } else {
+        tipHint.textContent = `Tip: ${fmt(tipCents)}`;
+      }
+
+      // Summary
+      const showSummary = taxCents > 0 || tipCents > 0;
+      document.getElementById('summary').style.display = showSummary ? 'block' : 'none';
+      const sTax = document.getElementById('summary-tax');
+      const sTip = document.getElementById('summary-tip');
+      sTax.style.display = taxCents > 0 ? 'block' : 'none';
+      sTax.textContent = `Tax: ${fmt(taxCents)}`;
+      sTip.style.display = tipCents > 0 ? 'block' : 'none';
+      sTip.textContent = `Tip: ${fmt(tipCents)}`;
+      document.getElementById('summary-total').textContent = `Total: ${fmt(total)}`;
+    }
+  </script>
+</body>
+</html>

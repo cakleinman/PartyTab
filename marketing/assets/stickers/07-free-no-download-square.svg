@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Work+Sans:wght@500;600&amp;display=swap');
+    </style>
+  </defs>
+  <!-- Rounded square background -->
+  <rect x="4" y="4" width="192" height="192" rx="24" fill="#f5efe2" stroke="#1b1a18" stroke-width="4"/>
+  <!-- FREE badge -->
+  <g transform="translate(100, 50)">
+    <rect x="-35" y="-15" width="70" height="30" rx="15" fill="#54b9a7"/>
+    <text x="0" y="6" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="16" fill="#fbf7f0">FREE</text>
+  </g>
+  <!-- Main text -->
+  <text x="100" y="100" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="600" font-size="13" fill="#3c3a36">No app download</text>
+  <text x="100" y="120" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="600" font-size="13" fill="#3c3a36">required</text>
+  <!-- PartyTab -->
+  <text x="100" y="155" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="700" font-size="18" fill="#1b1a18">PartyTab</text>
+  <text x="100" y="175" text-anchor="middle" font-family="'Work Sans', sans-serif" font-weight="500" font-size="12" fill="#6f6a61">.app</text>
+</svg>
