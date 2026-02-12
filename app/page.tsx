@@ -426,21 +426,21 @@ export default function LandingPage() {
               <svg viewBox="0 0 400 200" className="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto">
                 <defs>
                   <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
-                    <path d="M0,0 L0,6 L9,3 z" fill="#54b9a7" />
+                    <path d="M0,0 L0,6 L9,3 z" fill="#0a776a" />
                   </marker>
                 </defs>
-                <circle cx="100" cy="50" r="28" fill="#fff" stroke="#54b9a7" strokeWidth="2" />
+                <circle cx="100" cy="50" r="28" fill="#fff" stroke="#0a776a" strokeWidth="2" />
                 <text x="100" y="55" textAnchor="middle" fontSize="24">🧑‍🦰</text>
                 <text x="100" y="95" textAnchor="middle" fontSize="13" fill="#1b1a18" fontWeight="700">Alex</text>
-                <circle cx="300" cy="50" r="28" fill="#fff" stroke="#54b9a7" strokeWidth="2" />
+                <circle cx="300" cy="50" r="28" fill="#fff" stroke="#0a776a" strokeWidth="2" />
                 <text x="300" y="55" textAnchor="middle" fontSize="24">👩‍🦱</text>
                 <text x="300" y="95" textAnchor="middle" fontSize="13" fill="#1b1a18" fontWeight="700">Jamie</text>
-                <circle cx="200" cy="150" r="28" fill="#fff" stroke="#54b9a7" strokeWidth="2" />
+                <circle cx="200" cy="150" r="28" fill="#fff" stroke="#0a776a" strokeWidth="2" />
                 <text x="200" y="155" textAnchor="middle" fontSize="24">🧔</text>
                 <text x="200" y="195" textAnchor="middle" fontSize="13" fill="#1b1a18" fontWeight="700">Sam</text>
-                <path d="M125,70 L175,120" stroke="#54b9a7" strokeWidth="3" markerEnd="url(#arrow-teal)" className="flow-line" />
-                <rect x="132" y="90" width="36" height="20" rx="6" fill="#fff" stroke="#54b9a7" strokeWidth="1.5" />
-                <text x="150" y="104" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#54b9a7">$5</text>
+                <path d="M125,70 L175,120" stroke="#0a776a" strokeWidth="3" markerEnd="url(#arrow-teal)" className="flow-line" />
+                <rect x="132" y="90" width="36" height="20" rx="6" fill="#fff" stroke="#0a776a" strokeWidth="1.5" />
+                <text x="150" y="104" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#0a776a">$5</text>
               </svg>
             </div>
             <div className="mt-6 text-center">

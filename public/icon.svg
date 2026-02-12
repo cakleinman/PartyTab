@@ -1,0 +1,30 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle (brand teal) -->
+  <circle cx="16" cy="16" r="16" fill="#0a776a"/>
+
+  <!-- Pizza slices -->
+  <g transform="translate(16, 16)">
+    <!-- Slice 1 (top-left) -->
+    <path d="M 0 0 L -8 -8 A 11.3 11.3 0 0 0 -8 8 Z" fill="#d4a853" stroke="none"/>
+    <path d="M -1 -1 L -6.5 -6.5 A 9.2 9.2 0 0 0 -6.5 6.5 Z" fill="#f5d76e"/>
+
+    <!-- Slice 2 (top-right) -->
+    <path d="M 0 0 L 8 -8 A 11.3 11.3 0 0 1 -8 -8 Z" fill="#d4a853" stroke="none"/>
+    <path d="M 1 -1 L 6.5 -6.5 A 9.2 9.2 0 0 1 -6.5 -6.5 Z" fill="#f5d76e"/>
+
+    <!-- Slice 3 (bottom-right) -->
+    <path d="M 0 0 L 8 8 A 11.3 11.3 0 0 1 8 -8 Z" fill="#d4a853" stroke="none"/>
+    <path d="M 1 1 L 6.5 6.5 A 9.2 9.2 0 0 1 6.5 -6.5 Z" fill="#f5d76e"/>
+
+    <!-- Slice 4 (bottom-left) -->
+    <path d="M 0 0 L -8 8 A 11.3 11.3 0 0 1 8 8 Z" fill="#d4a853" stroke="none"/>
+    <path d="M -1 1 L -6.5 6.5 A 9.2 9.2 0 0 1 6.5 6.5 Z" fill="#f5d76e"/>
+
+    <!-- Pepperoni dots -->
+    <circle cx="-3" cy="-4" r="1" fill="#c0392b"/>
+    <circle cx="3" cy="-4" r="1" fill="#c0392b"/>
+    <circle cx="4" cy="2" r="1" fill="#c0392b"/>
+    <circle cx="-4" cy="2" r="1" fill="#c0392b"/>
+    <circle cx="0" cy="0" r="0.8" fill="#c0392b"/>
+  </g>
+</svg>

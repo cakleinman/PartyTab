@@ -8,16 +8,16 @@
   --ink-700: #3c3a36;
   --ink-500: #6f6a61;
   --ink-300: #a8a29a;
-  --mint-400: #54b9a7;
+  --mint-400: #0a776a;
   --teal-50: #f0f9f8;
   --teal-100: #ccede8;
   --teal-200: #a8e0d9;
-  --teal-600: #54b9a7;
-  --teal-700: #429b8b;
-  --teal-800: #357d70;
+  --teal-600: #0a776a;
+  --teal-700: #086357;
+  --teal-800: #064f44;
   --orange-50: #fff7ed;
   --orange-100: #ffedd5;
-  --orange-600: #ea580c;
+  --orange-600: #c2410c;
 }
 
 @theme inline {
