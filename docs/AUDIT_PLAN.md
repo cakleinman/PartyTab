@@ -182,16 +182,16 @@ These audits reduce tech debt and improve developer experience. Do when time all
 **Checklist:**
 
 - [ ] **Root-level markdown files** — Consolidate or archive:
-  - `CI-FIX-SPEC.md` — Move to `docs/` or delete if resolved
-  - `REMEDIATION-SPEC.md` — Move to `docs/` or delete if resolved
-  - `ESLINT-WARNINGS-FIX.md` — Move to `docs/` or delete if resolved
-  - `JAN9BUILDUPDATE.md` — Archive or delete
-  - `CODEX_CLI_TOOLS.md` — Move to `docs/` or delete
-  - `CLAUDE START HERE.md` — Superseded by `CLAUDE.md`, consider removing
-  - `PartyTab_Full_Master_Build_Guide.md` — Move to `docs/`
-- [ ] **Untracked files** — Decide fate of:
-  - `partytab-stickers/` — Move to marketing or .gitignore
-  - `custom-tax-tip-preview.html` — Delete or move to docs
+  - `CI-FIX-SPEC.md` — ✅ Moved to `docs/`
+  - `REMEDIATION-SPEC.md` — ✅ Moved to `docs/`
+  - `ESLINT-WARNINGS-FIX.md` — ✅ Moved to `docs/`
+  - `JAN9BUILDUPDATE.md` — ✅ Moved to `docs/`
+  - `CODEX_CLI_TOOLS.md` — ✅ Moved to `docs/`
+  - `CLAUDE START HERE.md` — ✅ Moved to `docs/`
+  - `PartyTab_Full_Master_Build_Guide.md` — ✅ Moved to `docs/`
+- [x] **Untracked files** — Decided:
+  - `partytab-stickers/` — ✅ Moved to `marketing/assets/stickers/`
+  - `custom-tax-tip-preview.html` — ✅ Moved to `docs/`
 - [ ] **Marketing directory** — Review `marketing/campaigns/` for large assets that shouldn't be in git
 - [ ] **Dead code scan** — Check for:
   - Unused exports in `lib/`
