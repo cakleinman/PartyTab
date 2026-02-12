@@ -1,1 +1,8 @@
 *.mp4
+.env
+node_modules/
+input/
+output/
+temp/
+logs/
+.venv/

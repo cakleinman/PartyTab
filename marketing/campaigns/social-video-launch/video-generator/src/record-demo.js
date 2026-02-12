@@ -1,6 +1,10 @@
 /**
  * PartyTab Demo Recorder
- * Uses Puppeteer to automate PartyTab and record screen captures
+ *
+ * Renders a local HTML clone of the PartyTab UI with themed trip data,
+ * captures screenshots at each animation step, and encodes to video via FFmpeg.
+ *
+ * No dependency on the live PartyTab site — fully self-contained.
  */
 
 import puppeteer from "puppeteer";
@@ -14,25 +18,46 @@ import { getTemplate } from "./trip-templates.js";
 const execAsync = promisify(exec);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const PARTYTAB_URL = "https://partytab.app";
-const VIEWPORT = { width: 390, height: 844 }; // iPhone-like dimensions for TikTok
+const TEMPLATE_PATH = path.join(__dirname, "..", "assets", "demo-template.html");
+const VIEWPORT = { width: 360, height: 640, deviceScaleFactor: 3 }; // 3x DPR → 1080×1920 TikTok HD
+const FPS = 30;
 
-/**
- * Sleep helper
- */
+// Timing (in frames at 30fps) — tuned for TikTok (~10s demo)
+const HOLD_FRAMES = 8;            // ~0.27s hold on each new expense
+const EXPENSE_PAUSE = 3;          // ~0.10s between expenses
+const SCENE_TRANSITION = 8;       // ~0.27s pause between scenes
+const TRANSFER_HOLD = 6;          // ~0.20s per transfer reveal
+const FINAL_HOLD = 110;           // ~3.67s hold on CTA — voice finishes over it
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
+ * Capture N identical frames of the current page state
+ */
+async function captureFrames(page, framesDir, startFrame, count) {
+  // Take one screenshot and duplicate it for the hold duration
+  const framePath = path.join(framesDir, `frame-${startFrame.toString().padStart(5, "0")}.png`);
+  await page.screenshot({ path: framePath });
+
+  // Copy the same image for subsequent hold frames
+  for (let i = 1; i < count; i++) {
+    const destPath = path.join(framesDir, `frame-${(startFrame + i).toString().padStart(5, "0")}.png`);
+    fs.copyFileSync(framePath, destPath);
+  }
+
+  return startFrame + count;
+}
+
+/**
  * Record a PartyTab demo for a specific trip category
  */
-export async function recordDemo(category, outputPath) {
+export async function recordDemo(category, outputPath, scenePadding = null) {
   const template = getTemplate(category);
   const tempDir = path.join(__dirname, "..", "temp", `demo-${Date.now()}`);
   const framesDir = path.join(tempDir, "frames");
 
-  // Create temp directories
   fs.mkdirSync(framesDir, { recursive: true });
 
   console.log(`  🎬 Recording demo for: ${template.name} ${template.emoji}`);
@@ -45,121 +70,174 @@ export async function recordDemo(category, outputPath) {
   const page = await browser.newPage();
   await page.setViewport(VIEWPORT);
 
-  let frameCount = 0;
-  const captureFrame = async () => {
-    const framePath = path.join(framesDir, `frame-${frameCount.toString().padStart(5, "0")}.png`);
-    await page.screenshot({ path: framePath });
-    frameCount++;
+  // Load the local HTML template
+  const templateUrl = `file://${TEMPLATE_PATH}`;
+  await page.goto(templateUrl, { waitUntil: "networkidle0" });
+
+  // Inject the trip data
+  const demoData = {
+    tabName: `${template.name} ${template.emoji}`,
+    expenses: template.expenses,
+    participants: [...new Set(template.expenses.map((e) => e.paidBy))],
   };
 
-  // Start capturing frames at ~15fps during interactions
-  const captureInterval = setInterval(captureFrame, 66); // ~15fps
+  await page.evaluate((data) => {
+    window.DEMO_DATA = data;
+  }, demoData);
+
+  let frame = 0;
 
   try {
-    // Navigate to PartyTab
-    console.log("    → Opening PartyTab...");
-    await page.goto(PARTYTAB_URL, { waitUntil: "networkidle2" });
-    await sleep(1000);
+    // === Scene 1: Dashboard with expenses appearing one by one ===
+    console.log("    → Scene 1: Dashboard + expenses");
 
-    // Enter tab name and create
-    console.log(`    → Creating tab: ${template.name} ${template.emoji}`);
+    // Initialize dashboard
+    await page.evaluate(() => window.showDashboard());
+    await sleep(100); // Let the DOM update
 
-    // Find the name input and type the tab name
-    const nameInput = await page.$('input[placeholder*="Name your trip"]')
-      || await page.$('input[type="text"]');
+    // Brief flash of empty dashboard
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.emptyDashboard ?? SCENE_TRANSITION);
 
-    if (nameInput) {
-      await nameInput.click();
-      await page.keyboard.type(`${template.name} ${template.emoji}`, { delay: 50 });
-      await sleep(500);
-    }
+    // Reveal each expense one by one
+    for (let i = 0; i < template.expenses.length; i++) {
+      await page.evaluate((idx) => window.showExpense(idx), i);
+      await sleep(60); // Let CSS transition start
 
-    // Click "Start Tab" button
-    const startButton = await page.$('button:has-text("Start Tab")')
-      || await page.$('button[type="submit"]')
-      || await page.$('button');
-
-    if (startButton) {
-      await startButton.click();
-      await sleep(1500);
-    }
-
-    // Add expenses
-    console.log("    → Adding expenses...");
-    for (const expense of template.expenses) {
-      await sleep(800);
-
-      // Look for "Add Expense" button
-      await page.$$eval('button', buttons => {
-        const btn = buttons.find(b =>
-          b.textContent.toLowerCase().includes('add') ||
-          b.textContent.includes('+')
-        );
-        return btn ? true : false;
-      });
-
-      // Click add expense
-      await page.click('button:has-text("Add"), button:has-text("+"), [data-testid="add-expense"]').catch(() => { });
-      await sleep(500);
-
-      // Fill in expense details (adjust selectors based on actual PartyTab UI)
-      // Description
-      const descInput = await page.$('input[placeholder*="description"], input[placeholder*="What"], input[name="description"]');
-      if (descInput) {
-        await descInput.type(expense.description, { delay: 30 });
+      // Capture the transition (snappy for TikTok)
+      for (let t = 0; t < 5; t++) {
+        const framePath = path.join(framesDir, `frame-${frame.toString().padStart(5, "0")}.png`);
+        await page.screenshot({ path: framePath });
+        frame++;
+        await sleep(20);
       }
 
-      // Amount
-      const amountInput = await page.$('input[type="number"], input[placeholder*="amount"], input[name="amount"]');
-      if (amountInput) {
-        await amountInput.type(expense.amount.toString(), { delay: 30 });
+      // Hold on the new state
+      frame = await captureFrames(page, framesDir, frame, HOLD_FRAMES);
+
+      // Brief pause before next expense
+      if (i < template.expenses.length - 1) {
+        frame = await captureFrames(page, framesDir, frame, EXPENSE_PAUSE);
       }
-
-      // Select who paid (this will depend on PartyTab's actual UI)
-      // For now, we'll try clicking on the payer name if visible
-      await page.click(`text=${expense.paidBy}`).catch(() => { });
-
-      // Submit/save the expense
-      await page.click('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').catch(() => { });
-      await sleep(500);
-
-      console.log(`      + ${expense.description}: $${expense.amount} (${expense.paidBy})`);
     }
 
-    // Navigate to settlement view
-    console.log("    → Showing settlement...");
-    await sleep(1000);
+    // Hold on the full expense list
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.fullListHold ?? SCENE_TRANSITION);
 
-    // Look for settle up / summary button
-    await page.click('button:has-text("Settle"), button:has-text("Summary"), a:has-text("Settle")').catch(() => { });
-    await sleep(2000);
+    // === Scene 2: Settlement view ===
+    console.log("    → Scene 2: Settlement");
 
-    // Final pause on settlement screen
-    await sleep(1500);
+    await page.evaluate(() => window.showSettlement());
+    await sleep(100);
+
+    // Quick scene switch
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.sceneSwitch ?? 2);
+
+    // Reveal the settlement banner
+    await page.evaluate(() => window.showSettleBanner());
+    await sleep(60);
+    for (let t = 0; t < 6; t++) {
+      const framePath = path.join(framesDir, `frame-${frame.toString().padStart(5, "0")}.png`);
+      await page.screenshot({ path: framePath });
+      frame++;
+      await sleep(20);
+    }
+    frame = await captureFrames(page, framesDir, frame, HOLD_FRAMES);
+
+    // Reveal each transfer
+    const transferCount = await page.evaluate(() => {
+      return document.querySelectorAll('.transfer-item').length;
+    });
+
+    for (let i = 0; i < transferCount; i++) {
+      await page.evaluate((idx) => window.showTransfer(idx), i);
+      await sleep(60);
+
+      for (let t = 0; t < 5; t++) {
+        const framePath = path.join(framesDir, `frame-${frame.toString().padStart(5, "0")}.png`);
+        await page.screenshot({ path: framePath });
+        frame++;
+        await sleep(20);
+      }
+
+      frame = await captureFrames(page, framesDir, frame, TRANSFER_HOLD);
+    }
+
+    // Hold on all transfers visible
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.afterTransfersHold ?? SCENE_TRANSITION);
+
+    // === Scene 3: Transfers completing one by one ===
+    console.log("    → Scene 3: Settling transfers");
+
+    for (let i = 0; i < transferCount; i++) {
+      await page.evaluate((idx) => window.completeTransfer(idx), i);
+      await sleep(60);
+
+      // Capture the green flip transition
+      for (let t = 0; t < 5; t++) {
+        const framePath = path.join(framesDir, `frame-${frame.toString().padStart(5, "0")}.png`);
+        await page.screenshot({ path: framePath });
+        frame++;
+        await sleep(20);
+      }
+
+      frame = await captureFrames(page, framesDir, frame, TRANSFER_HOLD);
+    }
+
+    // Brief pause with all transfers green
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.afterGreenPause ?? 6);
+
+    // Show the "All settled!" banner
+    console.log("    → Scene 4: All settled!");
+    await page.evaluate(() => window.showAllSettled());
+    await sleep(60);
+
+    for (let t = 0; t < 6; t++) {
+      const framePath = path.join(framesDir, `frame-${frame.toString().padStart(5, "0")}.png`);
+      await page.screenshot({ path: framePath });
+      frame++;
+      await sleep(20);
+    }
+
+    // Hold on the "All settled" view
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.allSettledHold ?? SCENE_TRANSITION);
+
+    // === Scene 5: CTA end screen ===
+    console.log("    → Scene 5: PartyTab.app CTA");
+    await page.evaluate(() => window.showCTA());
+    await sleep(80);
+
+    // Capture the fade-in
+    for (let t = 0; t < 10; t++) {
+      const framePath = path.join(framesDir, `frame-${frame.toString().padStart(5, "0")}.png`);
+      await page.screenshot({ path: framePath });
+      frame++;
+      await sleep(30);
+    }
+
+    // Hold on the CTA screen
+    frame = await captureFrames(page, framesDir, frame, scenePadding?.ctaHold ?? FINAL_HOLD);
 
   } catch (error) {
     console.error("    ❌ Recording error:", error.message);
   }
 
-  // Stop capturing
-  clearInterval(captureInterval);
   await browser.close();
 
-  // Convert frames to video using ffmpeg
-  console.log("    → Encoding video...");
+  // Encode frames to video
+  console.log(`    → Encoding ${frame} frames to video...`);
 
-  if (frameCount > 0) {
+  if (frame > 0) {
     try {
       await execAsync(
-        `ffmpeg -y -framerate 15 -i "${framesDir}/frame-%05d.png" -c:v libx264 -pix_fmt yuv420p -r 30 "${outputPath}"`
+        `ffmpeg -y -framerate ${FPS} -i "${framesDir}/frame-%05d.png" -c:v libx264 -crf 18 -pix_fmt yuv420p -r ${FPS} "${outputPath}"`
       );
-      console.log(`    ✅ Demo saved: ${path.basename(outputPath)}`);
+      console.log(`    ✅ Demo saved: ${path.basename(outputPath)} (${(frame / FPS).toFixed(1)}s)`);
     } catch (error) {
       console.error("    ❌ Encoding error:", error.message);
     }
   }
 
-  // Cleanup temp files
+  // Cleanup temp frames
   fs.rmSync(tempDir, { recursive: true, force: true });
 
   return outputPath;
@@ -169,12 +247,15 @@ export async function recordDemo(category, outputPath) {
  * Record demos for all categories (for pre-generation)
  */
 export async function recordAllDemos(outputDir) {
-  const categories = ["ski", "beach", "bachelor", "bachelorette", "roadtrip", "camping", "lake", "city", "vegas", "hiking", "generic"];
+  const categories = [
+    "ski", "beach", "bachelor", "bachelorette", "roadtrip",
+    "camping", "lake", "city", "vegas", "hiking", "generic",
+  ];
 
   for (const category of categories) {
     const outputPath = path.join(outputDir, `demo-${category}.mp4`);
     await recordDemo(category, outputPath);
-    await sleep(1000); // Brief pause between recordings
+    await sleep(500);
   }
 }
 
@@ -183,7 +264,6 @@ if (process.argv[1].includes("record-demo")) {
   const category = process.argv[2] || "generic";
   const outputPath = process.argv[3] || path.join(__dirname, "..", "assets", `demo-${category}.mp4`);
 
-  // Ensure output directory exists
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 
   recordDemo(category, outputPath)

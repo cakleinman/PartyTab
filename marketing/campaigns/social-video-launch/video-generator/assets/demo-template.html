@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=360, initial-scale=1.0">
+<title>PartyTab Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sand-50: #fbf7f0;
+    --sand-100: #f5efe2;
+    --sand-200: #eadfcd;
+    --ink-100: #e5e2dc;
+    --ink-300: #a8a29a;
+    --ink-500: #6f6a61;
+    --ink-700: #3c3a36;
+    --ink-900: #1b1a18;
+    --teal-50: #f0f9f8;
+    --teal-100: #ccede8;
+    --teal-600: #54b9a7;
+    --teal-700: #429b8b;
+    --green-50: #f0fdf4;
+    --green-200: #bbf7d0;
+    --green-600: #16a34a;
+    --red-600: #dc2626;
+    --amber-50: #fffbeb;
+    --amber-200: #fde68a;
+    --amber-600: #d97706;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 360px;
+    height: 640px;
+    overflow: hidden;
+    background: var(--sand-50);
+    font-family: 'Work Sans', sans-serif;
+    color: var(--ink-900);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 1px solid var(--ink-100);
+    background: rgba(251, 247, 240, 0.8);
+    backdrop-filter: blur(8px);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--ink-900);
+  }
+  .header-btn {
+    background: var(--ink-900);
+    color: var(--sand-50);
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .main {
+    padding: 24px;
+  }
+
+  /* Scene: Tab Created */
+  .tab-header {
+    margin-bottom: 24px;
+  }
+  .tab-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink-900);
+    margin-bottom: 6px;
+  }
+  .tab-status {
+    display: inline-block;
+    background: var(--teal-50);
+    border: 1px solid var(--teal-100);
+    color: var(--teal-700);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  /* Stat Cards */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--sand-200);
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .stat-card.full-width {
+    grid-column: 1 / -1;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--ink-500);
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .stat-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink-900);
+  }
+  .stat-value.green { color: var(--green-600); }
+  .stat-value.red { color: var(--red-600); }
+
+  /* Expenses Section */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink-900);
+  }
+  .section-link {
+    font-size: 13px;
+    color: var(--ink-500);
+    text-decoration: none;
+  }
+
+  .expense-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .expense-item {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--sand-200);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+  }
+  .expense-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .expense-desc {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-900);
+    margin-bottom: 2px;
+  }
+  .expense-meta {
+    font-size: 12px;
+    color: var(--ink-500);
+  }
+  .expense-amount {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink-700);
+    white-space: nowrap;
+  }
+
+  /* Settlement Scene */
+  .settlement-banner {
+    background: rgba(255,255,255,0.8);
+    border: 2px solid var(--ink-900);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  }
+  .settlement-banner.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .settlement-banner h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .settlement-banner p {
+    font-size: 13px;
+    color: var(--ink-500);
+    margin-bottom: 16px;
+  }
+  .settle-btn {
+    display: inline-block;
+    background: var(--ink-900);
+    color: var(--sand-50);
+    border: none;
+    border-radius: 999px;
+    padding: 12px 28px;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .transfer-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .transfer-item {
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.35s ease-out, transform 0.35s ease-out;
+  }
+  .transfer-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .transfer-item.yours {
+    background: var(--amber-50);
+    border: 1px solid var(--amber-200);
+  }
+  .transfer-item.others {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--sand-200);
+  }
+  .transfer-item.done {
+    background: var(--green-50);
+    border: 1px solid var(--green-200);
+  }
+  .transfer-item.done .transfer-status {
+    color: var(--green-600);
+    font-weight: 600;
+  }
+  .transfer-item.done .transfer-amount {
+    color: var(--green-600);
+  }
+
+  /* Checkmark icon for completed transfers */
+  .check-icon {
+    display: none;
+    width: 20px;
+    height: 20px;
+    background: var(--green-600);
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .check-icon::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 7px;
+    width: 5px;
+    height: 9px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+  }
+  .transfer-item.done .check-icon {
+    display: block;
+  }
+
+  /* All settled banner — hidden until triggered to avoid eating layout space */
+  .all-settled-banner {
+    background: var(--green-50);
+    border: 2px solid var(--green-200);
+    border-radius: 20px;
+    padding: 28px 20px;
+    margin-bottom: 20px;
+    text-align: center;
+    display: none;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+  }
+  .all-settled-banner.visible {
+    display: block;
+    opacity: 1;
+    transform: scale(1);
+  }
+  .all-settled-emoji {
+    font-size: 40px;
+    margin-bottom: 10px;
+  }
+  .all-settled-banner h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--green-600);
+    margin-bottom: 4px;
+  }
+  .all-settled-banner p {
+    font-size: 13px;
+    color: var(--ink-500);
+  }
+
+  .transfer-from-to {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-900);
+  }
+  .transfer-status {
+    font-size: 11px;
+    color: var(--ink-500);
+    margin-top: 2px;
+  }
+  .transfer-amount {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink-700);
+  }
+
+  /* CTA end screen */
+  .cta-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 360px;
+    height: 640px;
+    background: var(--ink-900);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease-in;
+    z-index: 100;
+  }
+  .cta-overlay.visible {
+    opacity: 1;
+  }
+  .cta-url {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--sand-50);
+    letter-spacing: -0.5px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.5s ease-out 0.3s, transform 0.5s ease-out 0.3s;
+  }
+  .cta-overlay.visible .cta-url {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .cta-tagline {
+    font-family: 'Work Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink-300);
+    margin-top: 10px;
+    opacity: 0;
+    transition: opacity 0.5s ease-out 0.6s;
+  }
+  .cta-overlay.visible .cta-tagline {
+    opacity: 1;
+  }
+
+  /* Hidden by default */
+  .scene { display: none; }
+  .scene.active { display: block; }
+</style>
+</head>
+<body>
+
+<div class="cta-overlay" id="ctaOverlay">
+  <div class="cta-url">PartyTab.app</div>
+  <div class="cta-tagline">Split expenses. Stay friends.</div>
+</div>
+
+<div class="header">
+  <span class="logo">PartyTab</span>
+  <button class="header-btn" id="headerAction">Add expense</button>
+</div>
+
+<div class="main">
+  <!-- Scene 1: Tab Dashboard with expenses appearing -->
+  <div class="scene active" id="scene-dashboard">
+    <div class="tab-header">
+      <div class="tab-name" id="tabName">Ski Weekend ⛷️</div>
+      <span class="tab-status">Active</span>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Group total</div>
+        <div class="stat-value" id="statTotal">$0.00</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Your share</div>
+        <div class="stat-value" id="statShare">$0.00</div>
+      </div>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Recent expenses</span>
+      <span class="section-link">View all →</span>
+    </div>
+
+    <div class="expense-list" id="expenseList">
+      <!-- Expenses inserted by JS -->
+    </div>
+  </div>
+
+  <!-- Scene 2: Settlement View -->
+  <div class="scene" id="scene-settlement">
+    <div class="tab-header">
+      <div class="tab-name" id="tabNameSettle">Ski Weekend ⛷️</div>
+      <span class="tab-status" style="background: var(--amber-50); border-color: var(--amber-200); color: var(--amber-600);">Settling up</span>
+    </div>
+
+    <div class="settlement-banner" id="settleBanner">
+      <h3>Time to settle up!</h3>
+      <p id="settleSubtext">4 people · 5 expenses · $1,771 total</p>
+      <button class="settle-btn">Settle up</button>
+    </div>
+
+    <div class="all-settled-banner" id="allSettledBanner">
+      <div class="all-settled-emoji">🎉</div>
+      <h3>All settled!</h3>
+      <p>Everyone's square. No drama.</p>
+    </div>
+
+    <div class="section-header">
+      <span class="section-title">Transfers</span>
+    </div>
+
+    <div class="transfer-list" id="transferList">
+      <!-- Transfers inserted by JS -->
+    </div>
+  </div>
+</div>
+
+<script>
+  // This will be populated by Puppeteer via page.evaluate()
+  // Default data for preview/testing
+  window.DEMO_DATA = window.DEMO_DATA || {
+    tabName: "Ski Weekend ⛷️",
+    expenses: [
+      { description: "Cabin rental", amount: 800, paidBy: "Jamie" },
+      { description: "Lift tickets", amount: 480, paidBy: "Alex" },
+      { description: "Groceries", amount: 156, paidBy: "You" },
+      { description: "Ski rentals", amount: 240, paidBy: "Sam" },
+      { description: "Dinner out", amount: 95, paidBy: "Jamie" },
+    ],
+    participants: ["You", "Jamie", "Alex", "Sam"],
+  };
+
+  function formatMoney(amount) {
+    return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Build expense elements
+  function buildExpenses() {
+    const list = document.getElementById('expenseList');
+    list.innerHTML = '';
+    window.DEMO_DATA.expenses.forEach((exp) => {
+      const el = document.createElement('div');
+      el.className = 'expense-item';
+      el.innerHTML = `
+        <div>
+          <div class="expense-desc">${exp.description}</div>
+          <div class="expense-meta">Paid by ${exp.paidBy}</div>
+        </div>
+        <div class="expense-amount">${formatMoney(exp.amount)}</div>
+      `;
+      list.appendChild(el);
+    });
+  }
+
+  // Calculate simple settlements
+  function calculateTransfers() {
+    const data = window.DEMO_DATA;
+    const n = data.participants.length;
+    const total = data.expenses.reduce((s, e) => s + e.amount, 0);
+    const perPerson = total / n;
+
+    // Track net balance for each person
+    const balances = {};
+    data.participants.forEach(p => balances[p] = -perPerson);
+    data.expenses.forEach(e => { balances[e.paidBy] += e.amount; });
+
+    // Calculate transfers: people who owe pay people who are owed
+    const debtors = [];
+    const creditors = [];
+    for (const [person, balance] of Object.entries(balances)) {
+      if (balance < -0.01) debtors.push({ person, amount: -balance });
+      else if (balance > 0.01) creditors.push({ person, amount: balance });
+    }
+
+    const transfers = [];
+    let i = 0, j = 0;
+    while (i < debtors.length && j < creditors.length) {
+      const amt = Math.min(debtors[i].amount, creditors[j].amount);
+      transfers.push({ from: debtors[i].person, to: creditors[j].person, amount: amt });
+      debtors[i].amount -= amt;
+      creditors[j].amount -= amt;
+      if (debtors[i].amount < 0.01) i++;
+      if (creditors[j].amount < 0.01) j++;
+    }
+
+    return transfers;
+  }
+
+  function buildTransfers() {
+    const list = document.getElementById('transferList');
+    list.innerHTML = '';
+    const transfers = calculateTransfers();
+
+    transfers.forEach((t, i) => {
+      const el = document.createElement('div');
+      const isYours = t.from === 'You' || t.to === 'You';
+      el.className = `transfer-item ${isYours ? 'yours' : 'others'}`;
+      el.innerHTML = `
+        <div class="check-icon"></div>
+        <div style="flex:1">
+          <div class="transfer-from-to">${t.from} → ${t.to}</div>
+          <div class="transfer-status">${isYours ? 'Action needed' : 'Awaiting payment'}</div>
+        </div>
+        <div class="transfer-amount">${formatMoney(t.amount)}</div>
+      `;
+      list.appendChild(el);
+    });
+  }
+
+  // --- Animation API called by Puppeteer ---
+
+  // Show the dashboard scene
+  window.showDashboard = function() {
+    document.getElementById('scene-dashboard').classList.add('active');
+    document.getElementById('scene-settlement').classList.remove('active');
+    document.getElementById('headerAction').textContent = 'Add expense';
+    document.getElementById('tabName').textContent = window.DEMO_DATA.tabName;
+    buildExpenses();
+    // Reset stats
+    document.getElementById('statTotal').textContent = '$0.00';
+    document.getElementById('statShare').textContent = '$0.00';
+  };
+
+  // Reveal expense at index, update running total
+  window.showExpense = function(index) {
+    const items = document.querySelectorAll('.expense-item');
+    if (items[index]) {
+      items[index].classList.add('visible');
+    }
+    // Update running total
+    let runningTotal = 0;
+    for (let i = 0; i <= index; i++) {
+      runningTotal += window.DEMO_DATA.expenses[i].amount;
+    }
+    const n = window.DEMO_DATA.participants.length;
+    document.getElementById('statTotal').textContent = formatMoney(runningTotal);
+    document.getElementById('statShare').textContent = formatMoney(runningTotal / n);
+  };
+
+  // Switch to settlement scene
+  window.showSettlement = function() {
+    document.getElementById('scene-dashboard').classList.remove('active');
+    document.getElementById('scene-settlement').classList.add('active');
+    document.getElementById('headerAction').textContent = 'Settle up';
+
+    const total = window.DEMO_DATA.expenses.reduce((s, e) => s + e.amount, 0);
+    const n = window.DEMO_DATA.participants.length;
+    const expCount = window.DEMO_DATA.expenses.length;
+
+    document.getElementById('tabNameSettle').textContent = window.DEMO_DATA.tabName;
+    document.getElementById('settleSubtext').textContent =
+      `${n} people · ${expCount} expenses · ${formatMoney(total)} total`;
+
+    buildTransfers();
+  };
+
+  // Reveal settlement banner
+  window.showSettleBanner = function() {
+    document.getElementById('settleBanner').classList.add('visible');
+  };
+
+  // Reveal transfer at index
+  window.showTransfer = function(index) {
+    const items = document.querySelectorAll('.transfer-item');
+    if (items[index]) {
+      items[index].classList.add('visible');
+    }
+  };
+
+  // Mark a transfer as completed (flip to green)
+  window.completeTransfer = function(index) {
+    const items = document.querySelectorAll('.transfer-item');
+    if (items[index]) {
+      items[index].classList.remove('yours', 'others');
+      items[index].classList.add('done');
+      const statusEl = items[index].querySelector('.transfer-status');
+      if (statusEl) statusEl.textContent = 'Complete';
+    }
+  };
+
+  // Show the "All settled!" banner (hides the settle-up banner)
+  window.showAllSettled = function() {
+    document.getElementById('settleBanner').style.display = 'none';
+    document.getElementById('allSettledBanner').classList.add('visible');
+
+    // Update the status badge
+    const badge = document.querySelector('#scene-settlement .tab-status');
+    if (badge) {
+      badge.style.background = 'var(--green-50)';
+      badge.style.borderColor = 'var(--green-200)';
+      badge.style.color = 'var(--green-600)';
+      badge.textContent = 'Settled';
+    }
+  };
+
+  // Fade to CTA end screen
+  window.showCTA = function() {
+    document.getElementById('ctaOverlay').classList.add('visible');
+  };
+
+  // Initialize
+  buildExpenses();
+</script>
+</body>
+</html>

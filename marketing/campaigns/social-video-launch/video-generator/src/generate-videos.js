@@ -2,7 +2,7 @@
  * PartyTab Video Generator - Full Pipeline
  *
  * 1. Takes input TikTok clips
- * 2. Categorizes them using AI vision (Ollama/LLaVA)
+ * 2. Categorizes them using TikTok metadata + manual overrides
  * 3. Records themed PartyTab demos
  * 4. Generates TikTok TTS voiceover
  * 5. Stitches everything together
@@ -15,7 +15,7 @@ import { fileURLToPath } from "url";
 import { exec } from "child_process";
 import { promisify } from "util";
 import dotenv from "dotenv";
-import { categorizeVideo, checkOllama } from "./categorize-video.js";
+import { categorizeVideo } from "./categorize-video.js";
 import { getTemplate } from "./trip-templates.js";
 import { generateTTS, VOICES } from "./tiktok-tts.js";
 import { recordDemo } from "./record-demo.js";
@@ -36,84 +36,95 @@ const START_DATE = process.env.START_DATE || new Date().toISOString().split("T")
 // Stitch duration (how much of the original TikTok to use)
 const STITCH_DURATION = 3;
 
+// Crossfade transition duration between hook and demo
+const CROSSFADE_DURATION = 0.5;
+
+// Demo animation frame counts (at 30fps) — fixed costs per scene
+const FPS = 30;
+const SCENE1_FIXED = 77;  // expense reveals: 5×(5 transition + 8 hold) + 4×3 pause
+const SCENE2_FIXED = 49;  // sceneSwitch(2) + banner(6+8) + 3×(5 transition + 6 hold)
+const SCENE34_FIXED = 39; // transfer completes + all-settled: 3×(5 transition + 6 hold) + 6 animation
+const SCENE5_FIXED = 10;  // CTA fade: 10 screenshot frames
+
 // Voiceover scripts per category
+// Structure: line 0+1 → expenses scene, line 2 → settlement, line 3 → transfers, line 4 → CTA
 const SCRIPTS = {
   ski: [
-    "Ski trips are amazing",
-    "But splitting the cabin, lift tickets, and groceries?",
-    "That's where it gets messy",
-    "PartyTab tracks everything as you go",
-    "Free at partytab.app",
+    "Ski trip with friends",
+    "Four people, five expenses, nobody remembers who paid for what",
+    "PartyTab tracks it all in one place",
+    "Hit settle up and it tells you exactly who owes who",
+    "It's free. Link in bio.",
   ],
   beach: [
-    "Beach house. Jet skis. Dinners out.",
-    "Someone's gotta keep track of all that",
-    "With PartyTab, everyone logs expenses as they happen",
-    "At the end? One tap to settle up",
-    "Link in bio",
+    "Beach trip with the crew",
+    "House, jet skis, dinners. Who's keeping track?",
+    "PartyTab logs every expense as it happens",
+    "At the end, one tap and everyone's settled",
+    "It's free. Link in bio.",
   ],
   bachelor: [
-    "Bachelor parties get expensive fast",
-    "Airbnb, bottles, steakhouse, golf",
-    "PartyTab makes sure everyone pays their share",
-    "No awkward conversations needed",
-    "Free at partytab.app",
+    "Bachelor party weekend",
+    "Airbnb, bottles, steakhouse, golf. Someone dropped a lot.",
+    "PartyTab splits it all up",
+    "No spreadsheets, no chasing people for money",
+    "It's free. Link in bio.",
   ],
   bachelorette: [
-    "Bachelorette weekend!",
-    "Airbnb, spa, brunch, wine tour",
-    "Who paid for what? PartyTab knows.",
-    "Settle up with one payment at the end",
-    "Link in bio",
+    "Bachelorette weekend",
+    "Airbnb, spa, brunch, wine tour. Who paid for what?",
+    "PartyTab tracks every expense",
+    "One tap at the end and everyone's even",
+    "It's free. Link in bio.",
   ],
   roadtrip: [
-    "Road trips are all fun until",
-    "Someone asks about gas money",
-    "PartyTab tracks every expense along the way",
-    "No spreadsheets. No drama.",
-    "Free at partytab.app",
+    "Road trip with the homies",
+    "Gas, food stops, the motel. Who's covering what?",
+    "PartyTab keeps a running tab",
+    "Trip's over, hit settle up, done",
+    "It's free. Link in bio.",
   ],
   camping: [
     "Camping with friends",
-    "Campsite, firewood, food, gear",
-    "PartyTab handles the math",
-    "So you can focus on the s'mores",
-    "Link in bio",
+    "Firewood, food, campsite, gas. It all adds up.",
+    "PartyTab tracks all of it",
+    "When it's time to leave, everyone settles up in one tap",
+    "It's free. Link in bio.",
   ],
   lake: [
-    "Lake house weekend",
-    "Boat rental, groceries, the house itself",
-    "PartyTab tracks who paid what",
-    "Settle up before you leave",
-    "Free at partytab.app",
+    "Lake house with the crew",
+    "The rental, the boat, groceries, all of it adds up fast",
+    "PartyTab tracks every single expense",
+    "Hit settle up and it's done",
+    "It's free. Link in bio.",
   ],
   city: [
-    "City trip with the crew",
-    "Hotel, concerts, fancy dinners",
-    "PartyTab keeps track of everything",
-    "One payment settles it all",
+    "City trip with friends",
+    "Hotel, concerts, dinners, Ubers. The expenses pile up.",
+    "PartyTab keeps track of who paid for what",
+    "One payment at the end and you're square",
     "Link in bio",
   ],
   vegas: [
-    "Vegas trips are legendary",
-    "The bill? Not so much.",
-    "PartyTab tracks every expense",
-    "No more chasing payments for weeks",
-    "Free at partytab.app",
+    "Vegas with the squad",
+    "The suite, the club, the shows. Nobody remembers who paid for what.",
+    "PartyTab does",
+    "One tap to settle up, no drama",
+    "It's free. Link in bio.",
   ],
   hiking: [
-    "Hiking trip with friends",
-    "Cabin, gear, permits, snacks",
-    "Log it all in PartyTab",
-    "The math handles itself",
-    "Link in bio",
+    "Hiking trip with the group",
+    "Cabin, gear, and trail snacks between four friends",
+    "PartyTab does the math for you",
+    "One tap to settle up, everyone pays their share",
+    "It's free. Link in bio.",
   ],
   generic: [
-    "Group trips are the best",
-    "Until someone asks who owes what",
-    "PartyTab tracks expenses as you go",
-    "Settle up with one simple payment",
-    "Free at partytab.app",
+    "Group trips with friends",
+    "Splitting costs with four people and a dozen expenses is no fun",
+    "PartyTab tracks who paid for what",
+    "When the trip's over, one tap settles it all",
+    "It's free. Link in bio.",
   ],
 };
 
@@ -184,11 +195,60 @@ function getVideoFilename(startDate, dayOffset) {
 }
 
 /**
- * Generate TTS voiceover for a category
+ * Calculate scene-specific padding based on voiceover line durations
+ */
+function calculateScenePadding(lineDurations) {
+  // Line-to-scene mapping:
+  // Lines 0+1 → Scene 1 (expenses appearing)
+  // Line 2 → Scene 2 (settlement banner + transfers)
+  // Line 3 → Scene 3+4 (transfers completing + all settled)
+  // Line 4 → Scene 5 (CTA)
+
+  const scene1Duration = lineDurations[0] + 0.25 + lineDurations[1]; // 0.25s gap between lines 0-1
+  const scene2Duration = lineDurations[2];
+  const scene34Duration = lineDurations[3];
+  const scene5Duration = lineDurations[4] + 0.15; // small buffer for CTA
+
+  // Convert to target frame counts
+  const scene1Target = Math.ceil(scene1Duration * FPS);
+  const scene2Target = Math.ceil(scene2Duration * FPS);
+  const scene34Target = Math.ceil(scene34Duration * FPS);
+  const scene5Target = Math.ceil(scene5Duration * FPS);
+
+  // Scene 1: emptyDashboard (fixed 10) + animation (77) + fullListHold (padding)
+  const emptyDashboard = 10;
+  const fullListHold = Math.min(55, Math.max(8, scene1Target - SCENE1_FIXED - emptyDashboard));
+
+  // Scene 2: sceneSwitch (fixed 2) + animation (49) + afterTransfersHold (padding)
+  const sceneSwitch = 2;
+  const afterTransfersHold = Math.min(30, Math.max(8, scene2Target - SCENE2_FIXED));
+
+  // Scene 3+4: animation (39) + afterGreenPause (padding) + allSettledHold (padding)
+  const totalScene34Padding = Math.max(14, scene34Target - SCENE34_FIXED);
+  const afterGreenPause = 6;
+  const allSettledHold = Math.min(60, Math.max(45, totalScene34Padding - afterGreenPause));
+
+  // Scene 5: animation (10) + ctaHold (padding)
+  const ctaHold = Math.min(75, Math.max(20, scene5Target - SCENE5_FIXED));
+
+  return {
+    emptyDashboard,
+    fullListHold,
+    sceneSwitch,
+    afterTransfersHold,
+    afterGreenPause,
+    allSettledHold,
+    ctaHold,
+  };
+}
+
+/**
+ * Generate TTS voiceover for a category and return line durations
  */
 async function generateVoiceover(category, tempDir) {
   const lines = SCRIPTS[category] || SCRIPTS.generic;
   const audioFiles = [];
+  const lineDurations = [];
 
   for (let i = 0; i < lines.length; i++) {
     const audioPath = path.join(tempDir, `line-${i}.mp3`);
@@ -196,66 +256,103 @@ async function generateVoiceover(category, tempDir) {
 
     try {
       await generateTTS(lines[i], audioPath, VOICES.JESSIE);
-      audioFiles.push(audioPath);
     } catch {
       console.log(`      ⚠️ TTS failed, creating silence`);
       await execAsync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t 2 "${audioPath}"`);
-      audioFiles.push(audioPath);
     }
+
+    // Trim leading + trailing silence and convert to WAV (avoids MP3 frame padding)
+    const wavPath = path.join(tempDir, `line-${i}.wav`);
+    await execAsync(
+      `ffmpeg -y -i "${audioPath}" -af "silenceremove=start_periods=1:start_threshold=-40dB:start_duration=0.02,areverse,silenceremove=start_periods=1:start_threshold=-40dB:start_duration=0.02,areverse" -ar 44100 "${wavPath}"`
+    );
+    audioFiles.push(wavPath);
+
+    // Measure actual duration (after trimming)
+    const { stdout } = await execAsync(
+      `ffprobe -v quiet -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${wavPath}"`
+    );
+    lineDurations.push(parseFloat(stdout.trim()));
 
     // Small delay between TTS calls to avoid rate limiting
     await new Promise((r) => setTimeout(r, 200));
   }
 
-  // Concatenate with small pauses between lines
+  // Log line durations for debugging
+  console.log(`      Line durations: ${lineDurations.map((d, i) => `L${i}=${d.toFixed(2)}s`).join(", ")}`);
+  console.log(`      Total voice: ${lineDurations.reduce((a, b) => a + b, 0).toFixed(2)}s`);
+
+  // Build voiceover with scene-aware gaps (WAV for clean boundaries)
   const listFile = path.join(tempDir, "audio-list.txt");
-  const silencePath = path.join(tempDir, "silence.mp3");
+  // Gap between lines 0-1 is 0.25s (same scene), others 0.35s (scene transitions)
+  const gaps = [0.25, 0.35, 0.35, 0.35]; // gaps AFTER lines 0,1,2,3
 
-  // Create short silence for pacing
-  await execAsync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t 0.3 "${silencePath}"`);
-
-  // Build list with silences
-  const listContent = audioFiles.map((f) => `file '${f}'\nfile '${silencePath}'`).join("\n");
+  let listContent = "";
+  for (let i = 0; i < audioFiles.length; i++) {
+    listContent += `file '${audioFiles[i]}'\n`;
+    if (i < gaps.length) {
+      const gapPath = path.join(tempDir, `gap-${i}.wav`);
+      await execAsync(
+        `ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t ${gaps[i]} "${gapPath}"`
+      );
+      listContent += `file '${gapPath}'\n`;
+    }
+  }
   fs.writeFileSync(listFile, listContent);
 
   const outputAudio = path.join(tempDir, "voiceover.mp3");
-  await execAsync(`ffmpeg -y -f concat -safe 0 -i "${listFile}" -c copy "${outputAudio}"`);
+  await execAsync(`ffmpeg -y -f concat -safe 0 -i "${listFile}" -acodec libmp3lame -ar 44100 "${outputAudio}"`);
 
-  return outputAudio;
+  return { voiceoverPath: outputAudio, lineDurations };
 }
 
 /**
  * Stitch everything together: source clip + demo + voiceover
  */
 async function createFinalVideo(stitchClip, demoPath, voiceoverPath, outputPath, tempDir) {
-  // Concatenate stitch clip and demo
-  const videoListFile = path.join(tempDir, "video-list.txt");
-
   // We need to re-encode to ensure compatibility
   const stitchReencoded = path.join(tempDir, "stitch-reencoded.mp4");
   const demoReencoded = path.join(tempDir, "demo-reencoded.mp4");
 
   // Re-encode both to same format
   await execAsync(
-    `ffmpeg -y -i "${stitchClip}" -c:v libx264 -c:a aac -ar 44100 -r 30 -s 390x844 "${stitchReencoded}"`
+    `ffmpeg -y -i "${stitchClip}" -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -crf 18 -c:a aac -ar 44100 -r 30 "${stitchReencoded}"`
   );
+
+  const concatenatedVideo = path.join(tempDir, "concatenated.mp4");
 
   if (fs.existsSync(demoPath)) {
     await execAsync(
-      `ffmpeg -y -i "${demoPath}" -c:v libx264 -c:a aac -ar 44100 -r 30 -s 390x844 "${demoReencoded}"`
+      `ffmpeg -y -i "${demoPath}" -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -vf "scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2" -c:v libx264 -crf 18 -c:a aac -ar 44100 -r 30 -shortest "${demoReencoded}"`
     );
-    fs.writeFileSync(videoListFile, `file '${stitchReencoded}'\nfile '${demoReencoded}'`);
+
+    // Use xfade for video crossfade and acrossfade for audio crossfade
+    // Crossfade starts 0.5s before the stitch clip ends
+    const xfadeOffset = STITCH_DURATION - CROSSFADE_DURATION;
+    await execAsync(
+      `ffmpeg -y -i "${stitchReencoded}" -i "${demoReencoded}" -filter_complex "[0:v][1:v]xfade=transition=fade:duration=${CROSSFADE_DURATION}:offset=${xfadeOffset}[v];[0:a][1:a]acrossfade=d=${CROSSFADE_DURATION}[a]" -map "[v]" -map "[a]" -c:v libx264 -crf 18 -c:a aac "${concatenatedVideo}"`
+    );
   } else {
-    fs.writeFileSync(videoListFile, `file '${stitchReencoded}'`);
+    // If no demo exists, just use the stitch clip
+    await execAsync(`ffmpeg -y -i "${stitchReencoded}" -c copy "${concatenatedVideo}"`);
   }
 
-  // Concatenate videos
-  const concatenatedVideo = path.join(tempDir, "concatenated.mp4");
-  await execAsync(`ffmpeg -y -f concat -safe 0 -i "${videoListFile}" -c copy "${concatenatedVideo}"`);
+  // Delay voiceover to start AFTER the hook clip, accounting for crossfade overlap
+  // The demo now starts 0.5s earlier due to crossfade, so we delay less
+  const voiceoverDelay = STITCH_DURATION - CROSSFADE_DURATION;
+  const delaySilence = path.join(tempDir, "delay-silence.mp3");
+  const delayedVoiceover = path.join(tempDir, "voiceover-delayed.mp3");
+  const delayListFile = path.join(tempDir, "delay-list.txt");
 
-  // Add voiceover (mix with original audio, voiceover louder)
   await execAsync(
-    `ffmpeg -y -i "${concatenatedVideo}" -i "${voiceoverPath}" -filter_complex "[0:a]volume=0.3[a1];[1:a]volume=1.0[a2];[a1][a2]amix=inputs=2:duration=longest[a]" -map 0:v -map "[a]" -c:v copy -c:a aac "${outputPath}"`
+    `ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t ${voiceoverDelay} -acodec libmp3lame "${delaySilence}"`
+  );
+  fs.writeFileSync(delayListFile, `file '${delaySilence}'\nfile '${voiceoverPath}'`);
+  await execAsync(`ffmpeg -y -f concat -safe 0 -i "${delayListFile}" -c copy "${delayedVoiceover}"`);
+
+  // Mix: original audio at 30% + delayed voiceover at 100%
+  await execAsync(
+    `ffmpeg -y -i "${concatenatedVideo}" -i "${delayedVoiceover}" -filter_complex "[0:a]volume=0.3[a1];[1:a]volume=1.0[a2];[a1][a2]amix=inputs=2:duration=longest[a]" -map 0:v -map "[a]" -c:v copy -c:a aac "${outputPath}"`
   );
 
   return outputPath;
@@ -266,20 +363,6 @@ async function createFinalVideo(stitchClip, demoPath, voiceoverPath, outputPath,
  */
 async function generateVideos() {
   console.log("🎬 PartyTab Video Generator - Full Pipeline\n");
-
-  // Check Ollama status
-  const ollamaStatus = await checkOllama();
-  if (!ollamaStatus.running) {
-    console.log("⚠️  Ollama not running. Videos will use 'generic' category.");
-    console.log("   To enable AI categorization:");
-    console.log("   1. Install Ollama: https://ollama.ai");
-    console.log("   2. Run: ollama pull llava");
-    console.log("   3. Start Ollama\n");
-  } else if (!ollamaStatus.hasLlava) {
-    console.log("⚠️  LLaVA model not found. Run: ollama pull llava\n");
-  } else {
-    console.log("✅ Ollama + LLaVA ready for AI categorization\n");
-  }
 
   const inputVideos = getInputVideos();
 
@@ -317,7 +400,7 @@ async function generateVideos() {
       try {
         // 1. Categorize the video
         console.log("    Step 1: Categorizing...");
-        const category = await categorizeVideo(inputVideo, videoTempDir);
+        const category = await categorizeVideo(inputVideo);
         const template = getTemplate(category);
         console.log(`    → ${template.name} ${template.emoji}`);
 
@@ -326,14 +409,15 @@ async function generateVideos() {
         const stitchClip = path.join(videoTempDir, "stitch.mp4");
         await extractStitchClip(inputVideo, stitchClip, STITCH_DURATION);
 
-        // 3. Record PartyTab demo (or use pre-recorded)
-        console.log("    Step 3: Recording PartyTab demo...");
-        const demoPath = path.join(videoTempDir, "demo.mp4");
-        await recordDemo(category, demoPath);
+        // 3. Generate voiceover (first, to get timing)
+        console.log("    Step 3: Generating voiceover...");
+        const { voiceoverPath, lineDurations } = await generateVoiceover(category, videoTempDir);
+        const scenePadding = calculateScenePadding(lineDurations);
 
-        // 4. Generate voiceover
-        console.log("    Step 4: Generating voiceover...");
-        const voiceoverPath = await generateVoiceover(category, videoTempDir);
+        // 4. Record PartyTab demo (synced to voiceover timing)
+        console.log("    Step 4: Recording PartyTab demo...");
+        const demoPath = path.join(videoTempDir, "demo.mp4");
+        await recordDemo(category, demoPath, scenePadding);
 
         // 5. Stitch it all together
         console.log("    Step 5: Creating final video...");
