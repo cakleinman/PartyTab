@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+// Revalidate daily so scheduled posts appear on their publish date
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
     title: "PartyTab Blog - Tips for Splitting Expenses with Friends",
     description:
@@ -14,6 +17,186 @@ export const metadata: Metadata = {
 
 // These would eventually come from a CMS or MDX files
 const BLOG_POSTS = [
+    {
+        slug: "round-robin-paying-doesnt-work",
+        title: "The Hidden Cost of \"I'll Get This One\": Why Round-Robin Paying Fails",
+        excerpt:
+            "\"I'll get this one, you get the next.\" Sounds fair—until meal costs vary wildly, memory fails, and someone ends up $200 behind.",
+        date: "2026-06-25",
+        readTime: "6 min read",
+        category: "Tips",
+    },
+    {
+        slug: "split-costco-run-with-friends",
+        title: "How to Split a Costco Run with Friends",
+        excerpt:
+            "Costco's prices are unbeatable—but the quantities are designed for families. Learn how to split a bulk shopping run with friends and keep the savings.",
+        date: "2026-06-18",
+        readTime: "5 min read",
+        category: "Tips",
+    },
+    {
+        slug: "road-trip-expense-splitting",
+        title: "The Complete Guide to Splitting Road Trip Expenses",
+        excerpt:
+            "Gas, tolls, food, hotels—road trip expenses add up fast. Here's how to split costs fairly among passengers and settle up before you get home.",
+        date: "2026-06-11",
+        readTime: "6 min read",
+        category: "Guides",
+    },
+    {
+        slug: "who-pays-for-birthday-dinner",
+        title: "Splitting a Birthday Dinner: Should the Birthday Person Pay?",
+        excerpt:
+            "The check arrives. It's your friend's birthday. Who pays? The answer depends on one thing: who planned it.",
+        date: "2026-06-04",
+        readTime: "5 min read",
+        category: "Advice",
+    },
+    {
+        slug: "friends-never-pay-you-back",
+        title: "Why 30% of Borrowed Money Is Never Repaid (And How to Stop Being a Statistic)",
+        excerpt:
+            "77% of Americans have lent money to a friend, but 32% never got it back. Here are the brutal statistics and how to protect yourself.",
+        date: "2026-05-28",
+        readTime: "7 min read",
+        category: "Advice",
+    },
+    {
+        slug: "group-vacation-budget-methods",
+        title: "Budgeting for a Group Vacation: The \"Envelope\" Method vs. Apps",
+        excerpt:
+            "Should you collect money upfront or track-and-settle later? Compare the envelope method vs. expense tracking apps for group trips.",
+        date: "2026-05-21",
+        readTime: "7 min read",
+        category: "Comparison",
+    },
+    {
+        slug: "split-wedding-costs-families",
+        title: "How to Split Wedding Costs Between Families (Without a Fight)",
+        excerpt:
+            "The old 'bride's family pays for everything' rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
+        date: "2026-05-14",
+        readTime: "8 min read",
+        category: "Guides",
+    },
+    {
+        slug: "who-pays-on-first-date",
+        title: "Dating and Money: Who Pays on the First Date in 2026?",
+        excerpt:
+            "It's 2026 and we still can't agree on this one. Here's what the data says, what etiquette experts recommend, and how to handle it gracefully.",
+        date: "2026-05-07",
+        readTime: "6 min read",
+        category: "Advice",
+    },
+    {
+        slug: "large-group-dinner-bill-tips",
+        title: "Large Group Dinners: How to Handle the Bill Without Chaos",
+        excerpt:
+            "Dinner with 12 friends was incredible—until the waiter drops one check. Here's how to split large group restaurant bills without the chaos.",
+        date: "2026-04-30",
+        readTime: "6 min read",
+        category: "Tips",
+    },
+    {
+        slug: "splitting-groceries-with-roommates",
+        title: "Splitting Grocery Bills with Roommates: A Survival Guide",
+        excerpt:
+            "Rent is easy to split. Groceries? That's where roommate tensions brew. Learn the hybrid system and how to handle common flash points.",
+        date: "2026-04-23",
+        readTime: "6 min read",
+        category: "Guides",
+    },
+    {
+        slug: "who-pays-for-guest-of-honor",
+        title: "Bachelor/ette Party Expenses: Who Pays for the Guest of Honor?",
+        excerpt:
+            "The average bachelor/ette party costs $1,300–$1,500 per guest. Here's exactly what the group covers and what they don't.",
+        date: "2026-04-16",
+        readTime: "6 min read",
+        category: "Advice",
+    },
+    {
+        slug: "settle-up-after-group-trip",
+        title: "How to Settle Up After a Group Trip (Without 50 Venmo Transactions)",
+        excerpt:
+            "Minimize group payments and settle vacation expenses the smart way. Learn the greedy algorithm for settling up with fewer transactions.",
+        date: "2026-04-09",
+        readTime: "7 min read",
+        category: "Guides",
+    },
+    {
+        slug: "money-ruining-friendships-statistics",
+        title: "36% of Friends Split Up Over Money: How to Proof Your Friendships",
+        excerpt:
+            "Money is the fourth largest cause of friendship stress. Here's the data on how money destroys friendships—and how to prevent it.",
+        date: "2026-04-02",
+        readTime: "8 min read",
+        category: "Advice",
+    },
+    {
+        slug: "split-rent-by-income-calculator",
+        title: "How to Split Rent Fairly Based on Income (With Calculator Logic)",
+        excerpt:
+            "You make $80k. Your partner makes $50k. Splitting rent 50/50 isn't fair. Learn how to split rent proportionally based on income.",
+        date: "2026-03-26",
+        readTime: "8 min read",
+        category: "Guides",
+    },
+    {
+        slug: "is-it-rude-to-split-bill-evenly",
+        title: "Is It Rude to Split the Bill Evenly? The 2026 Etiquette Guide",
+        excerpt:
+            "You ordered a salad. Your friend had steak and cocktails. Is it rude to split evenly? Here's what etiquette experts say.",
+        date: "2026-03-19",
+        readTime: "7 min read",
+        category: "Advice",
+    },
+    {
+        slug: "web-based-expense-tracker-vs-app",
+        title: "The \"No-Download\" Rule: Why Web-Based Expense Trackers Beat Apps",
+        excerpt:
+            "App download friction kills group expense splitting. Why web-based tools work better for trips, dinners, and mixed device groups.",
+        date: "2026-03-12",
+        readTime: "6 min read",
+        category: "Tips",
+    },
+    {
+        slug: "split-airbnb-costs-different-rooms",
+        title: "How to Split Airbnb Costs Fairly When Rooms Are Different Sizes",
+        excerpt:
+            "Master bedroom vs pull-out couch? Here's how to split vacation rental costs fairly when rooms aren't equal—4 methods with real examples.",
+        date: "2026-03-05",
+        readTime: "7 min read",
+        category: "Guides",
+    },
+    {
+        slug: "remind-someone-owes-you-money",
+        title: "How to Remind Someone They Owe You Money (Copy-Paste Text Templates)",
+        excerpt:
+            "Awkward asking friends for money back? Use these 8 proven text message templates to politely remind someone without damaging the friendship.",
+        date: "2026-02-26",
+        readTime: "7 min read",
+        category: "Tips",
+    },
+    {
+        slug: "receipt-scanning-apps-split-bills",
+        title: "Top 5 Receipt Scanning Apps That Split Bills by Item",
+        excerpt:
+            "Compare the best receipt scanning apps for itemized bill splitting. AI-powered OCR, item-level claiming, and automatic tax/tip calculation reviewed.",
+        date: "2026-02-19",
+        readTime: "8 min read",
+        category: "Comparison",
+    },
+    {
+        slug: "best-splitwise-alternatives",
+        title: "7 Best Splitwise Alternatives in 2026 (No Daily Limits)",
+        excerpt:
+            "Frustrated by Splitwise's daily expense limits? Here are 7 free and affordable alternatives that let you split bills without restrictions.",
+        date: "2026-02-12",
+        readTime: "10 min read",
+        category: "Comparison",
+    },
     {
         slug: "bachelor-party-budget-guide",
         title: "The Ultimate Bachelor Party Budget Guide",
@@ -116,6 +299,9 @@ const BLOG_POSTS = [
 ];
 
 export default function BlogPage() {
+    const today = new Date().toISOString().split("T")[0];
+    const publishedPosts = BLOG_POSTS.filter((post) => post.date <= today);
+
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
             {/* Breadcrumb */}
@@ -138,7 +324,7 @@ export default function BlogPage() {
 
             {/* Blog Posts */}
             <div className="space-y-8 mb-16">
-                {BLOG_POSTS.map((post) => (
+                {publishedPosts.map((post) => (
                     <article
                         key={post.slug}
                         className="bg-white rounded-2xl p-6 border border-sand-200 hover:border-teal-200 hover:shadow-lg transition-all"
