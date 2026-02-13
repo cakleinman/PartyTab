@@ -37,6 +37,7 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://partytab.app"),
   verification: {
     google: "eNE1fljaf9V4TK3in6_L1-wVyEhvdG9phAw5lblmAgU",
+    yandex: "6fb6a046ad42bba7",
   },
   openGraph: {
     title: "PartyTab - Split Group Expenses the Easy Way",
