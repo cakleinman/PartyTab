@@ -1,5 +1,10 @@
 import DemoClient from "@/app/demo/DemoClient";
 
+export const metadata = {
+  title: "Demo | PartyTab",
+  robots: { index: false, follow: false },
+};
+
 export default function DemoPage() {
   if (process.env.NODE_ENV === "production") {
     return (
