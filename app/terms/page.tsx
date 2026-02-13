@@ -3,6 +3,9 @@ import Link from "next/link";
 export const metadata = {
   title: "Terms of Service | PartyTab",
   description: "PartyTab Terms of Service",
+  alternates: {
+    canonical: "https://partytab.app/terms",
+  },
 };
 
 export default function TermsPage() {

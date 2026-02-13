@@ -3,6 +3,9 @@ import Link from "next/link";
 export const metadata = {
   title: "Privacy Policy | PartyTab",
   description: "PartyTab Privacy Policy",
+  alternates: {
+    canonical: "https://partytab.app/privacy",
+  },
 };
 
 export default function PrivacyPage() {

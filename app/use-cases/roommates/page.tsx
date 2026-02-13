@@ -19,6 +19,9 @@ export const metadata: Metadata = {
             "Split rent, utilities, and household expenses. Track who paid what easily.",
         url: "https://partytab.app/use-cases/roommates",
     },
+    alternates: {
+        canonical: "https://partytab.app/use-cases/roommates",
+    },
 };
 
 const TYPICAL_EXPENSES = [

@@ -19,6 +19,9 @@ export const metadata: Metadata = {
             "Split bachelor party expenses easily. Track who paid what and settle up without the drama.",
         url: "https://partytab.app/use-cases/bachelor-party",
     },
+    alternates: {
+        canonical: "https://partytab.app/use-cases/bachelor-party",
+    },
 };
 
 const TYPICAL_EXPENSES = [

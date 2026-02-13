@@ -14,6 +14,9 @@ export const metadata: Metadata = {
         description: "Learn the best ways to split expenses with friends.",
         url: "https://partytab.app/blog",
     },
+    alternates: {
+        canonical: "https://partytab.app/blog",
+    },
 };
 
 export default function BlogPage() {

@@ -19,6 +19,9 @@ export const metadata: Metadata = {
             "Split ski trip costs fairly—cabin rentals, lift tickets, and more. No app download required.",
         url: "https://partytab.app/use-cases/ski-trips",
     },
+    alternates: {
+        canonical: "https://partytab.app/use-cases/ski-trips",
+    },
 };
 
 const TYPICAL_EXPENSES = [

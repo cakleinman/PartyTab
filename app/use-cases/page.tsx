@@ -17,6 +17,9 @@ export const metadata: Metadata = {
             "See how PartyTab helps split expenses for bachelor parties, ski trips, roommates, and more.",
         url: "https://partytab.app/use-cases",
     },
+    alternates: {
+        canonical: "https://partytab.app/use-cases",
+    },
 };
 
 const useCases = [

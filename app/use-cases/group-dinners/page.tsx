@@ -19,6 +19,9 @@ export const metadata: Metadata = {
             "Split restaurant bills fairly—even when everyone orders differently.",
         url: "https://partytab.app/use-cases/group-dinners",
     },
+    alternates: {
+        canonical: "https://partytab.app/use-cases/group-dinners",
+    },
 };
 
 export default function GroupDinnersPage() {
