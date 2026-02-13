@@ -36,3 +36,7 @@
 
 - [Privacy Policy](https://partytab.app/privacy)
 - [Terms of Service](https://partytab.app/terms)
+
+## RSS
+
+- [Blog RSS Feed](https://partytab.app/blog/feed.xml): Subscribe to get new blog posts about expense splitting tips, guides, and advice

@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     },
     alternates: {
         canonical: "https://partytab.app/blog",
+        types: {
+            "application/rss+xml": "https://partytab.app/blog/feed.xml",
+        },
     },
 };
 
