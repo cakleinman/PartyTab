@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { FaqPageJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
     title: "PartyTab vs Splitwise - Best Bill Splitting App Comparison 2026",
@@ -299,6 +300,22 @@ export default function CompareSplitwisePage() {
             </div>
 
             {/* FAQ */}
+            <FaqPageJsonLd
+                questions={[
+                    {
+                        question: "Can I import my Splitwise data to PartyTab?",
+                        answer: "Not currently, but we're considering this feature. For now, PartyTab works best for new trips and expenses rather than migrating existing data.",
+                    },
+                    {
+                        question: "Is PartyTab really free?",
+                        answer: "Yes! The core features are completely free with no ads. PartyTab Pro adds receipt scanning and reminders for power users.",
+                    },
+                    {
+                        question: "Why doesn't PartyTab have a mobile app?",
+                        answer: "We built PartyTab as a web app specifically so you don't need to download anything. It works great on mobile browsers and can be added to your home screen.",
+                    },
+                ]}
+            />
             <div className="mb-12">
                 <h2 className="text-2xl font-bold text-ink-900 mb-6">
                     Frequently Asked Questions

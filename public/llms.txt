@@ -1,0 +1,38 @@
+# PartyTab
+
+> PartyTab is a free, browser-based bill splitting app. Groups create a tab, log expenses as they go, and settle up with minimal payments — no app download required.
+
+## Key Pages
+
+- [Home](https://partytab.app): Landing page with interactive demo and FAQ
+- [How It Works](https://partytab.app/how-it-works): 5-step guide to splitting expenses with PartyTab
+- [Upgrade to Pro](https://partytab.app/upgrade): Plan comparison — Free vs Pro features and pricing
+- [PartyTab vs Splitwise](https://partytab.app/compare/splitwise): Feature-by-feature comparison with decision guide
+
+## Use Cases
+
+- [Bachelor Party Expenses](https://partytab.app/use-cases/bachelor-party): Split bar tabs, Airbnb, activities — typical costs $300-900/person
+- [Ski Trip Costs](https://partytab.app/use-cases/ski-trips): Split cabin rentals, lift tickets, gear, and après-ski
+- [Roommate Bills](https://partytab.app/use-cases/roommates): Split rent, utilities, groceries, and household expenses
+- [Group Dinner Bills](https://partytab.app/use-cases/group-dinners): Fair splitting when everyone orders differently
+
+## Blog
+
+- [Blog Index](https://partytab.app/blog): Tips, guides, and advice about splitting expenses with friends
+- [7 Best Splitwise Alternatives in 2026](https://partytab.app/blog/best-splitwise-alternatives): Comparison of expense splitting apps
+- [How to Split Rent Fairly](https://partytab.app/blog/splitting-rent-fairly): 5 methods for when rooms aren't equal
+- [How to Split a Group Dinner Bill](https://partytab.app/blog/splitting-group-dinner-bills): 6 fair approaches
+- [Bachelor Party Budget Guide](https://partytab.app/blog/bachelor-party-budget-guide): Realistic budgets and cost-splitting tips
+
+## Quick Facts
+
+- **Price**: Free (Pro plan at $3.99/month for receipt scanning and reminders)
+- **Platform**: Web browser — works on any device, no download needed
+- **Auth**: No account required to join a tab; optional email/Google signup
+- **Settlement**: Greedy algorithm that minimizes the number of payments
+- **Pro Features**: AI receipt scanning, item-level claiming, payment reminders
+
+## Legal
+
+- [Privacy Policy](https://partytab.app/privacy)
+- [Terms of Service](https://partytab.app/terms)

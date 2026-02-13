@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { HowToJsonLd, FaqPageJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
     title: "How PartyTab Works | Split Group Expenses Easily",
@@ -90,6 +91,30 @@ const FEATURES = [
 export default function HowItWorksPage() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <HowToJsonLd
+                name="How to split group expenses with PartyTab"
+                description="Split group expenses for trips, dinners, and roommates in 5 simple steps — no app download required."
+                steps={STEPS.map((step) => ({
+                    name: step.title,
+                    text: step.description,
+                }))}
+            />
+            <FaqPageJsonLd
+                questions={[
+                    {
+                        question: "Do my friends need to create an account?",
+                        answer: "No! Anyone with the link can view the tab and add expenses. Only the tab creator needs an account to manage settings.",
+                    },
+                    {
+                        question: "Does PartyTab handle the actual payments?",
+                        answer: "PartyTab calculates who owes who, but you handle the payments yourself via Venmo, Zelle, cash, or however you prefer. We don't touch your money.",
+                    },
+                    {
+                        question: "What happens after the trip ends?",
+                        answer: "Your tab stays available so you can reference it later. Once everyone settles up, you can archive or delete it.",
+                    },
+                ]}
+            />
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

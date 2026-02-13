@@ -325,7 +325,7 @@ export default function LandingPage() {
           </div>
 
           <p className="text-lg md:text-xl text-ink-700 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-            Throw expenses in as you go. We track who paid what and figure out the simplest way to settle up at the end.
+            PartyTab is a free, browser-based bill splitting app. Track shared expenses for trips, dinners, and roommates — then settle up with the fewest payments possible. No app download needed.
           </p>
 
           {/* Start Flow */}

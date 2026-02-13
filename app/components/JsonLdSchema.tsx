@@ -149,6 +149,68 @@ export function BlogPostJsonLd({
 }
 
 /**
+ * HowTo JSON-LD — used on the how-it-works page
+ */
+export function HowToJsonLd({
+    name,
+    description,
+    steps,
+}: {
+    name: string;
+    description: string;
+    steps: { name: string; text: string }[];
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name,
+        description,
+        step: steps.map((step, index) => ({
+            "@type": "HowToStep",
+            position: index + 1,
+            name: step.name,
+            text: step.text,
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}
+
+/**
+ * Reusable FAQPage JSON-LD — accepts custom Q&A pairs
+ */
+export function FaqPageJsonLd({
+    questions,
+}: {
+    questions: { question: string; answer: string }[];
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: questions.map((q) => ({
+            "@type": "Question",
+            name: q.question,
+            acceptedAnswer: {
+                "@type": "Answer",
+                text: q.answer,
+            },
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}
+
+/**
  * BreadcrumbList JSON-LD — used on blog posts and use-case pages
  */
 export function BreadcrumbJsonLd({

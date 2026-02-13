@@ -23,3 +23,35 @@ Disallow: /unsubscribe/
 Allow: /privacy
 Allow: /terms
 Allow: /upgrade
+
+# AI search crawlers — welcome to index and cite our content
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: GoogleOther
+Allow: /
+
+# AI training-only crawlers — block bulk scraping for model training
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
