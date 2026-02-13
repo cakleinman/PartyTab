@@ -34,10 +34,6 @@ export const metadata: Metadata = {
     "trip expense splitter",
     "roommate expenses",
   ],
-  icons: {
-    icon: "/icon.svg",
-    apple: "/icon-192.png?v=2",
-  },
   metadataBase: new URL("https://partytab.app"),
   verification: {
     google: "eNE1fljaf9V4TK3in6_L1-wVyEhvdG9phAw5lblmAgU",
