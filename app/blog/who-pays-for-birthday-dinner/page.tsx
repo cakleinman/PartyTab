@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "Splitting a Birthday Dinner: Should the Birthday Person Pay? | PartyTab",
   description:
@@ -29,6 +31,20 @@ export const metadata: Metadata = {
 export default function WhoPaysBirthdayDinnerPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Splitting a Birthday Dinner: Should the Birthday Person Pay?"
+                description="The check arrives. It's your friend's birthday. Who pays? The answer depends on one thing: who planned it. Here's the etiquette guide for birthday dinners."
+                slug="who-pays-for-birthday-dinner"
+                datePublished="2026-06-04"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Who Pays for a Birthday Dinner?", url: "https://partytab.app/blog/who-pays-for-birthday-dinner" },
+                ]}
+            />
+
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-ink-700">

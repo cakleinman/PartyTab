@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "The Complete Guide to Splitting Road Trip Expenses | PartyTab",
   description:
@@ -29,6 +31,20 @@ export const metadata: Metadata = {
 export default function RoadTripExpenseSplittingPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="The Complete Guide to Splitting Road Trip Expenses"
+                description="Gas, tolls, food, hotels — road trip expenses add up fast. Here&apos;s how to split costs fairly among passengers, decide if the driver should pay less, and settle up before you get home."
+                slug="road-trip-expense-splitting"
+                datePublished="2026-06-11"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "The Complete Guide to Splitting Road Trip Expenses", url: "https://partytab.app/blog/road-trip-expense-splitting" },
+                ]}
+            />
+
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-ink-700">
           Home

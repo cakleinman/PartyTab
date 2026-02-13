@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "Top 5 Receipt Scanning Apps That Split Bills by Item | PartyTab",
   description:
@@ -25,6 +27,20 @@ export const metadata: Metadata = {
 export default function ReceiptScanningAppsPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Top 5 Receipt Scanning Apps That Split Bills by Item"
+                description="Compare the best receipt scanning apps for itemized bill splitting. AI-powered OCR, item-level claiming, and automatic tax/tip calculation reviewed."
+                slug="receipt-scanning-apps-split-bills"
+                datePublished="2026-02-19"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Receipt Scanning Apps", url: "https://partytab.app/blog/receipt-scanning-apps-split-bills" },
+                ]}
+            />
+
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-teal-600">

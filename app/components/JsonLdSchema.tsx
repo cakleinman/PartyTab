@@ -99,3 +99,75 @@ export function FaqJsonLd() {
         />
     );
 }
+
+/**
+ * Article/BlogPosting JSON-LD — used on individual blog post pages
+ */
+export function BlogPostJsonLd({
+    title,
+    description,
+    slug,
+    datePublished,
+}: {
+    title: string;
+    description: string;
+    slug: string;
+    datePublished: string;
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: title,
+        description,
+        url: `https://partytab.app/blog/${slug}`,
+        datePublished,
+        author: {
+            "@type": "Organization",
+            name: "PartyTab",
+            url: "https://partytab.app",
+        },
+        publisher: {
+            "@type": "Organization",
+            name: "PartyTab",
+            url: "https://partytab.app",
+        },
+        mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": `https://partytab.app/blog/${slug}`,
+        },
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}
+
+/**
+ * BreadcrumbList JSON-LD — used on blog posts and use-case pages
+ */
+export function BreadcrumbJsonLd({
+    items,
+}: {
+    items: { name: string; url: string }[];
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: items.map((item, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: item.name,
+            item: item.url,
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "7 Best Splitwise Alternatives in 2026 (No Daily Limits) | PartyTab",
     description:
@@ -27,6 +29,20 @@ export const metadata: Metadata = {
 export default function SplitwiseAlternativesPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="7 Best Splitwise Alternatives in 2026 (No Daily Limits)"
+                description="Frustrated by Splitwise's daily expense limits? Here are 7 free and affordable alternatives that let you split bills without restrictions—including one that needs no app download."
+                slug="best-splitwise-alternatives"
+                datePublished="2026-02-12"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Best Splitwise Alternatives", url: "https://partytab.app/blog/best-splitwise-alternatives" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

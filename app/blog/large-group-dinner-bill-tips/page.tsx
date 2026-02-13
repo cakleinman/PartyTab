@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "Large Group Dinners: How to Handle the Bill Without Chaos | PartyTab",
   description:
@@ -29,6 +31,20 @@ export const metadata: Metadata = {
 export default function LargeGroupDinnerBillTipsPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Large Group Dinners: How to Handle the Bill Without Chaos"
+                description="Dinner with 12 friends was incredible — until the waiter drops one check. Here's how to split large group restaurant bills without post-dinner chaos."
+                slug="large-group-dinner-bill-tips"
+                datePublished="2026-04-30"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Large Group Dinners: Bill Tips", url: "https://partytab.app/blog/large-group-dinner-bill-tips" },
+                ]}
+            />
+
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-ink-700">

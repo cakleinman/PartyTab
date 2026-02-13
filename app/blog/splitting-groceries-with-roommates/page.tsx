@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "Splitting Grocery Bills with Roommates: A Survival Guide | PartyTab",
   description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SplittingGroceriesWithRoommatesPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Splitting Grocery Bills with Roommates: A Survival Guide"
+                description="Rent is easy to split. Groceries? That&apos;s where roommate tensions brew. Learn the hybrid system, tracking tips, and how to handle common flash points."
+                slug="splitting-groceries-with-roommates"
+                datePublished="2026-04-23"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Splitting Grocery Bills with Roommates", url: "https://partytab.app/blog/splitting-groceries-with-roommates" },
+                ]}
+            />
+
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-teal-600">
           Home

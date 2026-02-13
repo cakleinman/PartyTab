@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "How to Split Holiday Expenses With Family (Without the Drama) | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SplittingHolidayExpensesFamilyPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split Holiday Expenses With Family (Without the Drama)"
+                description="Family holidays get expensive fast. Here's how to fairly split costs for Thanksgiving, Christmas, or family reunions without awkward money conversations."
+                slug="splitting-holiday-expenses-family"
+                datePublished="2026-01-03"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Holiday Family Expenses", url: "https://partytab.app/blog/splitting-holiday-expenses-family" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

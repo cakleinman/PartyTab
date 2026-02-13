@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
     title: "Bachelor Party Expense Splitter | PartyTab",
@@ -32,6 +33,13 @@ const TYPICAL_EXPENSES = [
 export default function BachelorPartyPage() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Use Cases", url: "https://partytab.app/use-cases" },
+                    { name: "Bachelor Party", url: "https://partytab.app/use-cases/bachelor-party" },
+                ]}
+            />
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">

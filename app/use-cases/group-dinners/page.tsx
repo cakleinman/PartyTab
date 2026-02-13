@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
     title: "Group Dinner Bill Splitter | PartyTab",
@@ -23,6 +24,13 @@ export const metadata: Metadata = {
 export default function GroupDinnersPage() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Use Cases", url: "https://partytab.app/use-cases" },
+                    { name: "Group Dinners", url: "https://partytab.app/use-cases/group-dinners" },
+                ]}
+            />
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

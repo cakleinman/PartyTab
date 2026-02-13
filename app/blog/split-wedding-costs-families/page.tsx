@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "How to Split Wedding Costs Between Families (Without a Fight) | PartyTab",
   description:
@@ -29,6 +31,20 @@ export const metadata: Metadata = {
 export default function SplitWeddingCostsPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split Wedding Costs Between Families (Without a Fight)"
+                description="The old &quot;bride&apos;s family pays for everything&quot; rule is dead. Here are 5 modern approaches to splitting wedding expenses between families, plus how to handle unequal contributions without drama."
+                slug="split-wedding-costs-families"
+                datePublished="2026-05-14"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "How to Split Wedding Costs Between Families", url: "https://partytab.app/blog/split-wedding-costs-families" },
+                ]}
+            />
+
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-ink-700">
           Home

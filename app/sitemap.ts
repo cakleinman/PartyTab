@@ -1,150 +1,95 @@
 import { MetadataRoute } from "next";
+import { getPublishedPosts } from "./blog/posts";
 
 export default function sitemap(): MetadataRoute.Sitemap {
     const baseUrl = "https://partytab.app";
+    const now = new Date();
+
+    const blogPosts = getPublishedPosts().map((post) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: now,
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+    }));
 
     return [
         {
             url: baseUrl,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "weekly",
             priority: 1,
         },
         {
             url: `${baseUrl}/privacy`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.5,
         },
         {
             url: `${baseUrl}/terms`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.5,
         },
         {
             url: `${baseUrl}/upgrade`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.7,
         },
         // Use case landing pages
         {
             url: `${baseUrl}/use-cases`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/bachelor-party`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/ski-trips`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/roommates`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/group-dinners`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
         // Informational pages
         {
             url: `${baseUrl}/how-it-works`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
         // Comparison pages
         {
             url: `${baseUrl}/compare/splitwise`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "monthly",
             priority: 0.8,
         },
-        // Blog
+        // Blog index
         {
             url: `${baseUrl}/blog`,
-            lastModified: new Date(),
+            lastModified: now,
             changeFrequency: "weekly",
             priority: 0.7,
         },
-        {
-            url: `${baseUrl}/blog/bachelor-party-budget-guide`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/splitting-rent-fairly`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/splitting-group-dinner-bills`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/avoid-losing-friends-over-money`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/girls-trip-budget-planning`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/splitting-holiday-expenses-family`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/bachelorette-party-budget-guide`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/group-cruise-expense-splitting`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/ski-trip-budget-guide`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/splitting-group-project-expenses`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/blog/youth-sports-travel-expenses`,
-            lastModified: new Date(),
-            changeFrequency: "monthly",
-            priority: 0.7,
-        },
+        // Blog posts (dynamically generated from published posts)
+        ...blogPosts,
     ];
 }

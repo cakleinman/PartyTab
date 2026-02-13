@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "How to Split Group Project Expenses (School & Work) | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SplittingGroupProjectExpensesPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split Group Project Expenses (School & Work)"
+                description="Working on a group project with shared costs? Here's how to fairly split expenses for supplies, software, printing, and meals without team drama."
+                slug="splitting-group-project-expenses"
+                datePublished="2026-01-18"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Group Project Expenses", url: "https://partytab.app/blog/splitting-group-project-expenses" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

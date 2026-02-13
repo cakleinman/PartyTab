@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "The Hidden Cost of \"I'll Get This One\": Why Round-Robin Paying Fails | PartyTab",
   description:
@@ -28,6 +30,20 @@ export const metadata: Metadata = {
 export default function RoundRobinPayingPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="The Hidden Cost of \"
+                description="&quot;I&apos;ll get this one, you get the next.&quot; Sounds fair — until meal costs vary wildly, memory fails, and someone ends up $200 behind. Here&apos;s why taking turns paying almost never works out evenly."
+                slug="round-robin-paying-doesnt-work"
+                datePublished="2026-06-25"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "The Hidden Cost of &quot;I&apos;ll Get This One&quot;", url: "https://partytab.app/blog/round-robin-paying-doesnt-work" },
+                ]}
+            />
+
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-ink-700">
           Home

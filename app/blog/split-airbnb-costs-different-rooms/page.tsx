@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "How to Split Airbnb Costs Fairly When Rooms Are Different Sizes | PartyTab",
     description:
@@ -25,6 +27,20 @@ export const metadata: Metadata = {
 export default function SplitAirbnbCostsDifferentRoomsPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split Airbnb Costs Fairly When Rooms Are Different Sizes"
+                description="Master bedroom vs pull-out couch? Here's how to split vacation rental costs fairly when rooms aren't equal—4 methods with real examples."
+                slug="split-airbnb-costs-different-rooms"
+                datePublished="2026-03-05"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Split Airbnb Costs", url: "https://partytab.app/blog/split-airbnb-costs-different-rooms" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

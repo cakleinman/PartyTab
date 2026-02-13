@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "How to Split a Costco Run with Friends | PartyTab",
   description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SplitCostcoRunWithFriendsPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split a Costco Run with Friends"
+                description="Costco&apos;s prices are unbeatable — but the quantities are designed for families. Learn how to split a bulk shopping run with friends and keep the savings."
+                slug="split-costco-run-with-friends"
+                datePublished="2026-06-18"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "How to Split a Costco Run with Friends", url: "https://partytab.app/blog/split-costco-run-with-friends" },
+                ]}
+            />
+
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-teal-600">
           Home

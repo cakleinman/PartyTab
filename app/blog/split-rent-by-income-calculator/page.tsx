@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "How to Split Rent Fairly Based on Income (With Calculator Logic) | PartyTab",
   description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SplitRentByIncomeCalculatorPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split Rent Fairly Based on Income (With Calculator Logic)"
+                description="You make $80k. Your partner makes $50k. Splitting rent 50/50 isn&apos;t fair. Learn how to split rent proportionally based on income with step-by-step examples."
+                slug="split-rent-by-income-calculator"
+                datePublished="2026-03-26"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "How to Split Rent Fairly Based on Income", url: "https://partytab.app/blog/split-rent-by-income-calculator" },
+                ]}
+            />
+
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-teal-600">
           Home

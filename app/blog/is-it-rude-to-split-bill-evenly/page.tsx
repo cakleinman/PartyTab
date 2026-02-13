@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "Is It Rude to Split the Bill Evenly? The 2026 Etiquette Guide | PartyTab",
   description:
@@ -29,6 +31,20 @@ export const metadata: Metadata = {
 export default function IsItRudeToSplitBillEvenlyPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Is It Rude to Split the Bill Evenly? The 2026 Etiquette Guide"
+                description="You ordered a salad. Your friend had steak and cocktails. Is it rude to split evenly? Here's what etiquette experts say about fair bill splitting in 2026."
+                slug="is-it-rude-to-split-bill-evenly"
+                datePublished="2026-03-19"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Is It Rude to Split the Bill Evenly?", url: "https://partytab.app/blog/is-it-rude-to-split-bill-evenly" },
+                ]}
+            />
+
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-ink-700">

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "How to Split Rent Fairly When Rooms Aren't Equal (2026) | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SplittingRentFairlyPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Split Rent Fairly When Rooms Aren't Equal (2026)"
+                description="The master bedroom shouldn't cost the same as the tiny room by the closet. Here are 5 fair methods to split rent when bedrooms differ in size, light, or amenities."
+                slug="splitting-rent-fairly"
+                datePublished="2025-12-24"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Split Rent Fairly", url: "https://partytab.app/blog/splitting-rent-fairly" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

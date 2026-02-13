@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "Dating and Money: Who Pays on the First Date in 2026? | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function WhoPaysOnFirstDatePage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Dating and Money: Who Pays on the First Date in 2026?"
+                description="It's 2026 and we still can't agree on this one. Here's what the data says, what etiquette experts recommend, and how to handle it without making things weird."
+                slug="who-pays-on-first-date"
+                datePublished="2026-05-07"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Who Pays on the First Date?", url: "https://partytab.app/blog/who-pays-on-first-date" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

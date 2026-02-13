@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title: "How to Remind Someone They Owe You Money (Copy-Paste Text Templates) | PartyTab",
   description:
@@ -25,6 +27,20 @@ export const metadata: Metadata = {
 export default function RemindSomeoneOwesMoneyPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Remind Someone They Owe You Money (Copy-Paste Text Templates)"
+                description="Awkward asking friends for money back? Use these 8 proven text message templates to politely remind someone they owe you money without damaging the friendship."
+                slug="remind-someone-owes-you-money"
+                datePublished="2026-02-26"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "How to Remind Someone They Owe You Money", url: "https://partytab.app/blog/remind-someone-owes-you-money" },
+                ]}
+            />
+
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-teal-600">

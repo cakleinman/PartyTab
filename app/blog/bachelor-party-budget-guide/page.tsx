@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "The Ultimate Bachelor Party Budget Guide (2026) | PartyTab",
     description:
@@ -27,6 +29,20 @@ export const metadata: Metadata = {
 export default function BachelorPartyBudgetGuidePage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="The Ultimate Bachelor Party Budget Guide (2026)"
+                description="Planning a bachelor party? Here's how to set a realistic budget, split costs fairly among the groomsmen, and avoid awkward money conversations. Free template included."
+                slug="bachelor-party-budget-guide"
+                datePublished="2026-01-24"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Bachelor Party Budget Guide", url: "https://partytab.app/blog/bachelor-party-budget-guide" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

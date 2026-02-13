@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "Ski Trip Budget: How to Split Costs With Your Crew | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function SkiTripBudgetGuidePage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Ski Trip Budget: How to Split Costs With Your Crew"
+                description="Planning a ski weekend with friends? Here's how to budget for lodging, lift tickets, rentals, and après-ski—plus fair ways to split the costs."
+                slug="ski-trip-budget-guide"
+                datePublished="2026-01-15"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Ski Trip Budget Guide", url: "https://partytab.app/blog/ski-trip-budget-guide" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

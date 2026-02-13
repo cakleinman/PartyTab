@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "How to Settle Up After a Group Trip (Without 50 Venmo Transactions) | PartyTab",
     description:
@@ -25,6 +27,20 @@ export const metadata: Metadata = {
 export default function SettleUpAfterGroupTripPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Settle Up After a Group Trip (Without 50 Venmo Transactions)"
+                description="Minimize group payments and settle vacation expenses the smart way. Learn the greedy algorithm for settling up with fewer transactions."
+                slug="settle-up-after-group-trip"
+                datePublished="2026-04-09"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Settle Up After Group Trip", url: "https://partytab.app/blog/settle-up-after-group-trip" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

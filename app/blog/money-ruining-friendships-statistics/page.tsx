@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "36% of Friends Split Up Over Money: How to Proof Your Friendships | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function MoneyRuiningFriendshipsStatisticsPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="36% of Friends Split Up Over Money: How to Proof Your Friendships"
+                description="Money is the fourth largest cause of friendship stress. Here's the data on how money destroys friendships—and how to prevent it from happening to you."
+                slug="money-ruining-friendships-statistics"
+                datePublished="2026-04-02"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Money Ruining Friendships Statistics", url: "https://partytab.app/blog/money-ruining-friendships-statistics" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

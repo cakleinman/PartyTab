@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "How to Manage Youth Sports Travel Team Expenses | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function YouthSportsTravelExpensesPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="How to Manage Youth Sports Travel Team Expenses"
+                description="Coordinating a travel team for tournaments? Here's how parent groups can fairly split hotel rooms, gas, meals, and tournament fees without the headaches."
+                slug="youth-sports-travel-expenses"
+                datePublished="2026-01-21"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Youth Sports Travel", url: "https://partytab.app/blog/youth-sports-travel-expenses" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "Budgeting for a Group Vacation: The \"Envelope\" Method vs. Apps | PartyTab",
     description:
@@ -25,6 +27,20 @@ export const metadata: Metadata = {
 export default function GroupVacationBudgetMethodsPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Budgeting for a Group Vacation: The \"
+                description="Should you collect money upfront or track-and-settle later? Compare the envelope method vs. expense tracking apps for group trips."
+                slug="group-vacation-budget-methods"
+                datePublished="2026-05-21"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Group Vacation Budget Methods", url: "https://partytab.app/blog/group-vacation-budget-methods" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

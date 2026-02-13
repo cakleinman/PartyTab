@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
   title:
     'The "No-Download" Rule: Why Web-Based Expense Trackers Beat Apps for Groups | PartyTab',
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function WebBasedExpenseTrackerPage() {
   return (
     <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title='The "No-Download" Rule: Why Web-Based Expense Trackers Beat Apps for Groups'
+                description="App download friction kills group expense splitting. Why web-based tools work better for trips, dinners, and mixed device groups."
+                slug="web-based-expense-tracker-vs-app"
+                datePublished="2026-03-12"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Web-Based vs App Expense Trackers", url: "https://partytab.app/blog/web-based-expense-tracker-vs-app" },
+                ]}
+            />
+
       {/* Breadcrumb */}
       <nav className="text-sm text-ink-500 mb-8">
         <Link href="/" className="hover:text-teal-600">

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
 export const metadata: Metadata = {
     title: "Bachelor/ette Party Expenses: Who Pays for the Guest of Honor? | PartyTab",
     description:
@@ -26,6 +28,20 @@ export const metadata: Metadata = {
 export default function WhoPaysForGuestOfHonorPage() {
     return (
         <article className="max-w-3xl mx-auto py-8 px-4">
+            <BlogPostJsonLd
+                title="Bachelor/ette Party Expenses: Who Pays for the Guest of Honor?"
+                description="The average bachelor/ette party costs $1,300-$1,500 per guest. Here's exactly what the group covers for the guest of honor and what they don't."
+                slug="who-pays-for-guest-of-honor"
+                datePublished="2026-04-16"
+            />
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                    { name: "Who Pays for the Guest of Honor?", url: "https://partytab.app/blog/who-pays-for-guest-of-honor" },
+                ]}
+            />
+
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>
