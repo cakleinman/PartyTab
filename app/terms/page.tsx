@@ -2,9 +2,16 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Terms of Service | PartyTab",
-  description: "PartyTab Terms of Service",
+  description:
+    "PartyTab Terms of Service — covers usage rules, Pro subscriptions, payments, cancellations, AI features, and your rights as a user.",
   alternates: {
     canonical: "https://partytab.app/terms",
+  },
+  openGraph: {
+    title: "Terms of Service | PartyTab",
+    description:
+      "Terms governing your use of PartyTab, including free and Pro plans, payments, and AI receipt scanning.",
+    url: "https://partytab.app/terms",
   },
 };
 

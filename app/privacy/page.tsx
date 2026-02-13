@@ -2,9 +2,16 @@ import Link from "next/link";
 
 export const metadata = {
   title: "Privacy Policy | PartyTab",
-  description: "PartyTab Privacy Policy",
+  description:
+    "Learn how PartyTab collects, uses, and protects your data. Covers account info, receipt scanning, cookies, and your privacy choices.",
   alternates: {
     canonical: "https://partytab.app/privacy",
+  },
+  openGraph: {
+    title: "Privacy Policy | PartyTab",
+    description:
+      "Learn how PartyTab collects, uses, and protects your data when splitting group expenses.",
+    url: "https://partytab.app/privacy",
   },
 };
 

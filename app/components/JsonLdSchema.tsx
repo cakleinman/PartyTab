@@ -108,11 +108,13 @@ export function BlogPostJsonLd({
     description,
     slug,
     datePublished,
+    dateModified,
 }: {
     title: string;
     description: string;
     slug: string;
     datePublished: string;
+    dateModified?: string;
 }) {
     const schema = {
         "@context": "https://schema.org",
@@ -121,6 +123,7 @@ export function BlogPostJsonLd({
         description,
         url: `https://partytab.app/blog/${slug}`,
         datePublished,
+        dateModified: dateModified ?? datePublished,
         author: {
             "@type": "Organization",
             name: "PartyTab",
