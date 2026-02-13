@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -422,6 +423,11 @@ export default function SettleUpAfterGroupTripPage() {
                 <p>
                     <strong>5 payments</strong> instead of up to 30 individual transactions.
                 </p>
+            </div>
+
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* CTA */}

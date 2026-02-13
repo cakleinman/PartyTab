@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -345,6 +346,11 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                 <p>
                     Your friendships are worth more than $100, $500, or even $5,000. Protect them by making money conversations normal, not taboo.
                 </p>
+            </div>
+
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* Author / CTA */}

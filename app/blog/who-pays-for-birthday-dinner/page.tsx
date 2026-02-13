@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -367,6 +368,11 @@ export default function WhoPaysBirthdayDinnerPage() {
           beforehand. And no matter what, don&apos;t let bill anxiety ruin what should be a
           joyful celebration.
         </p>
+      </div>
+
+
+      <div className="mt-12 mb-8">
+          <AuthorBio />
       </div>
 
       {/* Bottom CTA */}

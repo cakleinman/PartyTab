@@ -136,7 +136,7 @@ export default function HowItWorksPage() {
             {/* Steps */}
             <div className="mb-16">
                 <h2 className="text-2xl font-bold text-ink-900 mb-8 text-center">
-                    5 Simple Steps
+                    How do I split expenses with PartyTab?
                 </h2>
                 <div className="space-y-6">
                     {STEPS.map((step) => (
@@ -190,7 +190,7 @@ export default function HowItWorksPage() {
             {/* Features Grid */}
             <div className="mb-16">
                 <h2 className="text-2xl font-bold text-ink-900 mb-8 text-center">
-                    Key Features
+                    What features does PartyTab offer?
                 </h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {FEATURES.map((feature) => (

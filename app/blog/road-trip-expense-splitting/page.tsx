@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -355,6 +356,10 @@ export default function RoadTripExpenseSplittingPage() {
           thing you&apos;re left with is the memory of a great trip — not resentment over $37 in
           unpaid gas money.
         </p>
+      </div>
+
+      <div className="mt-12 mb-8">
+          <AuthorBio />
       </div>
 
       <div className="mt-16 pt-8 border-t border-sand-200">

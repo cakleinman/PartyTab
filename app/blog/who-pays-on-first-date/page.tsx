@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -379,6 +380,11 @@ export default function WhoPaysOnFirstDatePage() {
                 <p>
                     Because the actual test isn&apos;t who pays for dinner. It&apos;s whether you can communicate about money without making it weird. And if you can do that on the first date, you&apos;re already ahead of most couples.
                 </p>
+            </div>
+
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* Author / CTA */}

@@ -171,7 +171,7 @@ export default function CompareSplitwisePage() {
             {/* Detailed Comparison Table */}
             <div className="mb-12">
                 <h2 className="text-2xl font-bold text-ink-900 mb-6">
-                    Feature Comparison
+                    How do PartyTab and Splitwise compare?
                 </h2>
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
@@ -205,7 +205,7 @@ export default function CompareSplitwisePage() {
             {/* PartyTab Advantages */}
             <div className="bg-teal-50 rounded-3xl p-8 mb-12">
                 <h2 className="text-2xl font-bold text-ink-900 mb-6">
-                    Why People Switch to PartyTab
+                    Why do people switch from Splitwise to PartyTab?
                 </h2>
                 <div className="grid md:grid-cols-2 gap-6">
                     <div className="bg-white rounded-2xl p-6">
@@ -246,7 +246,7 @@ export default function CompareSplitwisePage() {
             {/* Splitwise Advantages (fair comparison) */}
             <div className="bg-sand-50 rounded-3xl p-8 mb-12">
                 <h2 className="text-2xl font-bold text-ink-900 mb-6">
-                    Where Splitwise Wins
+                    Where does Splitwise have an advantage?
                 </h2>
                 <p className="text-ink-600 mb-4">
                     We believe in honest comparisons. Here&apos;s where Splitwise has advantages:

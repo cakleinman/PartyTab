@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -446,6 +447,10 @@ export default function SplitRentByIncomeCalculatorPage() {
           <p className="text-ink-400 text-sm">
             Free. No app download needed.
           </p>
+        </div>
+
+        <div className="mt-12 mb-8">
+          <AuthorBio />
         </div>
 
         <div className="border-t border-ink-200 pt-8 mt-12">

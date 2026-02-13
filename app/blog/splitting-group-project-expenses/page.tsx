@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -253,6 +254,11 @@ export default function SplittingGroupProjectExpensesPage() {
                 </p>
             </div>
 
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
+            </div>
+
             {/* CTA */}
             <div className="mt-16 pt-8 border-t border-sand-200">
                 <div className="bg-ink-900 rounded-3xl p-8 text-center">
@@ -267,6 +273,31 @@ export default function SplittingGroupProjectExpensesPage() {
                         className="inline-block bg-teal-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-700 transition-colors"
                     >
                         Start a Project Tab →
+                    </Link>
+                </div>
+            </div>
+
+            {/* Related Posts */}
+            <div className="mt-12">
+                <h3 className="text-lg font-semibold text-ink-900 mb-4">Related Articles</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Link
+                        href="/blog/splitting-group-dinner-bills"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Tips</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            How to Split a Group Dinner Bill Without the Awkwardness
+                        </p>
+                    </Link>
+                    <Link
+                        href="/blog/avoid-losing-friends-over-money"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Advice</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            How to Avoid Losing Friends Over Money
+                        </p>
                     </Link>
                 </div>
             </div>

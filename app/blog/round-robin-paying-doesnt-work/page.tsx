@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -422,6 +423,10 @@ export default function RoundRobinPayingPage() {
           Track what matters. Split what&apos;s fair. And save the round-robin method for coffee
           runs.
         </p>
+      </div>
+
+      <div className="mt-12 mb-8">
+          <AuthorBio />
       </div>
 
       <div className="mt-16 pt-8 border-t border-sand-200">

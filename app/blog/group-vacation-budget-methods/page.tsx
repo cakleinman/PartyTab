@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -453,6 +454,11 @@ export default function GroupVacationBudgetMethodsPage() {
                     Pick a system, communicate it clearly, and stick to it. Your friendships
                     will thank you.
                 </p>
+            </div>
+
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* CTA */}

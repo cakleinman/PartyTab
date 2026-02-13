@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -263,6 +264,11 @@ export default function SplittingHolidayExpensesFamilyPage() {
                 </p>
             </div>
 
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
+            </div>
+
             {/* CTA */}
             <div className="mt-16 pt-8 border-t border-sand-200">
                 <div className="bg-ink-900 rounded-3xl p-8 text-center">
@@ -277,6 +283,31 @@ export default function SplittingHolidayExpensesFamilyPage() {
                         className="inline-block bg-teal-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-teal-700 transition-colors"
                     >
                         Start a Family Tab →
+                    </Link>
+                </div>
+            </div>
+
+            {/* Related Posts */}
+            <div className="mt-12">
+                <h3 className="text-lg font-semibold text-ink-900 mb-4">Related Articles</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Link
+                        href="/blog/split-wedding-costs-families"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            How to Split Wedding Costs Between Families
+                        </p>
+                    </Link>
+                    <Link
+                        href="/blog/splitting-groceries-with-roommates"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            Splitting Grocery Bills with Roommates: A Survival Guide
+                        </p>
                     </Link>
                 </div>
             </div>

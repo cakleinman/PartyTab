@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -272,6 +273,11 @@ export default function SplittingGroupDinnerBillsPage() {
                     Most of the time, people aren&apos;t trying to take advantage—they just
                     don&apos;t know what&apos;s expected. A little clarity goes a long way.
                 </p>
+            </div>
+
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* Author / CTA */}

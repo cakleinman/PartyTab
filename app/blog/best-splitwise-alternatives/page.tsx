@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -507,6 +508,10 @@ export default function SplitwiseAlternativesPage() {
                         Most of these apps let you export your data. If you&apos;re leaving Splitwise, check if the new app supports importing from Splitwise (Settle Up, Splitser, and some others do). It&apos;ll save you from manually re-entering old balances.
                     </p>
                 </div>
+            </div>
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* Bottom CTA */}

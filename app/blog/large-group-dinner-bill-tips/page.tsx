@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -360,6 +361,11 @@ export default function LargeGroupDinnerBillTipsPage() {
           With these strategies, your next large group dinner will end on a high
           note — not with someone chasing down Venmo requests three days later.
         </p>
+      </div>
+
+
+      <div className="mt-12 mb-8">
+          <AuthorBio />
       </div>
 
       {/* Bottom CTA */}

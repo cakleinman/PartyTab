@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -343,6 +344,11 @@ export default function WhoPaysForGuestOfHonorPage() {
                 <p>
                     Because the best bachelor and bachelorette parties aren&apos;t the most expensive ones. They&apos;re the ones where everyone actually shows up.
                 </p>
+            </div>
+
+
+            <div className="mt-12 mb-8">
+                <AuthorBio />
             </div>
 
             {/* Author / CTA */}

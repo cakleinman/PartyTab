@@ -368,6 +368,45 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Features Section */}
+      <section className="border-t border-sand-200 pt-20">
+        <h2 className="text-3xl sm:text-4xl font-bold text-ink-900 mb-12 text-center">
+          What can PartyTab do?
+        </h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl p-6 border border-sand-200">
+            <span className="text-2xl">🌐</span>
+            <h3 className="font-semibold text-ink-900 mt-3 mb-1">No App Download</h3>
+            <p className="text-sm text-ink-600">Works entirely in your browser. Share a link — that&apos;s it.</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-sand-200">
+            <span className="text-2xl">⚡</span>
+            <h3 className="font-semibold text-ink-900 mt-3 mb-1">Instant Setup</h3>
+            <p className="text-sm text-ink-600">Create a tab in seconds. No account required to start.</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-sand-200">
+            <span className="text-2xl">🧮</span>
+            <h3 className="font-semibold text-ink-900 mt-3 mb-1">Smart Settlements</h3>
+            <p className="text-sm text-ink-600">Minimizes the number of payments needed to settle all debts.</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-sand-200">
+            <span className="text-2xl">✂️</span>
+            <h3 className="font-semibold text-ink-900 mt-3 mb-1">Custom Splits</h3>
+            <p className="text-sm text-ink-600">Split expenses among everyone or just some people in the group.</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-sand-200">
+            <span className="text-2xl">📸</span>
+            <h3 className="font-semibold text-ink-900 mt-3 mb-1">Receipt Scanning</h3>
+            <p className="text-sm text-ink-600">AI extracts items from receipt photos for item-level splitting. (Pro)</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-sand-200">
+            <span className="text-2xl">⏰</span>
+            <h3 className="font-semibold text-ink-900 mt-3 mb-1">Payment Reminders</h3>
+            <p className="text-sm text-ink-600">Automated nudges so you don&apos;t have to chase friends. (Pro)</p>
+          </div>
+        </div>
+      </section>
+
       {/* Comparison Section */}
       <section className="border-t border-sand-200 pt-20">
         <div className="text-center max-w-2xl mx-auto mb-16 px-4">
