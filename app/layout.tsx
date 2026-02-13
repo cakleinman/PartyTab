@@ -50,12 +50,21 @@ export const metadata: Metadata = {
     siteName: "PartyTab",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "PartyTab - Free Bill Splitting App",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "PartyTab | Free Bill Splitting App",
     description:
       "Split group expenses—no app download needed. Track who paid what and settle up the smart way.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,

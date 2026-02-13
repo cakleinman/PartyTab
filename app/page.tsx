@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useRef } from "react";
+import { FaqJsonLd } from "@/app/components/JsonLdSchema";
 
 const PARTICIPANTS = ["You", "Alex", "Jamie", "Sam"];
 
@@ -318,8 +319,8 @@ export default function LandingPage() {
               Perfect for: <CyclingActivity />
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] text-ink-900">
-              Enjoy the trip.<br />
-              <span className="text-teal-600">We&apos;ll handle the tab.</span>
+              Split group expenses.<br />
+              <span className="text-teal-600">No app required.</span>
             </h1>
           </div>
 
@@ -371,10 +372,10 @@ export default function LandingPage() {
       <section className="border-t border-sand-200 pt-20">
         <div className="text-center max-w-2xl mx-auto mb-16 px-4">
           <h2 className="text-3xl sm:text-4xl font-bold text-ink-900 mb-6">
-            No more passing the same $20 bill around.
+            The simplest way to split bills with friends.
           </h2>
           <p className="text-lg text-ink-700 leading-relaxed">
-            Instead of Alex paying Jamie, and Jamie paying Sam, and Sam paying Alex... PartyTab just figures out who owes what and cancels out the rest.
+            Instead of Alex paying Jamie, and Jamie paying Sam, and Sam paying Alex... PartyTab figures out who owes what and settles everything with the fewest payments.
           </p>
         </div>
 
@@ -452,10 +453,65 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section className="border-t border-sand-200 pt-20">
+        <FaqJsonLd />
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold text-ink-900 mb-4 text-center">
+            Frequently asked questions about bill splitting
+          </h2>
+          <p className="text-center text-ink-500 mb-12">
+            Everything you need to know about splitting expenses with PartyTab.
+          </p>
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 border border-sand-200">
+              <h3 className="font-semibold text-ink-900 mb-2">
+                Is PartyTab free?
+              </h3>
+              <p className="text-ink-600">
+                Yes! PartyTab is completely free to use with no ads. Create tabs, add expenses, and settle up at no cost. PartyTab Pro adds premium features like AI receipt scanning and payment reminders.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-sand-200">
+              <h3 className="font-semibold text-ink-900 mb-2">
+                Do my friends need to download an app?
+              </h3>
+              <p className="text-ink-600">
+                No. PartyTab works entirely in the browser. Just share a link and anyone can view the tab and add expenses&mdash;no download, no sign-up required.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-sand-200">
+              <h3 className="font-semibold text-ink-900 mb-2">
+                How does PartyTab calculate who owes what?
+              </h3>
+              <p className="text-ink-600">
+                PartyTab uses a smart settlement algorithm that minimizes the number of payments needed. Instead of everyone paying everyone else, we figure out the fewest possible transfers to settle all debts.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-sand-200">
+              <h3 className="font-semibold text-ink-900 mb-2">
+                Can I use PartyTab for roommate expenses?
+              </h3>
+              <p className="text-ink-600">
+                Absolutely. PartyTab works great for recurring roommate expenses like rent, utilities, and groceries. Create a tab for your household and log expenses as they come up.
+              </p>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-sand-200">
+              <h3 className="font-semibold text-ink-900 mb-2">
+                What makes PartyTab different from Splitwise?
+              </h3>
+              <p className="text-ink-600">
+                PartyTab works in your browser with no app download needed. It&apos;s free with no ads, and anyone can join a tab via a shared link without creating an account. <a href="/compare/splitwise" className="text-teal-600 hover:underline">See the full comparison</a>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Bottom CTA */}
       <section className="rounded-[2rem] md:rounded-[2.5rem] bg-ink-900 px-6 py-12 md:py-16 text-center shadow-xl mb-8 md:mb-12">
         <h2 className="text-2xl sm:text-3xl font-bold text-sand-50 mb-4">
-          Ready to stop chasing payments?
+          Start splitting expenses in seconds.
         </h2>
         <p className="text-ink-300 mb-8 max-w-lg mx-auto text-sm sm:text-base">
           Create a tab in seconds. App download optional.

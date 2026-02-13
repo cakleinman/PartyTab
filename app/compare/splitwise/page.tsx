@@ -13,6 +13,9 @@ export const metadata: Metadata = {
         "splitwise competitor",
         "best expense splitting app",
     ],
+    alternates: {
+        canonical: "https://partytab.app/compare/splitwise",
+    },
     openGraph: {
         title: "PartyTab vs Splitwise - Which Bill Splitter is Best?",
         description:

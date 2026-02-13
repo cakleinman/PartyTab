@@ -11,6 +11,9 @@ export const metadata: Metadata = {
         "bill splitting guide",
         "how to split expenses",
     ],
+    alternates: {
+        canonical: "https://partytab.app/how-it-works",
+    },
     openGraph: {
         title: "How PartyTab Works - Easy Expense Splitting",
         description: "Create a tab, add expenses, settle up. It's that simple.",
