@@ -4,14 +4,15 @@ test.describe('Authentication Page', () => {
     test('should display sign-in page', async ({ page }) => {
         await page.goto('/signin');
 
-        // Page should load with sign-in heading
-        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
+        // Wait for client-side hydration (page shows "Loading..." until /api/me resolves)
+        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible({ timeout: 15000 });
     });
 
     test('should have display name input', async ({ page }) => {
         await page.goto('/signin');
 
-        // Look for display name input (the actual field on the page)
+        // Wait for form to render after loading state
+        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible({ timeout: 15000 });
         const nameInput = page.locator('input').first();
         await expect(nameInput).toBeVisible();
     });
@@ -19,7 +20,7 @@ test.describe('Authentication Page', () => {
     test('should have PIN input', async ({ page }) => {
         await page.goto('/signin');
 
-        // Look for PIN input (password type with placeholder "4 digits")
+        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible({ timeout: 15000 });
         const pinInput = page.getByPlaceholder(/4 digits/i);
         await expect(pinInput).toBeVisible();
     });
@@ -27,7 +28,7 @@ test.describe('Authentication Page', () => {
     test('should have sign-in button', async ({ page }) => {
         await page.goto('/signin');
 
-        // Sign in button should be visible
+        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible({ timeout: 15000 });
         const signInButton = page.getByRole('button', { name: /sign in/i });
         await expect(signInButton).toBeVisible();
     });
@@ -35,7 +36,7 @@ test.describe('Authentication Page', () => {
     test('should have link to create a tab', async ({ page }) => {
         await page.goto('/signin');
 
-        // Link to create a tab should exist
+        await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible({ timeout: 15000 });
         const createTabLink = page.getByRole('link', { name: /create a tab/i });
         await expect(createTabLink).toBeVisible();
     });

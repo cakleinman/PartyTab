@@ -15,9 +15,9 @@ test.describe('Landing Page', () => {
     test('should have call-to-action button', async ({ page }) => {
         await page.goto('/');
 
-        // Look for CTA button (Get Started, Sign Up, etc.)
-        const cta = page.getByRole('link', { name: /get started|sign up|try|start/i }).first();
-        await expect(cta).toBeVisible();
+        // Look for CTA button — actual text is "Start a PartyTab"
+        const cta = page.getByRole('link', { name: /start a partytab/i }).first();
+        await expect(cta).toBeVisible({ timeout: 10000 });
     });
 
     test('should navigate to sign-in page', async ({ page }) => {
