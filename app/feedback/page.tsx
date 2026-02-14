@@ -80,7 +80,7 @@ export default function FeedbackPage() {
       <div className="rounded-3xl border border-sand-200 bg-white/80 p-8">
         <h1 className="text-2xl font-semibold text-ink-900">Send us feedback</h1>
         <p className="mt-2 text-ink-600">
-          Found a bug? Have an idea? We'd love to hear from you.
+          Found a bug? Have an idea? We&apos;d love to hear from you.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">

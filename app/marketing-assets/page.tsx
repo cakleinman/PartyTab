@@ -202,6 +202,9 @@ function SettleUp() {
 // --- Main Page ---
 
 export default function MarketingGenerator() {
+    const [status, setStatus] = useState("Loading...");
+    const [isLoaded, setIsLoaded] = useState(false);
+
     // SECURITY: Block access in production - this is a dev-only tool
     if (process.env.NODE_ENV === 'production') {
         return (
@@ -213,9 +216,6 @@ export default function MarketingGenerator() {
             </div>
         );
     }
-
-    const [status, setStatus] = useState("Loading...");
-    const [isLoaded, setIsLoaded] = useState(false);
 
     const saveAsset = async (id: string) => {
         setStatus(`Generating ${id}...`);
