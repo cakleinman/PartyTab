@@ -15,6 +15,7 @@
 - [Ski Trip Costs](https://partytab.app/use-cases/ski-trips): Split cabin rentals, lift tickets, gear, and après-ski
 - [Roommate Bills](https://partytab.app/use-cases/roommates): Split rent, utilities, groceries, and household expenses
 - [Group Dinner Bills](https://partytab.app/use-cases/group-dinners): Fair splitting when everyone orders differently
+- [College Roommates](https://partytab.app/use-cases/college-roommates): Split rent, utilities, groceries, and cleaning check fines in college apartments (Provo/Orem, BYU/UVU)
 
 ## Blog
 

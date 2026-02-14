@@ -154,6 +154,24 @@ export const BLOG_POSTS: BlogPost[] = [
         category: "Tips",
     },
     {
+        slug: "split-ski-trip-costs-utah-students",
+        title: "How to Split a Ski Day Trip from Provo (Without Losing Friends)",
+        excerpt:
+            "Real drive times, lift ticket prices, and gas costs for skiing from Provo. Sundance, Brighton, Park City—plus how to split the 4 expenses that cause arguments.",
+        date: "2026-03-12",
+        readTime: "6 min read",
+        category: "Tips",
+    },
+    {
+        slug: "college-roommate-expenses-provo-utah",
+        title: "The BYU & UVU Student's Guide to Splitting Roommate Expenses in Provo",
+        excerpt:
+            "Real Provo prices, cleaning check fines, WinCo grocery runs, and utility splitting. A practical guide to managing shared expenses in college apartments.",
+        date: "2026-03-05",
+        readTime: "8 min read",
+        category: "Guides",
+    },
+    {
         slug: "split-airbnb-costs-different-rooms",
         title: "How to Split Airbnb Costs Fairly When Rooms Are Different Sizes",
         excerpt:

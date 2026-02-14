@@ -73,6 +73,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "monthly",
             priority: 0.8,
         },
+        {
+            url: `${baseUrl}/use-cases/college-roommates`,
+            lastModified: new Date("2026-02-14"),
+            changeFrequency: "monthly",
+            priority: 0.8,
+        },
         // Informational pages
         {
             url: `${baseUrl}/how-it-works`,

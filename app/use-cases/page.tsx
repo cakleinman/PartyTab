@@ -51,6 +51,13 @@ const useCases = [
         description: "Fair splitting when everyone orders differently",
         keywords: ["restaurant bill splitter", "dinner expense calculator"],
     },
+    {
+        slug: "college-roommates",
+        title: "College Roommates",
+        emoji: "🎓",
+        description: "Split rent, utilities, and cleaning check fines in college apartments",
+        keywords: ["college roommate expenses", "BYU roommate bills"],
+    },
 ];
 
 export default function UseCasesPage() {
