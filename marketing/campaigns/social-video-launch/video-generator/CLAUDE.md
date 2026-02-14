@@ -53,7 +53,8 @@ node src/telegram-bot.js
 | `src/trip-templates.js` | Themed expense data per category (names, amounts, participants) |
 | `src/telegram-bot.js` | Telegram bot for collecting TikTok clips + category selection |
 | `assets/demo-template.html` | Local HTML clone of PartyTab UI used by Puppeteer |
-| `scripts/daily-generate.sh` | Daily runner — processes new videos, archives to input/processed/ |
+| `scripts/daily-generate.mjs` | Daily runner (Node.js) — processes new videos, archives to input/processed/ |
+| `scripts/daily-generate.sh` | Legacy bash runner (kept for reference, not used by launchd) |
 
 ## Directories
 
