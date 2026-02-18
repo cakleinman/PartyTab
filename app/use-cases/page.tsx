@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "Use Cases | PartyTab - Bill Splitting for Every Occasion",
@@ -16,6 +17,15 @@ export const metadata: Metadata = {
         description:
             "See how PartyTab helps split expenses for bachelor parties, ski trips, roommates, and more.",
         url: "https://partytab.app/use-cases",
+        type: "website",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "PartyTab Use Cases - Bill Splitting for Every Occasion",
+        description:
+            "See how PartyTab helps split expenses for bachelor parties, ski trips, roommates, and more.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/use-cases",

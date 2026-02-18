@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -16,10 +17,19 @@ export const metadata: Metadata = {
         "financial incompatibility friends",
     ],
     openGraph: {
+        type: "article",
         title: "36% of Friends Split Up Over Money: How to Proof Your Friendships",
         description:
             "The data on how money destroys friendships—and how to prevent it.",
         url: "https://partytab.app/blog/money-ruining-friendships-statistics",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "36% of Friends Split Up Over Money: How to Proof Your Friendships",
+        description:
+            "The data on how money destroys friendships—and how to prevent it.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/money-ruining-friendships-statistics",

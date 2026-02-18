@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "friend trip expenses",
     ],
     openGraph: {
+        type: "article",
         title: "Girls Trip Budget Planning: Split Costs & Avoid Drama",
         description: "Budget tips and expense splitting for the perfect girls getaway.",
         url: "https://partytab.app/blog/girls-trip-budget-planning",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Girls Trip Budget Planning: Split Costs & Avoid Drama",
+        description: "Budget tips and expense splitting for the perfect girls getaway.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/girls-trip-budget-planning",

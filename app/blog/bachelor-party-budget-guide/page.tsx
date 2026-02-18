@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,10 +18,18 @@ export const metadata: Metadata = {
         "groomsmen expenses",
     ],
     openGraph: {
+        type: "article",
         title: "The Ultimate Bachelor Party Budget Guide (2026)",
         description:
             "Set a realistic budget, split costs fairly, and avoid awkward money talks.",
         url: "https://partytab.app/blog/bachelor-party-budget-guide",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "The Ultimate Bachelor Party Budget Guide (2026)",
+        description: "Set a realistic budget, split costs fairly, and avoid awkward money talks.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/bachelor-party-budget-guide",
@@ -477,12 +486,12 @@ export default function BachelorPartyBudgetGuidePage() {
                         </p>
                     </Link>
                     <Link
-                        href="/blog"
+                        href="/blog/who-pays-for-guest-of-honor"
                         className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
                     >
-                        <span className="text-sm text-teal-600 font-medium">Blog</span>
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
                         <p className="font-medium text-ink-900 mt-1">
-                            More Tips & Guides
+                            Bachelor/ette Party Expenses: Who Pays for the Guest of Honor?
                         </p>
                     </Link>
                 </div>

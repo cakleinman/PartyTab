@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "bachelorette weekend cost",
     ],
     openGraph: {
+        type: "article",
         title: "The Ultimate Bachelorette Party Budget Guide (2026)",
         description: "Budget tips and cost splitting for the perfect send-off.",
         url: "https://partytab.app/blog/bachelorette-party-budget-guide",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "The Ultimate Bachelorette Party Budget Guide (2026)",
+        description: "Budget tips and cost splitting for the perfect send-off.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/bachelorette-party-budget-guide",

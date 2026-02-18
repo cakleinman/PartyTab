@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "friends and finances",
     ],
     openGraph: {
+        type: "article",
         title: "How to Avoid Losing Friends Over Money",
         description: "Keep your friendships healthy by handling money the right way.",
         url: "https://partytab.app/blog/avoid-losing-friends-over-money",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Avoid Losing Friends Over Money",
+        description: "Keep your friendships healthy by handling money the right way.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/avoid-losing-friends-over-money",

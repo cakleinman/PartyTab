@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -16,9 +17,17 @@ export const metadata: Metadata = {
         "best way budget group travel",
     ],
     openGraph: {
+        type: "article",
         title: "Budgeting for a Group Vacation: The \"Envelope\" Method vs. Apps",
         description: "Compare budgeting methods for group trips—which one is right for you?",
         url: "https://partytab.app/blog/group-vacation-budget-methods",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Budgeting for a Group Vacation: The \"Envelope\" Method vs. Apps",
+        description: "Compare budgeting methods for group trips—which one is right for you?",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/group-vacation-budget-methods",

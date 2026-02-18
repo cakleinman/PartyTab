@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "Dating and Money: Who Pays on the First Date in 2026? | PartyTab",
@@ -16,10 +17,19 @@ export const metadata: Metadata = {
         "split check date",
     ],
     openGraph: {
+        type: "article",
         title: "Dating and Money: Who Pays on the First Date in 2026?",
         description:
             "What the data says and how to handle it without making things weird.",
         url: "https://partytab.app/blog/who-pays-on-first-date",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Dating and Money: Who Pays on the First Date in 2026?",
+        description:
+            "What the data says and how to handle it without making things weird.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/who-pays-on-first-date",

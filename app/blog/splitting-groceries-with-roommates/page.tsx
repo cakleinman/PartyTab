@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Splitting Grocery Bills with Roommates: A Survival Guide | PartyTab",
@@ -16,10 +17,19 @@ export const metadata: Metadata = {
     "communal grocery shopping",
   ],
   openGraph: {
+    type: "article",
     title: "Splitting Grocery Bills with Roommates: A Survival Guide",
     description:
       "The hybrid system for splitting groceries with roommates — shared staples, individual items, and how to avoid resentment.",
     url: "https://partytab.app/blog/splitting-groceries-with-roommates",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Splitting Grocery Bills with Roommates: A Survival Guide",
+    description:
+      "The hybrid system for splitting groceries with roommates — shared staples, individual items, and how to avoid resentment.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/splitting-groceries-with-roommates",

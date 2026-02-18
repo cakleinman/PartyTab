@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,10 +18,19 @@ export const metadata: Metadata = {
     "bill splitter with OCR",
   ],
   openGraph: {
+    type: "article",
     title: "Top 5 Receipt Scanning Apps That Split Bills by Item",
     description:
       "Compare AI-powered receipt scanners for group bills. Itemized splitting, tax/tip handling, and platform availability.",
     url: "https://partytab.app/blog/receipt-scanning-apps-split-bills",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Top 5 Receipt Scanning Apps That Split Bills by Item",
+    description:
+      "Compare AI-powered receipt scanners for group bills. Itemized splitting, tax/tip handling, and platform availability.",
+    images: TWITTER_IMAGE,
   },
   alternates: { canonical: "https://partytab.app/blog/receipt-scanning-apps-split-bills" },
 };

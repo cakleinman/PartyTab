@@ -10,6 +10,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ProBanner } from "@/app/components/ProBanner";
 import { JsonLdSchema } from "@/app/components/JsonLdSchema";
 import { FeedbackButton } from "@/app/components/FeedbackButton";
+import { Footer } from "@/app/components/Footer";
 
 const displayFont = Space_Grotesk({
   variable: "--font-display",
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "PartyTab - Split Group Expenses the Easy Way",
     description:
-      "Track and share expenses with friends on trips, parties, and shared living. No app download required.",
+      "Track and share group expenses with friends on trips, dinners, and shared living. Free, browser-based bill splitting. No app download required.",
     url: "https://partytab.app",
     siteName: "PartyTab",
     type: "website",
@@ -60,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "PartyTab | Free Bill Splitting App",
     description:
-      "Split group expenses—no app download needed. Track who paid what and settle up the smart way.",
+      "Split group expenses for trips, dinners, and roommates — no app download needed. Track who paid what and settle up with minimal payments.",
     images: ["/opengraph-image"],
   },
   robots: {
@@ -69,6 +70,9 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://partytab.app",
+    types: {
+      "application/rss+xml": "https://partytab.app/blog/feed.xml",
+    },
   },
 };
 
@@ -116,6 +120,7 @@ export default function RootLayout({
           <ToastProvider>
             <main className="mx-auto w-full max-w-5xl px-6 py-10">{children}</main>
           </ToastProvider>
+          <Footer />
         </div>
         <FeedbackButton />
         <Analytics />

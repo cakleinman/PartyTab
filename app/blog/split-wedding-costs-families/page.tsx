@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "How to Split Wedding Costs Between Families (Without a Fight) | PartyTab",
@@ -19,10 +20,19 @@ export const metadata: Metadata = {
     "family contribution to wedding",
   ],
   openGraph: {
+    type: "article",
     title: "How to Split Wedding Costs Between Families (Without a Fight)",
     description:
       "The old &quot;bride&apos;s family pays for everything&quot; rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
     url: "https://partytab.app/blog/split-wedding-costs-families",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Split Wedding Costs Between Families (Without a Fight)",
+    description:
+      "The old &quot;bride&apos;s family pays for everything&quot; rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/split-wedding-costs-families",

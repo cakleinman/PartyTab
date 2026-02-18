@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -18,10 +19,19 @@ export const metadata: Metadata = {
         "Provo Utah student housing costs",
     ],
     openGraph: {
+        type: "article",
         title: "The BYU & UVU Student's Guide to Splitting Roommate Expenses in Provo",
         description:
             "Real Provo prices, cleaning checks, and grocery runs. A practical guide for college apartment expenses.",
         url: "https://partytab.app/blog/college-roommate-expenses-provo-utah",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "The BYU & UVU Student's Guide to Splitting Roommate Expenses in Provo",
+        description:
+            "Real Provo prices, cleaning checks, and grocery runs. A practical guide for college apartment expenses.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/college-roommate-expenses-provo-utah",

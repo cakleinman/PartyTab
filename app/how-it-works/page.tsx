@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HowToJsonLd, FaqPageJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "How PartyTab Works | Split Group Expenses Easily",
@@ -19,6 +20,14 @@ export const metadata: Metadata = {
         title: "How PartyTab Works - Easy Expense Splitting",
         description: "Create a tab, add expenses, settle up. It's that simple.",
         url: "https://partytab.app/how-it-works",
+        type: "website",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How PartyTab Works - Easy Expense Splitting",
+        description: "Create a tab, add expenses, settle up. It's that simple.",
+        images: TWITTER_IMAGE,
     },
 };
 
@@ -258,6 +267,31 @@ export default function HowItWorksPage() {
                     Start a PartyTab →
                 </Link>
                 <p className="text-sm text-ink-400 mt-3">Free forever. No credit card required.</p>
+            </div>
+
+            {/* Related Articles */}
+            <div className="pt-8 border-t border-sand-200">
+                <h3 className="text-lg font-semibold text-ink-900 mb-4">Related Articles</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Link
+                        href="/blog/youth-sports-travel-expenses"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            Managing Youth Sports Travel Team Expenses
+                        </p>
+                    </Link>
+                    <Link
+                        href="/blog/splitting-holiday-expenses-family"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            How to Split Holiday Expenses With Family
+                        </p>
+                    </Link>
+                </div>
             </div>
         </div>
     );

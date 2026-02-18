@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "ski vacation budget",
     ],
     openGraph: {
+        type: "article",
         title: "Ski Trip Budget: How to Split Costs With Your Crew",
         description: "Budget tips and expense splitting for your next ski weekend.",
         url: "https://partytab.app/blog/ski-trip-budget-guide",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Ski Trip Budget: How to Split Costs With Your Crew",
+        description: "Budget tips and expense splitting for your next ski weekend.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/ski-trip-budget-guide",

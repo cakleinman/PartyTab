@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "College Roommate Expense Splitter | BYU & UVU Students | PartyTab",
     description:
-        "Split rent, utilities, groceries, and cleaning check fines with college roommates in Provo and Orem. Built for 4-6 person apartments on semester leases. No app download required.",
+        "Split rent, utilities, groceries, and cleaning check fines with college roommates. Built for 4-6 person apartments. No app download.",
     keywords: [
         "college roommate expense splitter",
         "BYU roommate bills",
@@ -19,6 +20,15 @@ export const metadata: Metadata = {
         description:
             "Split rent, utilities, and cleaning check fines with college roommates. Built for Provo/Orem student housing.",
         url: "https://partytab.app/use-cases/college-roommates",
+        type: "website",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "College Roommate Expense Splitter | PartyTab",
+        description:
+            "Split rent, utilities, and cleaning check fines with college roommates. Built for Provo/Orem student housing.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/use-cases/college-roommates",

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedPosts } from "./posts";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 // Revalidate daily so scheduled posts appear on their publish date
 export const revalidate = 86400;
@@ -13,6 +14,14 @@ export const metadata: Metadata = {
         title: "PartyTab Blog - Expense Splitting Tips & Guides",
         description: "Learn the best ways to split expenses with friends.",
         url: "https://partytab.app/blog",
+        type: "website",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "PartyTab Blog - Expense Splitting Tips & Guides",
+        description: "Learn the best ways to split expenses with friends.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog",

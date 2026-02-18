@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "Bachelor/ette Party Expenses: Who Pays for the Guest of Honor? | PartyTab",
@@ -16,10 +17,19 @@ export const metadata: Metadata = {
         "bachelorette party who covers bride",
     ],
     openGraph: {
+        type: "article",
         title: "Bachelor/ette Party Expenses: Who Pays for the Guest of Honor?",
         description:
             "What the group covers for the guest of honor and what they don't.",
         url: "https://partytab.app/blog/who-pays-for-guest-of-honor",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Bachelor/ette Party Expenses: Who Pays for the Guest of Honor?",
+        description:
+            "What the group covers for the guest of honor and what they don't.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/who-pays-for-guest-of-honor",

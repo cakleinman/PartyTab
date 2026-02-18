@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -19,10 +20,19 @@ export const metadata: Metadata = {
     "split car costs friends",
   ],
   openGraph: {
+    type: "article",
     title: "The Complete Guide to Splitting Road Trip Expenses",
     description:
       "Gas, tolls, food, hotels — road trip expenses add up fast. Here&apos;s how to split costs fairly and settle up before you get home.",
     url: "https://partytab.app/blog/road-trip-expense-splitting",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Complete Guide to Splitting Road Trip Expenses",
+    description:
+      "Gas, tolls, food, hotels — road trip expenses add up fast. Here&apos;s how to split costs fairly and settle up before you get home.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/road-trip-expense-splitting",

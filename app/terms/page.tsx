@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata = {
   title: "Terms of Service | PartyTab",
@@ -12,6 +13,15 @@ export const metadata = {
     description:
       "Terms governing your use of PartyTab, including free and Pro plans, payments, and AI receipt scanning.",
     url: "https://partytab.app/terms",
+    type: "website",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Terms of Service | PartyTab",
+    description:
+      "Terms governing your use of PartyTab, including free and Pro plans, payments, and AI receipt scanning.",
+    images: TWITTER_IMAGE,
   },
 };
 

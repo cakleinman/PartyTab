@@ -9,6 +9,15 @@ const cspScriptSrc = isDev
   : "script-src 'self' 'unsafe-inline';";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/rss.xml",
+        destination: "/blog/feed.xml",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

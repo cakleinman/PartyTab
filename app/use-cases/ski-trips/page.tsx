@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "Ski Trip Expense Splitter & Cost Calculator | PartyTab",
@@ -18,6 +19,15 @@ export const metadata: Metadata = {
         description:
             "Split ski trip costs fairly—cabin rentals, lift tickets, and more. No app download required.",
         url: "https://partytab.app/use-cases/ski-trips",
+        type: "website",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Ski Trip Expense Splitter | PartyTab",
+        description:
+            "Split ski trip costs fairly—cabin rentals, lift tickets, and more. No app download required.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/use-cases/ski-trips",
@@ -211,6 +221,31 @@ export default function SkiTripsPage() {
                     </Link>
                     <Link href="/use-cases/college-roommates" className="px-4 py-2 bg-sand-100 rounded-full text-sm text-ink-700 hover:bg-sand-200 transition-colors">
                         🎓 College Roommates
+                    </Link>
+                </div>
+            </div>
+
+            {/* Related Articles */}
+            <div className="mt-8 pt-8 border-t border-sand-200">
+                <h3 className="text-lg font-semibold text-ink-900 mb-4">Related Articles</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Link
+                        href="/blog/ski-trip-budget-guide"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            Ski Trip Budget: How to Split Costs With Your Crew
+                        </p>
+                    </Link>
+                    <Link
+                        href="/blog/girls-trip-budget-planning"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            Girls Trip Budget Planning: Split Costs Without the Drama
+                        </p>
                     </Link>
                 </div>
             </div>

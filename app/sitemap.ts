@@ -20,7 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return [
         {
             url: baseUrl,
-            lastModified: new Date("2026-02-12"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "weekly",
             priority: 1,
         },
@@ -38,58 +38,58 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
         {
             url: `${baseUrl}/upgrade`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-01-20"),
             changeFrequency: "monthly",
             priority: 0.7,
         },
         // Use case landing pages
         {
             url: `${baseUrl}/use-cases`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-02-14"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/bachelor-party`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/ski-trips`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/roommates`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/group-dinners`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         {
             url: `${baseUrl}/use-cases/college-roommates`,
-            lastModified: new Date("2026-02-14"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         // Informational pages
         {
             url: `${baseUrl}/how-it-works`,
-            lastModified: new Date("2026-01-01"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },
         // Comparison pages
         {
             url: `${baseUrl}/compare/splitwise`,
-            lastModified: new Date("2026-02-12"),
+            lastModified: new Date("2026-02-17"),
             changeFrequency: "monthly",
             priority: 0.8,
         },

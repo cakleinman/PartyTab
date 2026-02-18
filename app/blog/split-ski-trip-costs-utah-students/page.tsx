@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "How to Split a Ski Day Trip from Provo (Without Losing Friends) | PartyTab",
@@ -18,10 +19,19 @@ export const metadata: Metadata = {
         "Brighton ski day from Provo",
     ],
     openGraph: {
+        type: "article",
         title: "How to Split a Ski Day Trip from Provo (Without Losing Friends)",
         description:
             "Real drive times, lift tickets, and gas costs for skiing from Provo. Plus how to split the 4 expenses that cause arguments.",
         url: "https://partytab.app/blog/split-ski-trip-costs-utah-students",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Split a Ski Day Trip from Provo (Without Losing Friends)",
+        description:
+            "Real drive times, lift tickets, and gas costs for skiing from Provo. Plus how to split the 4 expenses that cause arguments.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/split-ski-trip-costs-utah-students",

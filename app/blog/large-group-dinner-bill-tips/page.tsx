@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -19,10 +20,19 @@ export const metadata: Metadata = {
     "group dining payment tips",
   ],
   openGraph: {
+    type: "article",
     title: "Large Group Dinners: How to Handle the Bill Without Chaos",
     description:
       "Dinner with 12 friends was incredible — until the waiter drops one check. Here's how to split large group restaurant bills without post-dinner chaos.",
     url: "https://partytab.app/blog/large-group-dinner-bill-tips",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Large Group Dinners: How to Handle the Bill Without Chaos",
+    description:
+      "Dinner with 12 friends was incredible — until the waiter drops one check. Here's how to split large group restaurant bills without post-dinner chaos.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/large-group-dinner-bill-tips",

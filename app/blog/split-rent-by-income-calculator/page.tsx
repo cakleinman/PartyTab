@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -16,10 +17,19 @@ export const metadata: Metadata = {
     "split bills by income ratio",
   ],
   openGraph: {
+    type: "article",
     title: "How to Split Rent Fairly Based on Income (With Calculator Logic)",
     description:
       "Learn how to split rent proportionally based on income — with step-by-step examples and real formulas.",
     url: "https://partytab.app/blog/split-rent-by-income-calculator",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Split Rent Fairly Based on Income (With Calculator Logic)",
+    description:
+      "Learn how to split rent proportionally based on income — with step-by-step examples and real formulas.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/split-rent-by-income-calculator",

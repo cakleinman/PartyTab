@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -16,9 +17,17 @@ export const metadata: Metadata = {
         "simplify group payments",
     ],
     openGraph: {
+        type: "article",
         title: "How to Settle Up After a Group Trip (Without 50 Venmo Transactions)",
         description: "The math behind settling group expenses with minimal payments.",
         url: "https://partytab.app/blog/settle-up-after-group-trip",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Settle Up After a Group Trip (Without 50 Venmo Transactions)",
+        description: "The math behind settling group expenses with minimal payments.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/settle-up-after-group-trip",

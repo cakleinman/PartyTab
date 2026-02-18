@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaqPageJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
     title: "PartyTab vs Splitwise - Best Bill Splitting App Comparison 2026",
     description:
-        "Compare PartyTab and Splitwise: features, pricing, and ease of use. Find out which expense splitting app is right for you. No app download required with PartyTab.",
+        "Compare PartyTab and Splitwise: features, pricing, and ease of use. Find out which bill splitting app is right for you.",
     keywords: [
         "splitwise alternative",
         "partytab vs splitwise",
@@ -22,6 +23,15 @@ export const metadata: Metadata = {
         description:
             "Complete comparison of PartyTab and Splitwise. Features, pricing, and user experience.",
         url: "https://partytab.app/compare/splitwise",
+        type: "website",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "PartyTab vs Splitwise - Which Bill Splitter is Best?",
+        description:
+            "Complete comparison of PartyTab and Splitwise. Features, pricing, and user experience.",
+        images: TWITTER_IMAGE,
     },
 };
 
@@ -368,6 +378,30 @@ export default function CompareSplitwisePage() {
                     </Link>
                     <Link href="/use-cases/group-dinners" className="px-4 py-2 bg-sand-100 rounded-full text-sm text-ink-700 hover:bg-sand-200 transition-colors">
                         🍕 Group Dinners
+                    </Link>
+                </div>
+            </div>
+
+            <div className="mt-8 pt-8 border-t border-sand-200">
+                <h3 className="text-lg font-semibold text-ink-900 mb-4">Related Articles</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Link
+                        href="/blog/best-splitwise-alternatives"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Comparison</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            7 Best Splitwise Alternatives in 2026
+                        </p>
+                    </Link>
+                    <Link
+                        href="/blog/group-cruise-expense-splitting"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            How to Split Expenses on a Group Cruise
+                        </p>
                     </Link>
                 </div>
             </div>

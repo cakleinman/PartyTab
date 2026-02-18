@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "youth athletic travel",
     ],
     openGraph: {
+        type: "article",
         title: "How to Manage Youth Sports Travel Team Expenses",
         description: "Parent-tested tips for splitting travel team costs fairly.",
         url: "https://partytab.app/blog/youth-sports-travel-expenses",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Manage Youth Sports Travel Team Expenses",
+        description: "Parent-tested tips for splitting travel team costs fairly.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/youth-sports-travel-expenses",

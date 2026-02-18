@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "group assignment budget",
     ],
     openGraph: {
+        type: "article",
         title: "How to Split Group Project Expenses",
         description: "Fair expense splitting for class and work projects.",
         url: "https://partytab.app/blog/splitting-group-project-expenses",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Split Group Project Expenses",
+        description: "Fair expense splitting for class and work projects.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/splitting-group-project-expenses",

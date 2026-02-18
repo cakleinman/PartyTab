@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,10 +18,19 @@ export const metadata: Metadata = {
     "friend owes money text",
   ],
   openGraph: {
+    type: "article",
     title: "How to Remind Someone They Owe You Money (Copy-Paste Text Templates)",
     description:
       "8 proven text templates to politely ask for money back without awkwardness",
     url: "https://partytab.app/blog/remind-someone-owes-you-money",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Remind Someone They Owe You Money (Copy-Paste Text Templates)",
+    description:
+      "8 proven text templates to politely ask for money back without awkwardness",
+    images: TWITTER_IMAGE,
   },
   alternates: { canonical: "https://partytab.app/blog/remind-someone-owes-you-money" },
 };

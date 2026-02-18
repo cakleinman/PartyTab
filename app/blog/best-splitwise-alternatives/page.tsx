@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
     title: "7 Best Splitwise Alternatives in 2026 (No Daily Limits) | PartyTab",
     description:
-        "Frustrated by Splitwise's daily expense limits? Here are 7 free and affordable alternatives that let you split bills without restrictions—including one that needs no app download.",
+        "Frustrated by Splitwise's daily expense limits? Here are 7 free alternatives that let you split bills without restrictions.",
     keywords: [
         "splitwise alternatives",
         "splitwise alternative 2026",
@@ -17,10 +18,19 @@ export const metadata: Metadata = {
         "split expenses no app",
     ],
     openGraph: {
+        type: "article",
         title: "7 Best Splitwise Alternatives in 2026 (No Daily Limits)",
         description:
             "Frustrated by Splitwise's daily expense limits? Here are 7 free and affordable alternatives that let you split bills without restrictions.",
         url: "https://partytab.app/blog/best-splitwise-alternatives",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "7 Best Splitwise Alternatives in 2026 (No Daily Limits)",
+        description:
+            "Frustrated by Splitwise's daily expense limits? Here are 7 free and affordable alternatives that let you split bills without restrictions.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/best-splitwise-alternatives",

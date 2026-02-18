@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -16,10 +17,19 @@ export const metadata: Metadata = {
     "costco run with roommates",
   ],
   openGraph: {
+    type: "article",
     title: "How to Split a Costco Run with Friends",
     description:
       "Plan the trip, track the haul, split the bill — get bulk savings without bulk quantities.",
     url: "https://partytab.app/blog/split-costco-run-with-friends",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How to Split a Costco Run with Friends",
+    description:
+      "Plan the trip, track the haul, split the bill — get bulk savings without bulk quantities.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/split-costco-run-with-friends",

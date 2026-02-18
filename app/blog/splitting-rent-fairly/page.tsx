@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "split rent by room size",
     ],
     openGraph: {
+        type: "article",
         title: "How to Split Rent Fairly When Rooms Aren't Equal",
         description: "5 fair methods for splitting rent with unequal bedrooms.",
         url: "https://partytab.app/blog/splitting-rent-fairly",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Split Rent Fairly When Rooms Aren't Equal",
+        description: "5 fair methods for splitting rent with unequal bedrooms.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/splitting-rent-fairly",
@@ -327,12 +336,12 @@ export default function SplittingRentFairlyPage() {
                         </p>
                     </Link>
                     <Link
-                        href="/blog/bachelor-party-budget-guide"
+                        href="/blog/avoid-losing-friends-over-money"
                         className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
                     >
-                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <span className="text-sm text-teal-600 font-medium">Advice</span>
                         <p className="font-medium text-ink-900 mt-1">
-                            Bachelor Party Budget Guide
+                            How to Avoid Losing Friends Over Money
                         </p>
                     </Link>
                 </div>

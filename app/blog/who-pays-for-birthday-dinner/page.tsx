@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: "Splitting a Birthday Dinner: Should the Birthday Person Pay? | PartyTab",
@@ -19,10 +20,19 @@ export const metadata: Metadata = {
     "who pays birthday celebration",
   ],
   openGraph: {
+    type: "article",
     title: "Splitting a Birthday Dinner: Should the Birthday Person Pay?",
     description:
       "The check arrives. It's your friend's birthday. Who pays? The answer depends on one thing: who planned it. Here's the etiquette guide for birthday dinners.",
     url: "https://partytab.app/blog/who-pays-for-birthday-dinner",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Splitting a Birthday Dinner: Should the Birthday Person Pay?",
+    description:
+      "The check arrives. It's your friend's birthday. Who pays? The answer depends on one thing: who planned it. Here's the etiquette guide for birthday dinners.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/who-pays-for-birthday-dinner",

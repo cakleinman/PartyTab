@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title:
@@ -18,10 +19,19 @@ export const metadata: Metadata = {
     "browser based expense tracker",
   ],
   openGraph: {
+    type: "article",
     title: 'The "No-Download" Rule: Why Web-Based Expense Trackers Beat Apps for Groups',
     description:
       "App downloads kill participation. Web-based expense trackers work for everyone — no friction, no platform fragmentation.",
     url: "https://partytab.app/blog/web-based-expense-tracker-vs-app",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: 'The "No-Download" Rule: Why Web-Based Expense Trackers Beat Apps for Groups',
+    description:
+      "App downloads kill participation. Web-based expense trackers work for everyone — no friction, no platform fragmentation.",
+    images: TWITTER_IMAGE,
   },
   alternates: { canonical: "https://partytab.app/blog/web-based-expense-tracker-vs-app" },
 };

@@ -426,7 +426,7 @@ export default function LandingPage() {
               The &quot;Spreadsheet&quot; Way
             </h3>
             <div className="overflow-x-auto no-scrollbar">
-              <svg viewBox="0 0 400 200" className="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto">
+              <svg viewBox="0 0 400 200" className="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto" role="img" aria-label="The spreadsheet way: three people sending multiple confusing payments to each other">
                 <defs>
                   <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
                     <path d="M0,0 L0,6 L9,3 z" fill="#a8a29a" />
@@ -463,7 +463,7 @@ export default function LandingPage() {
               The PartyTab Way
             </h3>
             <div className="overflow-x-auto no-scrollbar">
-              <svg viewBox="0 0 400 200" className="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto">
+              <svg viewBox="0 0 400 200" className="w-full min-w-[320px] h-48 drop-shadow-sm mx-auto" role="img" aria-label="The PartyTab way: one simple five dollar payment from Alex to Sam settles everything">
                 <defs>
                   <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
                     <path d="M0,0 L0,6 L9,3 z" fill="#0a776a" />

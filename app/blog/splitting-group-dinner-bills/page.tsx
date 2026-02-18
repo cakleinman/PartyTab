@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "restaurant bill calculator",
     ],
     openGraph: {
+        type: "article",
         title: "How to Split a Group Dinner Bill Without the Awkwardness",
         description: "6 methods for fair bill splitting, plus how to handle tricky situations.",
         url: "https://partytab.app/blog/splitting-group-dinner-bills",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Split a Group Dinner Bill Without the Awkwardness",
+        description: "6 methods for fair bill splitting, plus how to handle tricky situations.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/splitting-group-dinner-bills",

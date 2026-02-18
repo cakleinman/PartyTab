@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -18,9 +19,17 @@ export const metadata: Metadata = {
     "friend won't repay loan",
   ],
   openGraph: {
+    type: "article",
     title: "Why 30% of Borrowed Money is Never Repaid (And How to Stop Being a Statistic)",
     description: "The brutal statistics on lending money to friends—and how to protect yourself",
     url: "https://partytab.app/blog/friends-never-pay-you-back",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Why 30% of Borrowed Money is Never Repaid (And How to Stop Being a Statistic)",
+    description: "The brutal statistics on lending money to friends—and how to protect yourself",
+    images: TWITTER_IMAGE,
   },
   alternates: { canonical: "https://partytab.app/blog/friends-never-pay-you-back" },
 };

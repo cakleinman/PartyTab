@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "split family trip costs",
     ],
     openGraph: {
+        type: "article",
         title: "How to Split Holiday Expenses With Family",
         description: "Fair ways to share costs at family gatherings without the drama.",
         url: "https://partytab.app/blog/splitting-holiday-expenses-family",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Split Holiday Expenses With Family",
+        description: "Fair ways to share costs at family gatherings without the drama.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/splitting-holiday-expenses-family",

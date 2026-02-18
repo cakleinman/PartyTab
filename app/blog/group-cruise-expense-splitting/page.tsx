@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -17,9 +18,17 @@ export const metadata: Metadata = {
         "group cruise tips",
     ],
     openGraph: {
+        type: "article",
         title: "How to Split Expenses on a Group Cruise",
         description: "Smart strategies for sharing costs on your next group cruise.",
         url: "https://partytab.app/blog/group-cruise-expense-splitting",
+        images: OG_IMAGE,
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "How to Split Expenses on a Group Cruise",
+        description: "Smart strategies for sharing costs on your next group cruise.",
+        images: TWITTER_IMAGE,
     },
     alternates: {
         canonical: "https://partytab.app/blog/group-cruise-expense-splitting",

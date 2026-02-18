@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata = {
   title: "Privacy Policy | PartyTab",
@@ -12,6 +13,15 @@ export const metadata = {
     description:
       "Learn how PartyTab collects, uses, and protects your data when splitting group expenses.",
     url: "https://partytab.app/privacy",
+    type: "website",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy | PartyTab",
+    description:
+      "Learn how PartyTab collects, uses, and protects your data when splitting group expenses.",
+    images: TWITTER_IMAGE,
   },
 };
 

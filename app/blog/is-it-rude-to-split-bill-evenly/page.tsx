@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -19,10 +20,19 @@ export const metadata: Metadata = {
     "how to split dinner check",
   ],
   openGraph: {
+    type: "article",
     title: "Is It Rude to Split the Bill Evenly? The 2026 Etiquette Guide",
     description:
       "You ordered a salad. Your friend had steak and cocktails. Is it rude to split evenly? Here's what etiquette experts say about fair bill splitting in 2026.",
     url: "https://partytab.app/blog/is-it-rude-to-split-bill-evenly",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Is It Rude to Split the Bill Evenly? The 2026 Etiquette Guide",
+    description:
+      "You ordered a salad. Your friend had steak and cocktails. Is it rude to split evenly? Here's what etiquette experts say about fair bill splitting in 2026.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/is-it-rude-to-split-bill-evenly",

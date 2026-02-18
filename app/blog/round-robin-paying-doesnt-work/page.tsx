@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
@@ -18,10 +19,19 @@ export const metadata: Metadata = {
     "why taking turns paying fails",
   ],
   openGraph: {
+    type: "article",
     title: "The Hidden Cost of \"I'll Get This One\": Why Round-Robin Paying Fails",
     description:
       "Sounds fair — until meal costs vary wildly, memory fails, and someone ends up $200 behind.",
     url: "https://partytab.app/blog/round-robin-paying-doesnt-work",
+    images: OG_IMAGE,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Hidden Cost of \"I'll Get This One\": Why Round-Robin Paying Fails",
+    description:
+      "Sounds fair — until meal costs vary wildly, memory fails, and someone ends up $200 behind.",
+    images: TWITTER_IMAGE,
   },
   alternates: {
     canonical: "https://partytab.app/blog/round-robin-paying-doesnt-work",
