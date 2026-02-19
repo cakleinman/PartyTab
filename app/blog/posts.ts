@@ -158,7 +158,7 @@ export const BLOG_POSTS: BlogPost[] = [
         title: "How to Split a Ski Day Trip from Provo (Without Losing Friends)",
         excerpt:
             "Real drive times, lift ticket prices, and gas costs for skiing from Provo. Sundance, Brighton, Park City—plus how to split the 4 expenses that cause arguments.",
-        date: "2026-03-12",
+        date: "2026-02-17",
         readTime: "6 min read",
         category: "Tips",
     },
@@ -167,7 +167,7 @@ export const BLOG_POSTS: BlogPost[] = [
         title: "The BYU & UVU Student's Guide to Splitting Roommate Expenses in Provo",
         excerpt:
             "Real Provo prices, cleaning check fines, WinCo grocery runs, and utility splitting. A practical guide to managing shared expenses in college apartments.",
-        date: "2026-03-05",
+        date: "2026-02-17",
         readTime: "8 min read",
         category: "Guides",
     },

@@ -45,7 +45,7 @@ export default function CollegeRoommateExpensesProvoPage() {
                 title="The BYU & UVU Student's Guide to Splitting Roommate Expenses in Provo"
                 description="Real Provo prices, cleaning check fines, WinCo grocery runs, and utility splitting for BYU and UVU students."
                 slug="college-roommate-expenses-provo-utah"
-                datePublished="2026-03-05"
+                datePublished="2026-02-17"
             />
             <BreadcrumbJsonLd
                 items={[
@@ -70,7 +70,7 @@ export default function CollegeRoommateExpensesProvoPage() {
                     <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
                         GUIDES
                     </span>
-                    <span className="text-sm text-ink-400">March 5, 2026</span>
+                    <span className="text-sm text-ink-400">February 17, 2026</span>
                     <span className="text-sm text-ink-400">•</span>
                     <span className="text-sm text-ink-400">8 min read</span>
                 </div>

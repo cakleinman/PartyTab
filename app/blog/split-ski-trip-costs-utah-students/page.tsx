@@ -45,7 +45,7 @@ export default function SplitSkiTripCostsUtahPage() {
                 title="How to Split a Ski Day Trip from Provo (Without Losing Friends)"
                 description="Real drive times, lift ticket prices, and gas costs for skiing from Provo. Plus how to split the 4 expenses that cause arguments."
                 slug="split-ski-trip-costs-utah-students"
-                datePublished="2026-03-12"
+                datePublished="2026-02-17"
             />
             <BreadcrumbJsonLd
                 items={[
@@ -70,7 +70,7 @@ export default function SplitSkiTripCostsUtahPage() {
                     <span className="text-xs font-semibold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">
                         TIPS
                     </span>
-                    <span className="text-sm text-ink-400">March 12, 2026</span>
+                    <span className="text-sm text-ink-400">February 17, 2026</span>
                     <span className="text-sm text-ink-400">•</span>
                     <span className="text-sm text-ink-400">6 min read</span>
                 </div>
