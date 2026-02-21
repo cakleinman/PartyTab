@@ -16,6 +16,9 @@ type TabDetail = {
   totalSpentCents: number;
   yourNetCents: number;
   isCreator: boolean;
+  estimatedTotalCents: number;
+  confirmedTotalCents: number;
+  estimateCount: number;
 };
 
 type ExpenseSplit = {
@@ -31,6 +34,7 @@ type ExpenseSummary = {
   paidByParticipantId: string;
   paidByName: string;
   createdAt: string;
+  isEstimate: boolean;
   splits: ExpenseSplit[];
 };
 
@@ -46,7 +50,34 @@ export default function TabDashboard() {
   const [acknowledgements, setAcknowledgements] = useState<Acknowledgement[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sharing, setSharing] = useState(false);
   const { pushToast } = useToast();
+
+  const handleShare = async () => {
+    if (!tabId) return;
+    setSharing(true);
+    try {
+      const res = await fetch(`/api/tabs/${tabId}/share`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        pushToast(data?.error?.message ?? "Could not generate share link.");
+        return;
+      }
+      const shareUrl = data.shareUrl;
+      if (navigator.share) {
+        await navigator.share({ title: tab?.name ?? "PartyTab", url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        pushToast("Share link copied!");
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        pushToast("Could not share.");
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   useEffect(() => {
     if (!tabId) return;
@@ -107,6 +138,16 @@ export default function TabDashboard() {
             <span className="rounded-full border border-ink-300 px-5 py-2 text-sm font-semibold text-ink-500">
               Tab closed
             </span>
+          )}
+          {(tab.status === "CLOSED" || tab.estimateCount > 0) && (
+            <button
+              type="button"
+              onClick={handleShare}
+              disabled={sharing}
+              className="btn-secondary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50"
+            >
+              {sharing ? "Sharing..." : "Share"}
+            </button>
           )}
           {tab.isCreator && (
             <a
@@ -178,7 +219,13 @@ export default function TabDashboard() {
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-ink-500">Group total</p>
           <p className="mt-2 text-2xl font-semibold">{formatCents(tab.totalSpentCents)}</p>
-          <p className="mt-1 text-sm text-ink-500">All expenses on this tab.</p>
+          {tab.estimateCount > 0 ? (
+            <p className="mt-1 text-xs text-ink-500">
+              ~{formatCents(tab.estimatedTotalCents)} estimated · {formatCents(tab.confirmedTotalCents)} confirmed
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-ink-500">All expenses on this tab.</p>
+          )}
         </div>
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-ink-500">Your net</p>
@@ -267,17 +314,22 @@ export default function TabDashboard() {
                 <a
                   key={expense.id}
                   href={`/tabs/${tabId}/expenses/${expense.id}`}
-                  className="rounded-2xl border border-sand-200 bg-white/80 px-4 py-3 text-sm"
+                  className={`rounded-2xl border border-sand-200 bg-white/80 px-4 py-3 text-sm ${expense.isEstimate ? "border-l-2 border-dashed border-l-amber-400" : ""}`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <span className="font-medium text-ink-700">
                         {expense.note || "Expense"}
                       </span>
+                      {expense.isEstimate && (
+                        <span className="ml-1.5 text-xs text-amber-600">(estimate)</span>
+                      )}
                       <p className="truncate text-xs text-ink-500">{subtitleText}</p>
                     </div>
                     <div className="flex-shrink-0 text-right">
-                      <span className="text-ink-700">{formatCents(expense.amountTotalCents)}</span>
+                      <span className="text-ink-700">
+                        {expense.isEstimate ? `~${formatCents(expense.amountTotalCents)}` : formatCents(expense.amountTotalCents)}
+                      </span>
                       {totalOwedCents > 0 && totalOwedCents !== expense.amountTotalCents && (
                         <p className="text-xs text-ink-400">{formatCents(totalOwedCents)} owed</p>
                       )}

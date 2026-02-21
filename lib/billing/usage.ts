@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { requirePro } from "@/lib/auth/entitlements";
 
 export async function getReceiptUsage(userId: string) {
   const now = new Date();
@@ -40,9 +41,22 @@ export async function incrementReceiptUsage(userId: string) {
   });
 }
 
-export async function checkReceiptLimit(userId: string, limit = 15) {
+export async function getReceiptLimit(userId: string): Promise<number> {
+  const isPro = await requirePro(userId);
+  return isPro ? 15 : 2;
+}
+
+export async function checkReceiptLimit(userId: string, limit?: number) {
+  const maxLimit = limit ?? 15;
   const count = await getReceiptUsage(userId);
-  if (count >= limit) {
-    throw new Error("Monthly receipt parsing limit exceeded (15/month).");
+  if (count >= maxLimit) {
+    throw new Error(`Monthly receipt parsing limit exceeded (${maxLimit}/month).`);
   }
+}
+
+export async function getReceiptQuotaInfo(
+  userId: string
+): Promise<{ used: number; limit: number; remaining: number }> {
+  const [used, limit] = await Promise.all([getReceiptUsage(userId), getReceiptLimit(userId)]);
+  return { used, limit, remaining: Math.max(0, limit - used) };
 }

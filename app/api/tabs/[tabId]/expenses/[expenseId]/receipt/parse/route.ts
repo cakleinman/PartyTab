@@ -5,8 +5,8 @@ import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/ap
 import { parseUuid } from "@/lib/validators/schemas";
 import { getSupabaseServer, RECEIPTS_BUCKET } from "@/lib/supabase/client";
 import { parseReceipt } from "@/lib/receipts/parser";
-import { canUseProFeatures } from "@/lib/auth/entitlements";
-import { checkReceiptLimit, incrementReceiptUsage } from "@/lib/billing/usage";
+import { canScanReceipt } from "@/lib/auth/entitlements";
+import { checkReceiptLimit, getReceiptLimit, incrementReceiptUsage } from "@/lib/billing/usage";
 
 export async function POST(
   _request: Request,
@@ -25,15 +25,16 @@ export async function POST(
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
-    // Then check Pro entitlement
-    const isPro = await canUseProFeatures(user.id);
-    if (!isPro) {
-      throwApiError(403, "pro_required", "Pro subscription required for receipt parsing");
+    // Then check scan entitlement (all authenticated users can scan)
+    const canScan = await canScanReceipt(user.id);
+    if (!canScan) {
+      throwApiError(403, "pro_required", "Receipt parsing is not available");
     }
 
-    // Then check usage limit
+    // Then check usage limit based on user's plan
     try {
-      await checkReceiptLimit(user.id);
+      const limit = await getReceiptLimit(user.id);
+      await checkReceiptLimit(user.id, limit);
     } catch (e) {
       const message = e instanceof Error ? e.message : "Receipt limit exceeded";
       throwApiError(429, "limit_exceeded", message);

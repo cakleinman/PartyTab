@@ -24,6 +24,7 @@ type ExpenseDetail = {
   paidByParticipantId: string;
   createdAt: string;
   createdByUserId: string;
+  isEstimate: boolean;
   receiptSubtotalCents?: number | null;
   receiptTaxCents?: number | null;
   receiptFeeCents?: number | null;
@@ -91,6 +92,7 @@ export default function ExpenseDetailPage() {
   const [note, setNote] = useState("");
   const [date, setDate] = useState("");
   const [paidBy, setPaidBy] = useState("");
+  const [isEstimate, setIsEstimate] = useState(false);
   const [customSplit, setCustomSplit] = useState(false);
   const [splitAmounts, setSplitAmounts] = useState<Record<string, string>>({});
   const [splitParticipantIds, setSplitParticipantIds] = useState<string[]>([]);
@@ -164,6 +166,7 @@ export default function ExpenseDetailPage() {
           setNote(expenseData.expense.note ?? "");
           setDate(expenseData.expense.date ?? "");
           setPaidBy(expenseData.expense.paidByParticipantId);
+          setIsEstimate(expenseData.expense.isEstimate ?? false);
           const splitMap: Record<string, string> = {};
           const splitIds = expenseData.expense.splits.map(
             (split: { participantId: string; amountCents: number }) => split.participantId,
@@ -261,6 +264,7 @@ export default function ExpenseDetailPage() {
       note,
       date,
       paidByParticipantId: paidBy,
+      isEstimate,
     };
 
     // Include tip if there's a receipt
@@ -300,6 +304,27 @@ export default function ExpenseDetailPage() {
     });
     setSaving(false);
     pushToast("Expense updated.");
+  };
+
+  const handleConfirmEstimate = async () => {
+    if (!tabId || !expenseId) return;
+    setSaving(true);
+    setError(null);
+    const res = await fetch(`/api/tabs/${tabId}/expenses/${expenseId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isEstimate: false }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data?.error?.message ?? "Could not confirm expense.");
+      setSaving(false);
+      return;
+    }
+    setIsEstimate(false);
+    setExpense((prev) => prev ? { ...prev, isEstimate: false } : prev);
+    setSaving(false);
+    pushToast("Expense confirmed");
   };
 
   const handleDelete = async () => {
@@ -381,6 +406,23 @@ export default function ExpenseDetailPage() {
             disabled={!canEdit}
           />
         </label>
+
+        <div className="flex items-start gap-3 rounded-2xl border border-sand-200 px-4 py-3">
+          <input
+            id="isEstimate"
+            type="checkbox"
+            checked={isEstimate}
+            onChange={(e) => setIsEstimate(e.target.checked)}
+            disabled={!canEdit}
+            className="mt-0.5"
+          />
+          <label htmlFor="isEstimate" className="grid gap-0.5 text-sm cursor-pointer">
+            This is an estimate
+            {isEstimate && (
+              <span className="text-xs text-ink-500">Estimated amounts aren&apos;t finalized yet</span>
+            )}
+          </label>
+        </div>
 
         <label className="grid gap-2 text-sm">
           Note
@@ -751,6 +793,17 @@ export default function ExpenseDetailPage() {
         >
           {saving ? "Saving…" : "Update expense"}
         </button>
+
+        {isEstimate && canEdit && (
+          <button
+            type="button"
+            onClick={handleConfirmEstimate}
+            disabled={saving}
+            className="w-full rounded-full border border-ink-300 px-6 py-3 text-sm font-semibold text-ink-700 hover:bg-sand-50 disabled:opacity-50"
+          >
+            Confirm estimate
+          </button>
+        )}
 
         {canDelete && (
           <button

@@ -26,6 +26,7 @@ export async function GET(
         amountTotalCents: true,
         note: true,
         date: true,
+        isEstimate: true,
         paidByParticipantId: true,
         createdAt: true,
         paidBy: {
@@ -59,6 +60,7 @@ export async function GET(
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
         date: expense.date.toISOString().slice(0, 10),
+        isEstimate: expense.isEstimate,
         paidByParticipantId: expense.paidByParticipantId,
         paidByName: expense.paidBy.user.displayName,
         createdAt: expense.createdAt.toISOString(),
@@ -95,6 +97,7 @@ export async function POST(
     const note = parseOptionalString(body?.note, 240);
     const date = parseDateInput(body?.date) ?? new Date();
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? participant.id, "paidByParticipantId");
+    const isEstimate = body?.isEstimate === true;
 
     // Receipt mode: amount can be 0/empty, tip is stored for later calculation
     const isReceiptMode = body?.receiptMode === true;
@@ -130,6 +133,7 @@ export async function POST(
         amountTotalCents,
         note,
         date,
+        isEstimate,
         paidByParticipantId,
         createdByUserId: user.id,
         receiptTipCents: tipCents,
@@ -149,6 +153,7 @@ export async function POST(
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
         date: expense.date.toISOString().slice(0, 10),
+        isEstimate: expense.isEstimate,
         paidByParticipantId: expense.paidByParticipantId,
         createdAt: expense.createdAt.toISOString(),
       },

@@ -20,13 +20,18 @@ export async function GET(
     const participant = await requireParticipant(tabId, user.id);
 
     const [expenses, splits, participants, tabCreator] = await Promise.all([
-      prisma.expense.findMany({ where: { tabId }, select: { amountTotalCents: true, paidByParticipantId: true, id: true } }),
+      prisma.expense.findMany({ where: { tabId }, select: { amountTotalCents: true, paidByParticipantId: true, id: true, isEstimate: true } }),
       prisma.expenseSplit.findMany({ where: { expense: { tabId } }, select: { expenseId: true, participantId: true, amountCents: true } }),
       prisma.participant.findMany({ where: { tabId }, select: { id: true } }),
       prisma.user.findUnique({ where: { id: tab.createdByUserId }, select: { subscriptionTier: true } }),
     ]);
 
     const totalSpentCents = expenses.reduce((sum, exp) => sum + exp.amountTotalCents, 0);
+    const estimatedExpenses = expenses.filter((exp) => exp.isEstimate);
+    const confirmedExpenses = expenses.filter((exp) => !exp.isEstimate);
+    const estimatedTotalCents = estimatedExpenses.reduce((sum, exp) => sum + exp.amountTotalCents, 0);
+    const confirmedTotalCents = confirmedExpenses.reduce((sum, exp) => sum + exp.amountTotalCents, 0);
+    const estimateCount = estimatedExpenses.length;
     const nets = computeNets(participants, expenses, splits);
     const userNet = nets.find((net) => net.participantId === participant.id)?.netCents ?? 0;
 
@@ -44,6 +49,9 @@ export async function GET(
         createdAt: tab.createdAt.toISOString(),
         closedAt: tab.closedAt ? tab.closedAt.toISOString() : null,
         totalSpentCents,
+        estimatedTotalCents,
+        confirmedTotalCents,
+        estimateCount,
         yourNetCents: userNet,
         isCreator: tab.createdByUserId === user.id,
         hasProFeatures,

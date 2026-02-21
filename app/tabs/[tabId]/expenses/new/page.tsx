@@ -33,6 +33,7 @@ export default function NewExpensePage() {
   const [tabStatus, setTabStatus] = useState<"ACTIVE" | "CLOSED" | null>(null);
   const [hasProFeatures, setHasProFeatures] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [receiptQuota, setReceiptQuota] = useState<{ used: number; limit: number; remaining: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +45,7 @@ export default function NewExpensePage() {
   const [note, setNote] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [paidBy, setPaidBy] = useState("");
+  const [isEstimate, setIsEstimate] = useState(false);
 
   // Split mode state
   const [splitMode, setSplitModeInternal] = useState<SplitMode>("split");
@@ -203,13 +205,15 @@ export default function NewExpensePage() {
       fetch(`/api/tabs/${tabId}/participants`).then((res) => res.json()),
       fetch(`/api/tabs/${tabId}`).then((res) => res.json()),
       fetch(`/api/me`).then((res) => res.json()),
+      fetch(`/api/me/receipt-quota`).then((res) => res.json()),
     ])
-      .then(([participantsData, tabData, meData]) => {
+      .then(([participantsData, tabData, meData, quotaData]) => {
         const loadedParticipants = participantsData.participants ?? [];
         setParticipants(loadedParticipants);
         setTabStatus(tabData.tab?.status ?? null);
         setHasProFeatures(tabData.tab?.hasProFeatures ?? false);
         setCurrentUserId(meData?.user?.id ?? null);
+        setReceiptQuota(quotaData?.quota ?? null);
 
         if (loadedParticipants.length) {
           const meId = meData?.user?.id ?? null;
@@ -554,6 +558,7 @@ export default function NewExpensePage() {
         const updatePayload: Record<string, unknown> = {
           amount,
           note,
+          isEstimate,
         };
         if (tipValue) {
           updatePayload.tipMode = tipMode;
@@ -597,6 +602,7 @@ export default function NewExpensePage() {
       note,
       date,
       paidByParticipantId: paidBy,
+      isEstimate,
     };
 
     // Calculate tip in cents for receipt mode
@@ -767,6 +773,23 @@ export default function NewExpensePage() {
           />
         </label>
 
+        <div className="flex items-start gap-3 rounded-2xl border border-sand-200 px-4 py-3">
+          <input
+            id="isEstimate"
+            type="checkbox"
+            checked={isEstimate}
+            onChange={(e) => setIsEstimate(e.target.checked)}
+            disabled={isDisabled}
+            className="mt-0.5"
+          />
+          <label htmlFor="isEstimate" className="grid gap-0.5 text-sm cursor-pointer">
+            This is an estimate
+            {isEstimate && (
+              <span className="text-xs text-ink-500">Estimated amounts aren&apos;t finalized yet</span>
+            )}
+          </label>
+        </div>
+
         <label className="grid gap-2 text-sm">
           Note
           <input
@@ -831,6 +854,17 @@ export default function NewExpensePage() {
 
             {splitMode === "claim" && (
               <>
+                {receiptQuota && receiptQuota.remaining > 0 && (
+                  <p className="text-xs text-ink-500 mb-2">
+                    {receiptQuota.remaining} of {receiptQuota.limit} free scan{receiptQuota.remaining !== 1 ? "s" : ""} remaining this month
+                  </p>
+                )}
+                {receiptQuota && receiptQuota.remaining === 0 && (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 mb-2">
+                    <p className="text-sm font-medium text-amber-800">No scans remaining this month</p>
+                    <a href="/upgrade" className="text-xs text-amber-700 underline">Upgrade to Pro for {15} scans/month</a>
+                  </div>
+                )}
                 <ClaimPanel
                   items={receiptItems}
                   participants={participants}

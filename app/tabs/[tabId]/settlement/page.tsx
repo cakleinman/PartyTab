@@ -47,11 +47,39 @@ export default function SettlementPage() {
   const [acknowledgements, setAcknowledgements] = useState<Acknowledgement[]>([]);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
   const [isPreview, setIsPreview] = useState(false);
+  const [estimateCount, setEstimateCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [reminderError, setReminderError] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   const { pushToast } = useToast();
+
+  const handleShare = async () => {
+    if (!tabId) return;
+    setSharing(true);
+    try {
+      const res = await fetch(`/api/tabs/${tabId}/share`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        pushToast(data?.error?.message ?? "Could not generate share link.");
+        return;
+      }
+      const shareUrl = data.shareUrl;
+      if (navigator.share) {
+        await navigator.share({ title: "Settlement Summary", url: shareUrl });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        pushToast("Share link copied!");
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name !== "AbortError") {
+        pushToast("Could not share.");
+      }
+    } finally {
+      setSharing(false);
+    }
+  };
 
   useEffect(() => {
     if (!tabId) return;
@@ -67,6 +95,7 @@ export default function SettlementPage() {
         setUserId(meData?.user?.id ?? null);
         setIsPro(meData?.user?.subscriptionTier === "PRO");
         setTabInfo(tabData?.tab ? { status: tabData.tab.status, isCreator: tabData.tab.isCreator } : null);
+        setEstimateCount(tabData?.tab?.estimateCount ?? 0);
         setIsPreview(settlementData?.isPreview ?? false);
         if (settlementData?.settlement) {
           setSettlement(settlementData.settlement);
@@ -259,6 +288,12 @@ export default function SettlementPage() {
         </div>
       ) : (
         <>
+          {estimateCount > 0 && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Includes {estimateCount} estimated expense{estimateCount > 1 ? "s" : ""} — final amounts may change.
+            </div>
+          )}
+
           {/* Progress summary */}
           <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
             <div className="flex items-center justify-between">
@@ -278,6 +313,18 @@ export default function SettlementPage() {
               <p className="mt-3 text-sm text-green-600 font-medium">
                 All settled up!
               </p>
+            )}
+            {!isPreview && (
+              <div className="mt-4 border-t border-sand-100 pt-4">
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  disabled={sharing}
+                  className="btn-secondary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50"
+                >
+                  {sharing ? "Sharing..." : "Share summary"}
+                </button>
+              </div>
             )}
           </div>
 

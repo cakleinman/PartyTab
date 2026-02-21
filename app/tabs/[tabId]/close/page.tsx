@@ -23,6 +23,7 @@ export default function CloseTabPage() {
   const tabId = params?.tabId;
   const [tab, setTab] = useState<TabDetail | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [estimateCount, setEstimateCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [closing, setClosing] = useState(false);
 
@@ -40,6 +41,7 @@ export default function CloseTabPage() {
             return;
           }
           setTab(tabData.tab);
+          setEstimateCount(tabData.tab.estimateCount ?? 0);
         } else {
           setError(tabData?.error?.message ?? "Tab not found.");
         }
@@ -54,6 +56,26 @@ export default function CloseTabPage() {
     setError(null);
 
     const res = await fetch(`/api/tabs/${tabId}/close`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data?.error?.message ?? "Could not close tab.");
+      setClosing(false);
+      return;
+    }
+
+    router.push(`/tabs/${tabId}/settlement`);
+  };
+
+  const handleConvertAndClose = async () => {
+    if (!tabId) return;
+    setClosing(true);
+    setError(null);
+
+    const res = await fetch(`/api/tabs/${tabId}/close`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ convertEstimates: true }),
+    });
     const data = await res.json();
     if (!res.ok) {
       setError(data?.error?.message ?? "Could not close tab.");
@@ -107,13 +129,34 @@ export default function CloseTabPage() {
       {error && <p className="text-sm text-ink-500">{error}</p>}
 
       {tab.isCreator ? (
-        <button
-          onClick={handleClose}
-          disabled={closing || tab.status === "CLOSED"}
-          className="btn-primary w-full rounded-full px-6 py-3 text-sm font-semibold disabled:opacity-50"
-        >
-          {tab.status === "CLOSED" ? "Tab already closed" : closing ? "Closing…" : "Confirm close"}
-        </button>
+        <div className="space-y-3">
+          {estimateCount > 0 && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <p className="text-sm font-medium text-amber-800">
+                {estimateCount} expense{estimateCount > 1 ? "s are" : " is"} still estimated
+              </p>
+              <p className="mt-1 text-xs text-amber-700">
+                You can finalize them first, or convert all to confirmed.
+              </p>
+            </div>
+          )}
+          {estimateCount > 0 && (
+            <button
+              onClick={handleConvertAndClose}
+              disabled={closing || tab.status === "CLOSED"}
+              className="btn-secondary w-full rounded-full px-6 py-3 text-sm font-semibold disabled:opacity-50"
+            >
+              {closing ? "Closing…" : "Convert all estimates and close"}
+            </button>
+          )}
+          <button
+            onClick={handleClose}
+            disabled={closing || tab.status === "CLOSED"}
+            className="btn-primary w-full rounded-full px-6 py-3 text-sm font-semibold disabled:opacity-50"
+          >
+            {tab.status === "CLOSED" ? "Tab already closed" : closing ? "Closing…" : "Confirm close"}
+          </button>
+        </div>
       ) : (
         <p className="text-sm text-ink-500">Only the creator can close this tab.</p>
       )}

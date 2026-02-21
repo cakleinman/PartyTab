@@ -30,7 +30,7 @@ PartyTab is a group expense-splitting web app. Users create tabs, invite friends
 ```bash
 npm run dev              # Dev server (port 3000)
 npm run build            # Production build (runs prisma generate)
-npm run test             # Vitest unit tests (~91 cases across 11 files)
+npm run test             # Vitest unit tests (~78 cases across 11 files)
 npm run test:e2e         # Playwright E2E tests
 npm run lint             # ESLint
 npm run typecheck        # TypeScript type checking
@@ -43,9 +43,10 @@ npm run db:reset         # Reset DB + seed
 
 ```
 app/
-  api/                   # ~44 route handlers (Next.js Route Handlers)
+  api/                   # ~46 route handlers (Next.js Route Handlers)
   components/            # Shared React components (including split/ subdirectory)
   hooks/                 # Custom hooks (usePushNotifications)
+  share/                 # Public shareable tab summary pages (no auth)
   tabs/                  # Core app pages (tab dashboard, expenses, settlement)
   auth/ login/ signin/ register/ join/ claim/  # Auth flows
   upgrade/ feedback/ demo/ how-it-works/       # App pages
@@ -71,7 +72,7 @@ lib/
 
 tests/                   # Vitest unit tests
 e2e/                     # Playwright E2E tests
-prisma/                  # schema.prisma + migrations (3 migration files)
+prisma/                  # schema.prisma + migrations (4 migration files)
 ```
 
 ## Key Architecture
@@ -81,7 +82,9 @@ prisma/                  # schema.prisma + migrations (3 migration files)
 - **Validators** (`lib/validators/schemas.ts`): `parseUuid()`, `parseEmail()`, `parseDisplayName()`, `parseAmountToCents()`, `parseSplits()`, `EMAIL_REGEX`
 - **Money:** All USD cents (integers). Never floats. See `.claude/rules/database-and-money.md`.
 - **Auth:** Three modes coexist — Guest PIN (cookie), Email/Password (NextAuth), Google OAuth (NextAuth). Guest merging via `/auth/merge-confirm`.
-- **Pro features** gated by `canUseProFeatures(userId)`: receipt scanning, item-level claiming, reminders, 15/month receipt quota.
+- **Pro features** gated by `canUseProFeatures(userId)`: reminders, 15/month receipt quota. Receipt scanning is available to all users (free: 2/month, Pro: 15/month) via `canScanReceipt()`.
+- **Estimated expenses:** Expenses can be marked `isEstimate: true` for pre-trip planning. Visual cues (dashed borders, "~" prefix) distinguish estimates from confirmed expenses.
+- **Shareable cards:** Tabs can generate a `shareToken` for public summary pages at `/share/[token]` with OG image previews.
 
 ## Code Style
 

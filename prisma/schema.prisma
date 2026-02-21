@@ -111,6 +111,7 @@ model Tab {
   createdAt       DateTime  @default(now())
   closedAt        DateTime?
   archivedAt      DateTime?
+  shareToken      String?   @unique
 
   createdBy        User                        @relation("TabCreator", fields: [createdByUserId], references: [id])
   participants     Participant[]
@@ -151,6 +152,7 @@ model Expense {
   amountTotalCents    Int
   note                String?
   date                DateTime @default(now()) // The date the expense occurred
+  isEstimate          Boolean  @default(false)
   createdByUserId     String   @db.Uuid
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt

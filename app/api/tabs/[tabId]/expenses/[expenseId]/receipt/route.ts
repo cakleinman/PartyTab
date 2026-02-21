@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
-import { canUseProFeatures } from "@/lib/auth/entitlements";
+import { canScanReceipt } from "@/lib/auth/entitlements";
 import { parseUuid } from "@/lib/validators/schemas";
 import {
   getSupabaseServer,
@@ -80,10 +80,10 @@ export async function POST(
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
-    // Receipt upload requires Pro
-    const isPro = await canUseProFeatures(user.id);
-    if (!isPro) {
-      throwApiError(403, "pro_required", "Pro subscription required for receipt uploads");
+    // All authenticated users can upload receipts (quota checked at parse time)
+    const canScan = await canScanReceipt(user.id);
+    if (!canScan) {
+      throwApiError(403, "pro_required", "Receipt uploads are not available");
     }
 
     const expense = await prisma.expense.findFirst({
@@ -173,10 +173,10 @@ export async function DELETE(
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
-    // Receipt management requires Pro
-    const isPro = await canUseProFeatures(user.id);
-    if (!isPro) {
-      throwApiError(403, "pro_required", "Pro subscription required for receipt management");
+    // All authenticated users can delete their uploaded receipts
+    const canScan = await canScanReceipt(user.id);
+    if (!canScan) {
+      throwApiError(403, "pro_required", "Receipt management is not available");
     }
 
     const expense = await prisma.expense.findFirst({

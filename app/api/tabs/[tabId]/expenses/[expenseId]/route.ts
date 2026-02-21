@@ -33,6 +33,7 @@ export async function GET(
         amountTotalCents: expense.amountTotalCents,
         note: expense.note,
         date: expense.date.toISOString().slice(0, 10),
+        isEstimate: expense.isEstimate,
         paidByParticipantId: expense.paidByParticipantId,
         createdByUserId: expense.createdByUserId,
         createdAt: expense.createdAt.toISOString(),
@@ -87,6 +88,7 @@ export async function PATCH(
     const note = body?.note !== undefined ? parseOptionalString(body.note, 240) : expense.note;
     const date = body?.date ? parseDateInput(body.date) ?? expense.date : expense.date;
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? expense.paidByParticipantId, "paidByParticipantId");
+    const isEstimate = body?.isEstimate !== undefined ? body.isEstimate === true : expense.isEstimate;
 
     // Handle tip fields
     let receiptTipCents: number | null = expense.receiptTipCents;
@@ -136,6 +138,7 @@ export async function PATCH(
           amountTotalCents,
           note,
           date,
+          isEstimate,
           paidByParticipantId,
           receiptTipCents,
           receiptTipPercent,
@@ -155,6 +158,7 @@ export async function PATCH(
         amountTotalCents: updated.amountTotalCents,
         note: updated.note,
         date: updated.date.toISOString().slice(0, 10),
+        isEstimate: updated.isEstimate,
         paidByParticipantId: updated.paidByParticipantId,
         createdAt: updated.createdAt.toISOString(),
         receiptTipCents: updated.receiptTipCents,

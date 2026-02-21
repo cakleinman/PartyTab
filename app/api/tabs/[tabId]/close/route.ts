@@ -6,7 +6,7 @@ import { parseUuid } from "@/lib/validators/schemas";
 import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
   try {
@@ -24,7 +24,18 @@ export async function POST(
       throwApiError(409, "tab_closed", "Tab is already closed");
     }
 
+    const body = await request.json().catch(() => ({}));
+    const convertEstimates = body?.convertEstimates === true;
+
     const result = await prisma.$transaction(async (tx) => {
+      // If user requested, convert all estimates to confirmed
+      if (convertEstimates) {
+        await tx.expense.updateMany({
+          where: { tabId, isEstimate: true },
+          data: { isEstimate: false },
+        });
+      }
+
       const [participants, expenses, splits] = await Promise.all([
         tx.participant.findMany({ where: { tabId }, select: { id: true } }),
         tx.expense.findMany({ where: { tabId }, select: { id: true, paidByParticipantId: true, amountTotalCents: true } }),
@@ -60,6 +71,7 @@ export async function POST(
         createdAt: result.settlement.createdAt.toISOString(),
         transfers: result.transfers,
       },
+      estimatesConverted: convertEstimates,
     });
   } catch (error) {
     if (isApiError(error)) {
