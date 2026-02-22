@@ -54,6 +54,11 @@ export default function SettingsClient() {
 
   useEffect(() => {
     fetchUser();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") fetchUser();
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDisplayNameSave = async () => {
