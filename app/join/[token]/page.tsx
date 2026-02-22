@@ -7,7 +7,6 @@ import { AccessCard } from "@/app/components/AccessCard";
 
 type UnclaimedParticipant = {
   participantId: string;
-  userId: string;
   displayName: string;
 };
 
@@ -78,21 +77,10 @@ export default function JoinPage() {
       });
   }, [token, router]);
 
-  const handleJoin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!token) return;
+  const submitJoin = async (payload: Record<string, unknown>) => {
+    if (!token || joining) return;
     setJoining(true);
     setError(null);
-
-    const payload: Record<string, unknown> = {};
-
-    // If claiming an unclaimed participant
-    if (selectedClaim && selectedClaim !== "new") {
-      payload.claimParticipantId = selectedClaim;
-    } else if (!hasUser) {
-      payload.displayName = displayName;
-      payload.pin = pin;
-    }
 
     const res = await fetch(`/api/invites/${token}/join`, {
       method: "POST",
@@ -128,6 +116,18 @@ export default function JoinPage() {
     } else {
       router.push(`/tabs/${data.tabId}`);
     }
+  };
+
+  const handleJoin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const payload: Record<string, unknown> = {};
+    if (selectedClaim && selectedClaim !== "new") {
+      payload.claimParticipantId = selectedClaim;
+    } else if (!hasUser) {
+      payload.displayName = displayName;
+      payload.pin = pin;
+    }
+    await submitJoin(payload);
   };
 
   const handleContinue = () => {
@@ -266,8 +266,7 @@ export default function JoinPage() {
               if (selectedClaim === "new") {
                 setPickerConfirmed(true);
               } else if (selectedClaim) {
-                // Submit claim directly
-                handleJoin(new Event("submit") as unknown as React.FormEvent);
+                submitJoin({ claimParticipantId: selectedClaim });
               }
             }}
             disabled={!selectedClaim || joining}

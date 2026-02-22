@@ -34,6 +34,10 @@ export const POST = withApiHandler<{ token: string }>(async (request, { params }
 
   // --- Claim flow: user picks an existing unclaimed participant ---
   if (body?.claimParticipantId) {
+    if (invite.tab.status === "CLOSED") {
+      throwApiError(409, "tab_closed", "This tab is closed. Claiming a spot is no longer possible.");
+    }
+
     const participant = await prisma.participant.findUnique({
       where: { id: body.claimParticipantId },
       include: { user: true },
@@ -43,20 +47,29 @@ export const POST = withApiHandler<{ token: string }>(async (request, { params }
       throwApiError(404, "not_found", "Participant not found in this tab");
     }
 
-    // Verify the participant's user is a placeholder (no auth credentials)
     const placeholderUser = participant.user;
+
+    // Verify the participant's user is a placeholder (no auth credentials, not already merged)
     if (placeholderUser.pinHash || placeholderUser.googleId || placeholderUser.passwordHash) {
       throwApiError(400, "validation_error", "This participant has already been claimed");
     }
-
-    // Mark any claim tokens for this placeholder as claimed
-    await prisma.userClaimToken.updateMany({
-      where: { userId: placeholderUser.id, claimedAt: null },
-      data: { claimedAt: new Date() },
-    });
+    if (placeholderUser.linkedFromId) {
+      throwApiError(400, "validation_error", "This participant has already been claimed");
+    }
 
     if (sessionUserId) {
-      // Logged-in user: merge placeholder into their account
+      // Logged-in user: merge placeholder into their account (atomic)
+      await prisma.$transaction(async (tx) => {
+        // Re-verify placeholder is still unclaimed inside transaction
+        const fresh = await tx.user.findUnique({ where: { id: placeholderUser.id } });
+        if (fresh?.pinHash || fresh?.googleId || fresh?.passwordHash || fresh?.linkedFromId) {
+          throwApiError(400, "validation_error", "This participant has already been claimed");
+        }
+        await tx.userClaimToken.updateMany({
+          where: { userId: placeholderUser.id, claimedAt: null },
+          data: { claimedAt: new Date() },
+        });
+      });
       await mergeGuestToAccount(placeholderUser.id, sessionUserId);
       return created({
         joined: true,
@@ -64,12 +77,23 @@ export const POST = withApiHandler<{ token: string }>(async (request, { params }
         claimed: true,
       });
     } else {
-      // No session: generate PIN for the placeholder user
+      // No session: generate PIN for the placeholder user (atomic)
       const pin = generatePin();
       const pinHash = await hashPin(pin);
-      await prisma.user.update({
-        where: { id: placeholderUser.id },
-        data: { pinHash },
+      await prisma.$transaction(async (tx) => {
+        // Re-verify placeholder is still unclaimed inside transaction
+        const fresh = await tx.user.findUnique({ where: { id: placeholderUser.id } });
+        if (fresh?.pinHash || fresh?.googleId || fresh?.passwordHash || fresh?.linkedFromId) {
+          throwApiError(400, "validation_error", "This participant has already been claimed");
+        }
+        await tx.user.update({
+          where: { id: placeholderUser.id },
+          data: { pinHash },
+        });
+        await tx.userClaimToken.updateMany({
+          where: { userId: placeholderUser.id, claimedAt: null },
+          data: { claimedAt: new Date() },
+        });
       });
       await setSessionUserId(placeholderUser.id);
       return created({

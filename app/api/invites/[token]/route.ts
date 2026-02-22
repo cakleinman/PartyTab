@@ -26,7 +26,6 @@ export const GET = withApiHandler<{ token: string }>(async (request, { params })
             include: {
               user: {
                 select: {
-                  id: true,
                   displayName: true,
                   pinHash: true,
                   googleId: true,
@@ -48,7 +47,6 @@ export const GET = withApiHandler<{ token: string }>(async (request, { params })
     .filter((p) => !p.user.pinHash && !p.user.googleId && !p.user.passwordHash)
     .map((p) => ({
       participantId: p.id,
-      userId: p.user.id,
       displayName: p.user.displayName,
     }));
 
