@@ -43,11 +43,12 @@ npm run db:reset         # Reset DB + seed
 
 ```
 app/
-  api/                   # ~46 route handlers (Next.js Route Handlers)
+  api/                   # ~50 route handlers (Next.js Route Handlers)
   components/            # Shared React components (including split/ subdirectory)
   hooks/                 # Custom hooks (usePushNotifications)
   share/                 # Public shareable tab summary pages (no auth)
   tabs/                  # Core app pages (tab dashboard, expenses, settlement)
+  settings/              # Account settings page (payment methods, profile, danger zone)
   auth/ login/ signin/ register/ join/ claim/  # Auth flows
   upgrade/ feedback/ demo/ how-it-works/       # App pages
   blog/ use-cases/ compare/ privacy/ terms/    # SEO/marketing/legal
@@ -59,6 +60,7 @@ lib/
   db/                    # prisma.ts (singleton client)
   email/                 # client.ts (Postmark + escapeHtml)
   money/                 # cents.ts (parsing/formatting), allocation.ts (distribution)
+  payment/               # venmo.ts (deep link utilities)
   notifications/         # create.ts (in-app notifications)
   push/                  # server.ts (VAPID push)
   receipts/              # parser.ts (Claude AI receipt parsing)
@@ -72,7 +74,7 @@ lib/
 
 tests/                   # Vitest unit tests
 e2e/                     # Playwright E2E tests
-prisma/                  # schema.prisma + migrations (4 migration files)
+prisma/                  # schema.prisma + migrations (5 migration files)
 ```
 
 ## Key Architecture
@@ -85,6 +87,7 @@ prisma/                  # schema.prisma + migrations (4 migration files)
 - **Pro features** gated by `canUseProFeatures(userId)`: reminders, 15/month receipt quota. Receipt scanning is available to all users (free: 2/month, Pro: 15/month) via `canScanReceipt()`.
 - **Estimated expenses:** Expenses can be marked `isEstimate: true` for pre-trip planning. Visual cues (dashed borders, "~" prefix) distinguish estimates from confirmed expenses.
 - **Shareable cards:** Tabs can generate a `shareToken` for public summary pages at `/share/[token]` with OG image previews.
+- **Payment methods:** Users save Venmo/Zelle/PayPal/CashApp/Custom handles. Settlement page shows payee's methods with Venmo deep links. One method per type per user (`@@unique([userId, type])`).
 
 ## Code Style
 

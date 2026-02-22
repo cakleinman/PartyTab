@@ -89,3 +89,33 @@ const emailSchema = z
 export function parseEmail(value: unknown): string {
   return emailSchema.parse(value);
 }
+
+const PAYMENT_METHOD_TYPES = ["VENMO", "ZELLE", "PAYPAL", "CASHAPP", "CUSTOM"] as const;
+
+const paymentMethodTypeSchema = z.enum(PAYMENT_METHOD_TYPES, {
+  errorMap: () => ({ message: "Invalid payment method type" }),
+});
+
+const paymentHandleSchema = z
+  .string({ required_error: "Handle is required" })
+  .trim()
+  .min(1, "Handle must be 1-100 characters")
+  .max(100, "Handle must be 1-100 characters");
+
+const paymentLabelSchema = z
+  .string()
+  .trim()
+  .max(50, "Label must be 50 characters or less");
+
+export function parsePaymentMethodType(value: unknown): (typeof PAYMENT_METHOD_TYPES)[number] {
+  return paymentMethodTypeSchema.parse(value);
+}
+
+export function parsePaymentHandle(value: unknown): string {
+  return paymentHandleSchema.parse(value);
+}
+
+export function parsePaymentLabel(value: unknown): string | null {
+  if (value === undefined || value === null || value === "") return null;
+  return paymentLabelSchema.parse(value);
+}

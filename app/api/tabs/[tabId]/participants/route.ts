@@ -22,7 +22,15 @@ export async function GET(
     const [participants, expenses, splits, claimTokens] = await Promise.all([
       prisma.participant.findMany({
         where: { tabId },
-        include: { user: true },
+        include: {
+          user: {
+            include: {
+              paymentMethods: {
+                select: { type: true, handle: true, label: true },
+              },
+            },
+          },
+        },
       }),
       prisma.expense.findMany({
         where: { tabId },
@@ -63,6 +71,7 @@ export async function GET(
           netCents: nets.find((net) => net.participantId === participant.id)?.netCents ?? 0,
           isPlaceholder,
           claimUrl: isPlaceholder && claimToken ? `${baseUrl}/claim/${claimToken}` : undefined,
+          paymentMethods: participant.user.paymentMethods,
         };
       }),
     });

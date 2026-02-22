@@ -201,12 +201,20 @@ export default function TabsPage() {
           >
             Log out
           </button>
-          <Link
-            href="/tabs/archive"
-            className="text-sm text-ink-400 hover:text-ink-700 hover:underline transition"
-          >
-            View archive
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/settings"
+              className="text-sm text-ink-400 hover:text-ink-700 hover:underline transition"
+            >
+              Settings
+            </Link>
+            <Link
+              href="/tabs/archive"
+              className="text-sm text-ink-400 hover:text-ink-700 hover:underline transition"
+            >
+              View archive
+            </Link>
+          </div>
         </div>
       )}
     </div>

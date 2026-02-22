@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { formatCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
+import { PaymentMethodBadges, type PaymentMethodInfo } from "@/app/components/PaymentMethodBadges";
 
 type Participant = {
   id: string;
   userId: string;
   displayName: string;
   netCents: number;
+  paymentMethods?: PaymentMethodInfo[];
 };
 
 type Transfer = {
@@ -46,6 +48,7 @@ export default function SettlementPage() {
   const [settlement, setSettlement] = useState<Settlement | null>(null);
   const [acknowledgements, setAcknowledgements] = useState<Acknowledgement[]>([]);
   const [tabInfo, setTabInfo] = useState<TabInfo | null>(null);
+  const [tabName, setTabName] = useState<string>("");
   const [isPreview, setIsPreview] = useState(false);
   const [estimateCount, setEstimateCount] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -95,6 +98,7 @@ export default function SettlementPage() {
         setUserId(meData?.user?.id ?? null);
         setIsPro(meData?.user?.subscriptionTier === "PRO");
         setTabInfo(tabData?.tab ? { status: tabData.tab.status, isCreator: tabData.tab.isCreator } : null);
+        setTabName(tabData?.tab?.name ?? "");
         setEstimateCount(tabData?.tab?.estimateCount ?? 0);
         setIsPreview(settlementData?.isPreview ?? false);
         if (settlementData?.settlement) {
@@ -111,6 +115,12 @@ export default function SettlementPage() {
   const nameById = useMemo(() => {
     const map = new Map<string, string>();
     participants.forEach((participant) => map.set(participant.id, participant.displayName));
+    return map;
+  }, [participants]);
+
+  const paymentMethodsById = useMemo(() => {
+    const map = new Map<string, PaymentMethodInfo[]>();
+    participants.forEach((p) => map.set(p.id, p.paymentMethods ?? []));
     return map;
   }, [participants]);
 
@@ -358,14 +368,22 @@ export default function SettlementPage() {
                           <p className="text-2xl font-semibold">{formatCents(transfer.amountCents)}</p>
                         </div>
                         {isPayer && !ack?.initiatedAt && (
-                          <button
-                            type="button"
-                            onClick={() => handleMarkPaid(transfer)}
-                            disabled={actionLoading === `pay-${actionKey}`}
-                            className="btn-primary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50"
-                          >
-                            {actionLoading === `pay-${actionKey}` ? "Marking…" : "I've paid"}
-                          </button>
+                          <div className="flex flex-col gap-3 sm:items-end">
+                            <PaymentMethodBadges
+                              paymentMethods={paymentMethodsById.get(transfer.toParticipantId) ?? []}
+                              payeeName={nameById.get(transfer.toParticipantId) ?? "them"}
+                              amountCents={transfer.amountCents}
+                              tabName={tabName}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleMarkPaid(transfer)}
+                              disabled={actionLoading === `pay-${actionKey}`}
+                              className="btn-primary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50"
+                            >
+                              {actionLoading === `pay-${actionKey}` ? "Marking…" : "I've paid"}
+                            </button>
+                          </div>
                         )}
                         {isReceiver && ack?.initiatedAt && (
                           <button

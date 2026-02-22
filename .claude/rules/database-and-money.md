@@ -26,12 +26,13 @@ User → StripeCustomer (1:1) → StripeSubscription
 User → InAppNotification
      → PushSubscription
      → EmailPreference
+     → PaymentMethod (Venmo/Zelle/PayPal/CashApp/Custom handles, @@unique[userId, type])
 Tab  → TabReminderSetting → TabReminderLog
 ```
 
 ## Enums
 
-`TabStatus` (ACTIVE/CLOSED), `AuthProvider` (GUEST/EMAIL/GOOGLE), `SubscriptionTier` (GUEST/BASIC/PRO), `NotificationType` (PAYMENT_RECEIVED/PAYMENT_CONFIRMED/PAYMENT_REMINDER), `SettlementAcknowledgementStatus`
+`TabStatus` (ACTIVE/CLOSED), `AuthProvider` (GUEST/EMAIL/GOOGLE), `SubscriptionTier` (GUEST/BASIC/PRO), `NotificationType` (PAYMENT_RECEIVED/PAYMENT_CONFIRMED/PAYMENT_REMINDER), `SettlementAcknowledgementStatus`, `PaymentMethodType` (VENMO/ZELLE/PAYPAL/CASHAPP/CUSTOM)
 
 ## Critical: Participant ID ≠ User ID
 
