@@ -2,7 +2,8 @@ import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
 import { generatePin, hashPin } from "@/lib/auth/pin";
-import { setSessionUserId } from "@/lib/session/session";
+import { getSessionUserId, setSessionUserId } from "@/lib/session/session";
+import { mergeGuestToAccount } from "@/lib/auth/merge";
 
 /**
  * GET /api/users/claim/[token]
@@ -80,7 +81,27 @@ export async function POST(
       throwApiError(410, "already_claimed", "This account has already been claimed");
     }
 
-    // Generate a random 4-digit PIN server-side
+    // Check if the caller is already logged in
+    const sessionUserId = await getSessionUserId();
+
+    if (sessionUserId) {
+      // Logged-in user: merge placeholder into their existing account
+      await mergeGuestToAccount(claimToken.userId, sessionUserId);
+      await prisma.userClaimToken.update({
+        where: { id: claimToken.id },
+        data: { claimedAt: new Date() },
+      });
+
+      const sessionUser = await prisma.user.findUnique({ where: { id: sessionUserId } });
+
+      return ok({
+        success: true,
+        merged: true,
+        displayName: sessionUser?.displayName ?? claimToken.user.displayName,
+      });
+    }
+
+    // No session: generate a random 4-digit PIN server-side
     const pin = generatePin();
     const pinHash = await hashPin(pin);
 

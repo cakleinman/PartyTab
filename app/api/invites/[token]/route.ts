@@ -19,14 +19,42 @@ export const GET = withApiHandler<{ token: string }>(async (request, { params })
   const { token } = await params;
   const invite = await prisma.invite.findUnique({
     where: { token },
-    include: { tab: true },
+    include: {
+      tab: {
+        include: {
+          participants: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  displayName: true,
+                  pinHash: true,
+                  googleId: true,
+                  passwordHash: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
   if (!invite || invite.revokedAt) {
     throwApiError(404, "not_found", "Invite not found");
   }
 
+  // Filter to unclaimed placeholder participants (no auth credentials set)
+  const unclaimedParticipants = invite.tab.participants
+    .filter((p) => !p.user.pinHash && !p.user.googleId && !p.user.passwordHash)
+    .map((p) => ({
+      participantId: p.id,
+      userId: p.user.id,
+      displayName: p.user.displayName,
+    }));
+
   return ok({
     invite: { token: invite.token },
     tab: { id: invite.tab.id, name: invite.tab.name, status: invite.tab.status },
+    unclaimedParticipants,
   });
 });

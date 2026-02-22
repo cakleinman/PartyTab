@@ -24,6 +24,7 @@ export default function ClaimPage() {
     displayName: string;
     pin: string;
   } | null>(null);
+  const [mergeSuccess, setMergeSuccess] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -64,6 +65,19 @@ export default function ClaimPage() {
       return;
     }
 
+    // Merged into existing account — redirect to tab
+    if (data.merged) {
+      setMergeSuccess(true);
+      setTimeout(() => {
+        if (tabs.length === 1) {
+          router.push(`/tabs/${tabs[0].id}`);
+        } else {
+          router.push("/tabs");
+        }
+      }, 1500);
+      return;
+    }
+
     // Show access card with generated PIN
     setClaimSuccess({
       displayName: data.displayName,
@@ -78,6 +92,17 @@ export default function ClaimPage() {
       router.push("/tabs");
     }
   };
+
+  if (mergeSuccess) {
+    return (
+      <div className="max-w-xl space-y-6">
+        <h1 className="text-3xl font-semibold">Account merged!</h1>
+        <p className="text-sm text-ink-500">
+          The placeholder account has been merged into your existing account. Redirecting…
+        </p>
+      </div>
+    );
+  }
 
   if (loading) {
     return <p className="text-sm text-ink-500">Loading…</p>;

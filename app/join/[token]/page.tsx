@@ -5,6 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import { InfoTooltip } from "@/app/components/InfoTooltip";
 import { AccessCard } from "@/app/components/AccessCard";
 
+type UnclaimedParticipant = {
+  participantId: string;
+  userId: string;
+  displayName: string;
+};
+
 export default function JoinPage() {
   const params = useParams<{ token: string }>();
   const router = useRouter();
@@ -23,6 +29,11 @@ export default function JoinPage() {
     tabId: string;
   } | null>(null);
 
+  // Picker state
+  const [unclaimedParticipants, setUnclaimedParticipants] = useState<UnclaimedParticipant[]>([]);
+  const [selectedClaim, setSelectedClaim] = useState<string | "new" | null>(null);
+  const [pickerConfirmed, setPickerConfirmed] = useState(false);
+
   useEffect(() => {
     if (!token) return;
     Promise.all([
@@ -33,6 +44,21 @@ export default function JoinPage() {
         if (inviteData?.tab?.name) {
           setTabName(inviteData.tab.name);
           setTabStatus(inviteData.tab.status);
+          const unclaimed: UnclaimedParticipant[] = inviteData.unclaimedParticipants ?? [];
+          if (unclaimed.length > 0) {
+            setUnclaimedParticipants(unclaimed);
+          }
+
+          // Auto-select matching unclaimed participant based on session display name
+          const userName: string | null = meData?.user?.displayName ?? null;
+          if (userName && unclaimed.length > 0) {
+            const match = unclaimed.find((p: UnclaimedParticipant) =>
+              fuzzyNameMatch(userName, p.displayName),
+            );
+            if (match) {
+              setSelectedClaim(match.participantId);
+            }
+          }
         } else {
           setError(inviteData?.error?.message ?? "Invite not found.");
         }
@@ -57,8 +83,13 @@ export default function JoinPage() {
     if (!token) return;
     setJoining(true);
     setError(null);
+
     const payload: Record<string, unknown> = {};
-    if (!hasUser) {
+
+    // If claiming an unclaimed participant
+    if (selectedClaim && selectedClaim !== "new") {
+      payload.claimParticipantId = selectedClaim;
+    } else if (!hasUser) {
       payload.displayName = displayName;
       payload.pin = pin;
     }
@@ -72,6 +103,12 @@ export default function JoinPage() {
     if (!res.ok) {
       setError(data?.error?.message ?? "Could not join.");
       setJoining(false);
+      return;
+    }
+
+    // Claim flow: merged into existing account (no PIN)
+    if (data.claimed && !data.pin) {
+      router.push(`/tabs/${data.tabId}`);
       return;
     }
 
@@ -115,7 +152,7 @@ export default function JoinPage() {
     return <p className="text-sm text-ink-500">Loading invite…</p>;
   }
 
-  if (error) {
+  if (error && !tabName) {
     return <p className="text-sm text-ink-500">{error}</p>;
   }
 
@@ -175,6 +212,74 @@ export default function JoinPage() {
     );
   }
 
+  // Show picker step if there are unclaimed participants and picker hasn't been confirmed
+  if (unclaimedParticipants.length > 0 && !pickerConfirmed) {
+    return (
+      <div className="max-w-xl space-y-6">
+        <h1 className="text-3xl font-semibold">Join {tabName}</h1>
+        <div className="space-y-4 rounded-3xl border border-sand-200 bg-white/80 p-6">
+          <p className="text-sm font-medium text-ink-700">
+            Were you already added to this tab?
+          </p>
+          <div className="space-y-2">
+            {unclaimedParticipants.map((p) => (
+              <label
+                key={p.participantId}
+                className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+                  selectedClaim === p.participantId
+                    ? "border-ink-900 bg-ink-900/5"
+                    : "border-sand-200 hover:border-sand-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="claimPicker"
+                  value={p.participantId}
+                  checked={selectedClaim === p.participantId}
+                  onChange={() => setSelectedClaim(p.participantId)}
+                  className="accent-ink-900"
+                />
+                <span className="text-sm font-medium">{p.displayName}</span>
+              </label>
+            ))}
+            <label
+              className={`flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 transition-colors ${
+                selectedClaim === "new"
+                  ? "border-ink-900 bg-ink-900/5"
+                  : "border-sand-200 hover:border-sand-300"
+              }`}
+            >
+              <input
+                type="radio"
+                name="claimPicker"
+                value="new"
+                checked={selectedClaim === "new"}
+                onChange={() => setSelectedClaim("new")}
+                className="accent-ink-900"
+              />
+              <span className="text-sm font-medium">I&apos;m someone new</span>
+            </label>
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <button
+            onClick={() => {
+              if (selectedClaim === "new") {
+                setPickerConfirmed(true);
+              } else if (selectedClaim) {
+                // Submit claim directly
+                handleJoin(new Event("submit") as unknown as React.FormEvent);
+              }
+            }}
+            disabled={!selectedClaim || joining}
+            className="btn-primary w-full rounded-full px-6 py-3 text-sm font-semibold disabled:opacity-50"
+          >
+            {joining ? "Joining…" : "Continue"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-xl space-y-6">
       <h1 className="text-3xl font-semibold">Join {tabName}</h1>
@@ -207,4 +312,11 @@ export default function JoinPage() {
       </form>
     </div>
   );
+}
+
+/** Check if two names fuzzy-match (case-insensitive word overlap) */
+function fuzzyNameMatch(a: string, b: string): boolean {
+  const wordsA = a.toLowerCase().split(/\s+/);
+  const wordsB = b.toLowerCase().split(/\s+/);
+  return wordsA.some((w) => wordsB.includes(w)) || wordsB.some((w) => wordsA.includes(w));
 }
