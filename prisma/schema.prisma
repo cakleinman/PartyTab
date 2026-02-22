@@ -43,6 +43,7 @@ enum PaymentMethodType {
   ZELLE
   PAYPAL
   CASHAPP
+  CASH
   CUSTOM
 }
 

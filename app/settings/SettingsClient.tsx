@@ -214,7 +214,7 @@ export default function SettingsClient() {
 
       {/* Guest upgrade banner */}
       {isGuest && (
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-6">
+        <div className="rounded-2xl sm:rounded-3xl border border-amber-200 bg-amber-50 p-4 sm:p-6">
           <p className="text-sm text-amber-900 mb-3">
             You&apos;re using a guest account. Create an account to save payment methods and access all
             settings.
@@ -229,25 +229,25 @@ export default function SettingsClient() {
       )}
 
       {/* Profile */}
-      <section className="rounded-3xl border border-sand-200 bg-white/80 p-6 space-y-4">
+      <section className="rounded-2xl sm:rounded-3xl border border-sand-200 bg-white/80 p-4 sm:p-6 space-y-4">
         <h2 className="text-lg font-semibold">Profile</h2>
         <div>
           <label htmlFor="displayName" className="block text-sm font-medium text-ink-700 mb-1">
             Display name
           </label>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
             <input
               id="displayName"
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              className="flex-1 rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100"
+              className="w-full sm:flex-1 rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100"
             />
             <button
               type="button"
               onClick={handleDisplayNameSave}
               disabled={displayNameSaving || displayName === user.displayName}
-              className="btn-primary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50"
+              className="btn-primary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50 w-full sm:w-auto"
             >
               {displayNameSaving ? "Saving…" : "Save"}
             </button>
@@ -263,26 +263,26 @@ export default function SettingsClient() {
 
       {/* Email */}
       {!isGuest && (
-        <section className="rounded-3xl border border-sand-200 bg-white/80 p-6 space-y-4">
+        <section className="rounded-2xl sm:rounded-3xl border border-sand-200 bg-white/80 p-4 sm:p-6 space-y-4">
           <h2 className="text-lg font-semibold">Email</h2>
           {isEmailAuth ? (
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-ink-700 mb-1">
                 Email address
               </label>
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100"
+                  className="w-full sm:flex-1 rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100"
                 />
                 <button
                   type="button"
                   onClick={handleEmailSave}
                   disabled={emailSaving || email === (user.email ?? "")}
-                  className="btn-primary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50"
+                  className="btn-primary rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50 w-full sm:w-auto"
                 >
                   {emailSaving ? "Saving…" : "Save"}
                 </button>
@@ -299,7 +299,7 @@ export default function SettingsClient() {
 
       {/* Password */}
       {isEmailAuth && (
-        <section className="rounded-3xl border border-sand-200 bg-white/80 p-6 space-y-4">
+        <section className="rounded-2xl sm:rounded-3xl border border-sand-200 bg-white/80 p-4 sm:p-6 space-y-4">
           <h2 className="text-lg font-semibold">Password</h2>
           <div>
             <label htmlFor="currentPassword" className="block text-sm font-medium text-ink-700 mb-1">
@@ -338,7 +338,7 @@ export default function SettingsClient() {
       )}
 
       {/* Payment Methods */}
-      <section className="rounded-3xl border border-sand-200 bg-white/80 p-6 space-y-4">
+      <section className="rounded-2xl sm:rounded-3xl border border-sand-200 bg-white/80 p-4 sm:p-6 space-y-4">
         <div>
           <h2 className="text-lg font-semibold">Payment methods</h2>
           <p className="text-xs text-ink-500">
@@ -354,8 +354,8 @@ export default function SettingsClient() {
 
       {/* Notifications */}
       {!isGuest && (
-        <section className="rounded-3xl border border-sand-200 bg-white/80 p-6">
-          <div className="flex items-center justify-between">
+        <section className="rounded-2xl sm:rounded-3xl border border-sand-200 bg-white/80 p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <h2 className="text-lg font-semibold">Email reminders</h2>
               <p className="text-xs text-ink-500">Receive email reminders about unpaid debts</p>
@@ -379,7 +379,7 @@ export default function SettingsClient() {
       )}
 
       {/* Danger Zone */}
-      <section className="rounded-3xl border-2 border-red-200 bg-red-50/50 p-6 space-y-4">
+      <section className="rounded-2xl sm:rounded-3xl border-2 border-red-200 bg-red-50/50 p-4 sm:p-6 space-y-4">
         <h2 className="text-lg font-semibold text-red-900">Danger zone</h2>
         <p className="text-sm text-red-800">
           Permanently delete your account. Your display name on existing tabs will be anonymized.
@@ -393,8 +393,8 @@ export default function SettingsClient() {
         </button>
 
         {deleteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
-            <div className="w-full max-w-sm space-y-4 rounded-3xl bg-white p-6">
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4 sm:p-6">
+            <div className="w-full max-w-sm space-y-4 rounded-2xl sm:rounded-3xl bg-white p-5 sm:p-6">
               <h3 className="text-lg font-semibold">Delete account</h3>
               <p className="text-sm text-ink-600">
                 This cannot be undone. Your data will be permanently deleted.

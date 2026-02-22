@@ -27,7 +27,7 @@ export async function mergeGuestToAccount(
     return;
   }
 
-  // Perform all updates in a transaction
+  // Perform all updates in a transaction (20s timeout for large merges)
   await prisma.$transaction(async (tx) => {
     // 1. Update all Participant records from guest to target
     // First, check for conflicts (same tab, both users are participants)
@@ -146,5 +146,5 @@ export async function mergeGuestToAccount(
         pinHash: null,
       },
     });
-  });
+  }, { timeout: 20000 });
 }

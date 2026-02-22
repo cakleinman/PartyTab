@@ -5,6 +5,8 @@ import { mergeGuestToAccount } from "@/lib/auth/merge";
 import { ok, error as apiError } from "@/lib/api/response";
 import { checkRateLimit, recordFailedAttempt, getClientIp } from "@/lib/auth/rate-limit";
 
+export const maxDuration = 30;
+
 type PendingMerge = {
   guestUserId: string;
   guestDisplayName: string;

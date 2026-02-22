@@ -43,11 +43,16 @@ export default function MergeConfirmPage() {
     setError(null);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const res = await fetch("/api/auth/merge-confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       const data = await res.json();
 
@@ -58,9 +63,17 @@ export default function MergeConfirmPage() {
       }
 
       // Merge successful, redirect to tabs
+      // Use window.location as fallback in case Next.js client routing stalls
       router.replace("/tabs");
-    } catch {
-      setError("Network error. Please try again.");
+      setTimeout(() => {
+        window.location.href = "/tabs";
+      }, 2000);
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setError("Request timed out. Please try again.");
+      } else {
+        setError("Network error. Please try again.");
+      }
       setSubmitting(false);
     }
   };

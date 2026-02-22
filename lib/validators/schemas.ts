@@ -90,7 +90,7 @@ export function parseEmail(value: unknown): string {
   return emailSchema.parse(value);
 }
 
-const PAYMENT_METHOD_TYPES = ["VENMO", "ZELLE", "PAYPAL", "CASHAPP", "CUSTOM"] as const;
+const PAYMENT_METHOD_TYPES = ["VENMO", "ZELLE", "PAYPAL", "CASHAPP", "CASH", "CUSTOM"] as const;
 
 const paymentMethodTypeSchema = z.enum(PAYMENT_METHOD_TYPES, {
   errorMap: () => ({ message: "Invalid payment method type" }),

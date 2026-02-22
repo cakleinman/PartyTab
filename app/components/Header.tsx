@@ -36,11 +36,11 @@ export function Header() {
 
   return (
     <header className="border-b border-ink-100 bg-sand-50/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4 sm:px-6 sm:py-5">
         <Link href="/" className="text-lg font-semibold tracking-tight">
           PartyTab
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
+        <nav className="flex items-center gap-2 sm:gap-4 text-sm">
           {isSignedIn ? (
             <Link
               href="/tabs"

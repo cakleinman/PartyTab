@@ -161,19 +161,19 @@ export default function ParticipantsPage() {
       {/* Add person form */}
       {showAddForm && tab?.status === "ACTIVE" && (
         <div className="rounded-2xl border border-sand-200 bg-white/80 p-4 space-y-4">
-          <form onSubmit={handleAddPerson} className="flex gap-3">
+          <form onSubmit={handleAddPerson} className="flex flex-col gap-2 sm:flex-row sm:gap-3">
             <input
               type="text"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Person's name"
-              className="flex-1 rounded-xl border border-sand-200 px-4 py-2 text-sm"
+              className="w-full sm:flex-1 rounded-xl border border-sand-200 px-4 py-2.5 text-sm"
               required
             />
             <button
               type="submit"
               disabled={adding || !newName.trim()}
-              className="btn-primary rounded-full px-4 py-2 text-sm font-medium disabled:opacity-50"
+              className="btn-primary rounded-full px-4 py-2.5 text-sm font-medium disabled:opacity-50 w-full sm:w-auto"
             >
               {adding ? "Adding…" : "Add"}
             </button>
@@ -188,17 +188,17 @@ export default function ParticipantsPage() {
               <p className="text-sm font-medium text-green-800">
                 {lastAddedName} added! Share this link with them:
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="text"
                   value={claimUrl}
                   readOnly
-                  className="flex-1 rounded-lg border border-green-200 bg-white px-3 py-1.5 text-xs"
+                  className="w-full sm:flex-1 rounded-lg border border-green-200 bg-white px-3 py-2 text-xs truncate"
                 />
                 <button
                   type="button"
                   onClick={() => copyClaimUrl()}
-                  className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
+                  className="rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 w-full sm:w-auto"
                 >
                   Copy
                 </button>
@@ -218,7 +218,7 @@ export default function ParticipantsPage() {
           return (
             <div
               key={participant.id}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-sand-200 bg-white/80 px-4 py-3 text-sm"
+              className="flex flex-col gap-2 rounded-2xl border border-sand-200 bg-white/80 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3"
             >
               <span className="font-medium text-ink-700">
                 {participant.displayName}
@@ -259,7 +259,7 @@ export default function ParticipantsPage() {
                     className="text-ink-400 hover:text-red-600 disabled:opacity-50"
                     title="Remove participant"
                   >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
