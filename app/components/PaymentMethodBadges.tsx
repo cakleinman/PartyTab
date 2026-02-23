@@ -1,6 +1,6 @@
 "use client";
 
-import { buildVenmoPayLink, buildVenmoWebLink } from "@/lib/payment/venmo";
+import { buildVenmoWebLink } from "@/lib/payment/venmo";
 import { formatCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
 
@@ -106,18 +106,6 @@ export function PaymentMethodBadges({
                     className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
                   >
                     Open
-                  </a>
-                  <a
-                    href={buildVenmoPayLink({
-                      handle: method.handle,
-                      amountCents,
-                      note: tabName,
-                    })}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
-                  >
-                    Pay
                   </a>
                 </>
               ) : (
