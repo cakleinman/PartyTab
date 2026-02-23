@@ -53,7 +53,17 @@ export function PaymentMethodBadges({
   return (
     <div className="space-y-2">
       {paymentMethods.map((method) => {
-        if (method.type === "CUSTOM" || method.type === "CASH") {
+        if (method.type === "CASH") {
+          return (
+            <div key={method.type} className="rounded-xl bg-sand-50 px-3 py-2 text-xs text-ink-600">
+              <span className="font-semibold uppercase tracking-wide text-ink-400">Cash</span>
+              {" — "}
+              Accepts cash in person
+            </div>
+          );
+        }
+
+        if (method.type === "CUSTOM") {
           return (
             <div key={method.type} className="rounded-xl bg-sand-50 px-3 py-2 text-xs text-ink-600">
               <span className="font-semibold uppercase tracking-wide text-ink-400">

@@ -18,12 +18,18 @@ type Props = {
 
 type PaymentType = "VENMO" | "ZELLE" | "PAYPAL" | "CASHAPP" | "CASH" | "CUSTOM";
 
-const PAYMENT_TYPES: { type: PaymentType; label: string; placeholder: string; prefix?: string }[] = [
+const PAYMENT_TYPES: {
+  type: PaymentType;
+  label: string;
+  placeholder: string;
+  prefix?: string;
+  toggle?: boolean;
+}[] = [
   { type: "VENMO", label: "Venmo", placeholder: "username", prefix: "@" },
   { type: "ZELLE", label: "Zelle", placeholder: "email or phone number" },
   { type: "PAYPAL", label: "PayPal", placeholder: "email address" },
   { type: "CASHAPP", label: "Cash App", placeholder: "cashtag", prefix: "$" },
-  { type: "CASH", label: "Cash", placeholder: "e.g. Pay me in person" },
+  { type: "CASH", label: "Cash", placeholder: "", toggle: true },
   { type: "CUSTOM", label: "Custom", placeholder: "Payment instructions" },
 ];
 
@@ -129,6 +135,50 @@ function PaymentTypeRow({
   );
 }
 
+function PaymentToggleRow({
+  label,
+  enabled,
+  disabled,
+  onToggle,
+}: {
+  label: string;
+  enabled: boolean;
+  disabled: boolean;
+  onToggle: () => Promise<void>;
+}) {
+  const [saving, setSaving] = useState(false);
+
+  const handleToggle = async () => {
+    setSaving(true);
+    await onToggle();
+    setSaving(false);
+  };
+
+  return (
+    <div className="flex items-center justify-between rounded-2xl border border-sand-200 bg-sand-50 px-4 py-3">
+      <span className="text-sm font-medium text-ink-900">{label}</span>
+      {!disabled ? (
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={saving}
+          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
+            enabled ? "bg-green-600" : "bg-sand-300"
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+              enabled ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      ) : (
+        <p className="text-xs text-ink-400">Create an account to save payment methods</p>
+      )}
+    </div>
+  );
+}
+
 export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }: Props) {
   const { pushToast } = useToast();
 
@@ -169,8 +219,25 @@ export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }
 
   return (
     <div className="space-y-3">
-      {PAYMENT_TYPES.map(({ type, label, placeholder, prefix }) => {
+      {PAYMENT_TYPES.map(({ type, label, placeholder, prefix, toggle }) => {
         const saved = paymentMethods.find((pm) => pm.type === type);
+        if (toggle) {
+          return (
+            <PaymentToggleRow
+              key={type}
+              label={label}
+              enabled={!!saved}
+              disabled={disabled}
+              onToggle={async () => {
+                if (saved) {
+                  await handleRemove(type);
+                } else {
+                  await handleSave(type, "accepted");
+                }
+              }}
+            />
+          );
+        }
         return (
           <PaymentTypeRow
             key={type}
