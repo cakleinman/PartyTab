@@ -1,6 +1,6 @@
 "use client";
 
-import { buildVenmoWebLink } from "@/lib/payment/venmo";
+import { buildVenmoPayLink, buildVenmoWebLink } from "@/lib/payment/venmo";
 import { useToast } from "@/app/components/ToastProvider";
 
 export type PaymentMethodInfo = {
@@ -75,8 +75,13 @@ export function PaymentMethodBadges({
           );
         }
 
+        const venmoOpts = { amountCents: amountCents, note: tabName };
         const venmoWebLink =
-          method.type === "VENMO" ? buildVenmoWebLink(method.handle) : null;
+          method.type === "VENMO" ? buildVenmoWebLink(method.handle, venmoOpts) : null;
+        const venmoAppLink =
+          method.type === "VENMO"
+            ? buildVenmoPayLink({ handle: method.handle, amountCents, note: tabName })
+            : null;
 
         return (
           <div
@@ -105,6 +110,14 @@ export function PaymentMethodBadges({
                   className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
                 >
                   Open
+                </a>
+              )}
+              {venmoAppLink && (
+                <a
+                  href={venmoAppLink}
+                  className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
+                >
+                  Open App
                 </a>
               )}
             </div>
