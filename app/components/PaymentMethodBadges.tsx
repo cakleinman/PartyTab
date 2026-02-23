@@ -1,6 +1,6 @@
 "use client";
 
-import { buildVenmoPayLink } from "@/lib/payment/venmo";
+import { buildVenmoPayLink, buildVenmoWebLink } from "@/lib/payment/venmo";
 import { useToast } from "@/app/components/ToastProvider";
 
 export type PaymentMethodInfo = {
@@ -77,16 +77,6 @@ export function PaymentMethodBadges({
 
         const isVenmo = method.type === "VENMO";
 
-        const handleVenmoOpen = isVenmo
-          ? () => {
-              window.location.href = buildVenmoPayLink({
-                handle: method.handle,
-                amountCents,
-                note: tabName,
-              });
-            }
-          : null;
-
         return (
           <div
             key={method.type}
@@ -106,14 +96,34 @@ export function PaymentMethodBadges({
               >
                 Copy
               </button>
-              {handleVenmoOpen ? (
-                <button
-                  type="button"
-                  onClick={handleVenmoOpen}
-                  className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
-                >
-                  Open
-                </button>
+              {isVenmo ? (
+                <>
+                  <a
+                    href={buildVenmoWebLink(method.handle)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
+                  >
+                    Open
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const deepLink = buildVenmoPayLink({
+                        handle: method.handle,
+                        amountCents,
+                        note: tabName,
+                      });
+                      window.location.href = deepLink;
+                      setTimeout(() => {
+                        pushToast("Couldn\u2019t open Venmo app. Use Open or Copy instead.");
+                      }, 1500);
+                    }}
+                    className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
+                  >
+                    Pay
+                  </button>
+                </>
               ) : null}
             </div>
           </div>
