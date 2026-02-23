@@ -1,6 +1,10 @@
 /**
- * Build a Venmo deep link for mobile payment.
- * venmo://paycharge?txn=pay&recipients=USERNAME&amount=XX.XX&note=TabName
+ * Build a Venmo web payment link with pre-filled amount.
+ * https://venmo.com/USERNAME?txn=pay&amount=XX.XX&note=TabName
+ *
+ * On mobile, iOS/Android intercept venmo.com universal links and open
+ * the Venmo app with the payment pre-filled. On desktop, it opens the
+ * Venmo website (which doesn't support creating transactions).
  */
 export function buildVenmoPayLink({
   handle,
@@ -14,15 +18,11 @@ export function buildVenmoPayLink({
   // Strip leading @ if present
   const username = handle.replace(/^@/, "");
   const amount = (amountCents / 100).toFixed(2);
-  const params = new URLSearchParams({
-    txn: "pay",
-    recipients: username,
-    amount,
-  });
+  const params = new URLSearchParams({ txn: "pay", amount });
   if (note) {
     params.set("note", note);
   }
-  return `venmo://paycharge?${params.toString()}`;
+  return `https://venmo.com/${encodeURIComponent(username)}?${params.toString()}`;
 }
 
 /**

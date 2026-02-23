@@ -107,22 +107,18 @@ export function PaymentMethodBadges({
                   >
                     Open
                   </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      window.location.href = buildVenmoPayLink({
-                        handle: method.handle,
-                        amountCents,
-                        note: tabName,
-                      });
-                      setTimeout(() => {
-                        pushToast("Couldn\u2019t open Venmo app. Use Open or Copy instead.");
-                      }, 1500);
-                    }}
+                  <a
+                    href={buildVenmoPayLink({
+                      handle: method.handle,
+                      amountCents,
+                      note: tabName,
+                    })}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
                   >
                     Pay
-                  </button>
+                  </a>
                 </>
               ) : (
                 <button
