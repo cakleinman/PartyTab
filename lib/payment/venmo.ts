@@ -27,21 +27,29 @@ export function buildVenmoPayLink({
 
 /**
  * Build a Venmo web link with optional pre-filled payment details.
- * https://venmo.com/USERNAME?txn=pay&amount=XX.XX&note=TabName
+ *
+ * When options are provided, uses the `recipients` query param format to avoid
+ * the double-recipient bug on mobile (where the Venmo app resolves both the
+ * URL path and query params as separate recipients):
+ *   https://venmo.com/?txn=pay&recipients=USERNAME&amount=XX.XX&note=TabName
+ *
+ * When no options, returns a simple profile URL:
+ *   https://venmo.com/USERNAME
  */
 export function buildVenmoWebLink(
   handle: string,
   options?: { amountCents?: number; note?: string },
 ): string {
   const username = handle.replace(/^@/, "");
-  const base = `https://venmo.com/${encodeURIComponent(username)}`;
-  if (!options?.amountCents && !options?.note) return base;
-  const params = new URLSearchParams({ txn: "pay" });
+  if (!options?.amountCents && !options?.note) {
+    return `https://venmo.com/${encodeURIComponent(username)}`;
+  }
+  const params = new URLSearchParams({ txn: "pay", recipients: username });
   if (options.amountCents) {
     params.set("amount", (options.amountCents / 100).toFixed(2));
   }
   if (options.note) {
     params.set("note", options.note);
   }
-  return `${base}?${params.toString()}`;
+  return `https://venmo.com/?${params.toString()}`;
 }
