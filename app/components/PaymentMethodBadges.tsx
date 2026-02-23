@@ -1,6 +1,6 @@
 "use client";
 
-import { buildVenmoPayLink, buildVenmoWebLink } from "@/lib/payment/venmo";
+import { buildVenmoPayLink } from "@/lib/payment/venmo";
 import { useToast } from "@/app/components/ToastProvider";
 
 export type PaymentMethodInfo = {
@@ -77,25 +77,13 @@ export function PaymentMethodBadges({
 
         const isVenmo = method.type === "VENMO";
 
-        // For Venmo: try venmo:// deep link first (pre-fills amount in-app),
-        // fall back to plain profile page if app isn't installed.
         const handleVenmoOpen = isVenmo
           ? () => {
-              const deepLink = buildVenmoPayLink({
+              window.location.href = buildVenmoPayLink({
                 handle: method.handle,
                 amountCents,
                 note: tabName,
               });
-              const profileUrl = buildVenmoWebLink(method.handle);
-              const timeout = setTimeout(() => {
-                window.location.href = profileUrl;
-              }, 1500);
-              window.addEventListener(
-                "blur",
-                () => clearTimeout(timeout),
-                { once: true },
-              );
-              window.location.href = deepLink;
             }
           : null;
 
