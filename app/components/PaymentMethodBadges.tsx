@@ -1,6 +1,6 @@
 "use client";
 
-import { buildVenmoWebLink } from "@/lib/payment/venmo";
+import { buildVenmoPayLink, buildVenmoWebLink } from "@/lib/payment/venmo";
 import { useToast } from "@/app/components/ToastProvider";
 
 export type PaymentMethodInfo = {
@@ -75,10 +75,29 @@ export function PaymentMethodBadges({
           );
         }
 
-        const venmoWebLink =
-          method.type === "VENMO"
-            ? buildVenmoWebLink(method.handle, { amountCents, note: tabName })
-            : null;
+        const isVenmo = method.type === "VENMO";
+
+        // For Venmo: try venmo:// deep link first (pre-fills amount in-app),
+        // fall back to plain profile page if app isn't installed.
+        const handleVenmoOpen = isVenmo
+          ? () => {
+              const deepLink = buildVenmoPayLink({
+                handle: method.handle,
+                amountCents,
+                note: tabName,
+              });
+              const profileUrl = buildVenmoWebLink(method.handle);
+              const timeout = setTimeout(() => {
+                window.location.href = profileUrl;
+              }, 1500);
+              window.addEventListener(
+                "blur",
+                () => clearTimeout(timeout),
+                { once: true },
+              );
+              window.location.href = deepLink;
+            }
+          : null;
 
         return (
           <div
@@ -99,16 +118,15 @@ export function PaymentMethodBadges({
               >
                 Copy
               </button>
-              {venmoWebLink && (
-                <a
-                  href={venmoWebLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              {handleVenmoOpen ? (
+                <button
+                  type="button"
+                  onClick={handleVenmoOpen}
                   className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
                 >
                   Open
-                </a>
-              )}
+                </button>
+              ) : null}
             </div>
           </div>
         );
