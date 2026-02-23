@@ -1,6 +1,7 @@
 "use client";
 
 import { buildVenmoPayLink, buildVenmoWebLink } from "@/lib/payment/venmo";
+import { formatCents } from "@/lib/money/cents";
 import { useToast } from "@/app/components/ToastProvider";
 
 export type PaymentMethodInfo = {
@@ -33,10 +34,10 @@ export function PaymentMethodBadges({
 }: Props) {
   const { pushToast } = useToast();
 
-  const copyHandle = async (handle: string) => {
+  const copyText = async (text: string, label: string) => {
     try {
-      await navigator.clipboard.writeText(handle);
-      pushToast("Copied to clipboard");
+      await navigator.clipboard.writeText(text);
+      pushToast(`${label} copied to clipboard`);
     } catch {
       pushToast("Failed to copy");
     }
@@ -89,15 +90,15 @@ export function PaymentMethodBadges({
               <p className="truncate text-sm font-medium text-ink-900">{method.handle}</p>
             </div>
             <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => copyHandle(method.handle)}
-                className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
-              >
-                Copy
-              </button>
               {isVenmo ? (
                 <>
+                  <button
+                    type="button"
+                    onClick={() => copyText(formatCents(amountCents), "Amount")}
+                    className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
+                  >
+                    Copy
+                  </button>
                   <a
                     href={buildVenmoWebLink(method.handle)}
                     target="_blank"
@@ -109,12 +110,11 @@ export function PaymentMethodBadges({
                   <button
                     type="button"
                     onClick={() => {
-                      const deepLink = buildVenmoPayLink({
+                      window.location.href = buildVenmoPayLink({
                         handle: method.handle,
                         amountCents,
                         note: tabName,
                       });
-                      window.location.href = deepLink;
                       setTimeout(() => {
                         pushToast("Couldn\u2019t open Venmo app. Use Open or Copy instead.");
                       }, 1500);
@@ -124,7 +124,15 @@ export function PaymentMethodBadges({
                     Pay
                   </button>
                 </>
-              ) : null}
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => copyText(method.handle, "Handle")}
+                  className="shrink-0 rounded-full bg-sand-100 px-2.5 py-1 text-[11px] font-semibold text-ink-600 transition hover:bg-sand-200"
+                >
+                  Copy
+                </button>
+              )}
             </div>
           </div>
         );
