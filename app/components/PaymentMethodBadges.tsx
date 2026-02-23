@@ -76,7 +76,9 @@ export function PaymentMethodBadges({
         }
 
         const venmoWebLink =
-          method.type === "VENMO" ? buildVenmoWebLink(method.handle) : null;
+          method.type === "VENMO"
+            ? buildVenmoWebLink(method.handle, { amountCents, note: tabName })
+            : null;
 
         return (
           <div
