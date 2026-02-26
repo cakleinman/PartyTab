@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db/prisma";
+import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
 
 export const alt = "PartyTab Summary";
 export const size = { width: 1200, height: 630 };
@@ -16,8 +17,18 @@ export default async function OGImage({ params }: { params: Promise<{ token: str
     where: { shareToken: token },
     include: {
       participants: { select: { id: true } },
-      expenses: { select: { amountTotalCents: true, isEstimate: true } },
+      expenses: {
+        select: {
+          id: true,
+          paidByParticipantId: true,
+          amountTotalCents: true,
+          isEstimate: true,
+        },
+      },
       settlement: { include: { transfers: { select: { id: true } } } },
+      acknowledgements: {
+        select: { fromParticipantId: true, toParticipantId: true, status: true },
+      },
     },
   });
 
@@ -35,9 +46,7 @@ export default async function OGImage({ params }: { params: Promise<{ token: str
             fontFamily: "system-ui",
           }}
         >
-          <div style={{ display: "flex", fontSize: "32px", color: "#6B6560" }}>
-            Tab not found
-          </div>
+          <div style={{ display: "flex", fontSize: "32px", color: "#6B6560" }}>Tab not found</div>
         </div>
       ),
       { ...size },
@@ -46,14 +55,30 @@ export default async function OGImage({ params }: { params: Promise<{ token: str
 
   const count = tab.participants.length;
   const total = tab.expenses.reduce((s, e) => s + e.amountTotalCents, 0);
-  const perPerson = count > 0 ? Math.round(total / count) : 0;
-  const hasEst = tab.expenses.some((e) => e.isEstimate);
   const isClosed = tab.status === "CLOSED";
-  const transfers = tab.settlement?.transfers.length ?? 0;
 
-  const subtitle = isClosed
-    ? `${fmtCents(total)} total · ${count} people · settled in ${transfers} transfer${transfers !== 1 ? "s" : ""}`
-    : `${hasEst ? "~" : ""}${fmtCents(perPerson)}/person · ${count} people`;
+  // Count transfers and settled
+  let transferCount: number;
+  if (isClosed && tab.settlement) {
+    transferCount = tab.settlement.transfers.length;
+  } else {
+    const splits = await prisma.expenseSplit.findMany({
+      where: { expense: { tabId: tab.id } },
+      select: { expenseId: true, participantId: true, amountCents: true },
+    });
+    const nets = computeNets(tab.participants, tab.expenses, splits);
+    const transfers = computeSettlement(nets.map((n) => ({ ...n })));
+    transferCount = transfers.length;
+  }
+
+  const settledCount = tab.acknowledgements.filter((a) => a.status === "ACKNOWLEDGED").length;
+
+  const progress =
+    transferCount > 0
+      ? `${settledCount} of ${transferCount} settled up`
+      : "All even";
+
+  const subtitle = `${count} people · ${fmtCents(total)} total · ${progress}`;
 
   return new ImageResponse(
     (
@@ -139,7 +164,7 @@ export default async function OGImage({ params }: { params: Promise<{ token: str
                   color: "#6B6560",
                 }}
               >
-                {hasEst ? "~Per person" : "Per person"}
+                Total
               </div>
               <div
                 style={{
@@ -150,8 +175,7 @@ export default async function OGImage({ params }: { params: Promise<{ token: str
                   marginTop: "4px",
                 }}
               >
-                {hasEst ? "~" : ""}
-                {fmtCents(perPerson)}
+                {fmtCents(total)}
               </div>
             </div>
             <div
