@@ -261,7 +261,7 @@ export default async function SharePage({ params }: Props) {
               href={`/join/${inviteToken}`}
               className="btn-primary inline-block rounded-full px-8 py-3 text-sm font-semibold"
             >
-              Join this tab
+              Settle your tab
             </Link>
           )}
           <Link
