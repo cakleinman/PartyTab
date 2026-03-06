@@ -365,7 +365,7 @@ export default function IsItRudeToSplitBillEvenlyPage() {
           <h3 className="text-2xl font-bold text-sand-50 mb-2">
             Split Bills Fairly — Without the Awkwardness
           </h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             PartyTab&apos;s receipt scanner splits by item so nobody has to have the awkward
             conversation. Scan, claim, settle — done in 60 seconds.
           </p>

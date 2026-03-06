@@ -217,10 +217,19 @@ export function ClaimPanel({
           <>
             {/* Upload UI */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Upload receipt image"
               onDrop={handleDrop}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
               onDragLeave={() => setDragOver(false)}
               onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
+              onKeyDown={(e) => {
+                if ((e.key === "Enter" || e.key === " ") && !disabled && !isUploading) {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
               className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition cursor-pointer ${disabled || isUploading
                 ? "border-sand-200 bg-sand-50 cursor-not-allowed opacity-50"
                 : dragOver

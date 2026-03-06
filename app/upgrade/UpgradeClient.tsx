@@ -146,7 +146,7 @@ export default function UpgradeClient() {
                 <span>View and confirm settlements</span>
               </li>
               <li className="flex items-start gap-2">
-                <XIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-ink-300" />
+                <XIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-ink-500" />
                 <span className="text-ink-400">Cannot create tabs</span>
               </li>
               <li className="flex items-start gap-2">

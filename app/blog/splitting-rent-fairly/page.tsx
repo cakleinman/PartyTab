@@ -309,7 +309,7 @@ export default function SplittingRentFairlyPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Living with roommates?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Track shared household expenses without the spreadsheet headaches.
                     </p>
                     <Link

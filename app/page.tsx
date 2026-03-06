@@ -153,8 +153,9 @@ function InteractiveDemo() {
       {showForm && (
         <div className="mb-6 bg-teal-50/50 rounded-2xl p-4 border border-teal-200 animate-fade-in-up space-y-4">
           <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-wide text-ink-500 font-bold">What was it for?</p>
+            <label htmlFor="demo-note" className="text-[10px] uppercase tracking-wide text-ink-500 font-bold">What was it for?</label>
             <input
+              id="demo-note"
               ref={noteInputRef}
               type="text"
               value={note}
@@ -166,10 +167,11 @@ function InteractiveDemo() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-wide text-ink-500 font-bold">How much?</p>
+              <label htmlFor="demo-amount" className="text-[10px] uppercase tracking-wide text-ink-500 font-bold">How much?</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink-500">$</span>
                 <input
+                  id="demo-amount"
                   type="number"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
@@ -181,8 +183,9 @@ function InteractiveDemo() {
               </div>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] uppercase tracking-wide text-ink-500 font-bold">Paid by</p>
+              <label htmlFor="demo-paid-by" className="text-[10px] uppercase tracking-wide text-ink-500 font-bold">Paid by</label>
               <select
+                id="demo-paid-by"
                 value={paidBy}
                 onChange={(e) => {
                   setPaidBy(e.target.value);
@@ -220,7 +223,7 @@ function InteractiveDemo() {
                 );
               })}
             </div>
-            <p className="text-[10px] text-ink-300">
+            <p className="text-[10px] text-ink-500">
               {splitWith.length === 0 || splitWith.length === potentialOwers.length
                 ? "Everyone owes"
                 : `${splitWith.length} ${splitWith.length === 1 ? "person owes" : "people owe"}`}
@@ -338,7 +341,8 @@ export default function LandingPage() {
               value={tabName}
               onChange={(e) => setTabName(e.target.value)}
               placeholder="Name your trip (e.g. Miami 🏖️)"
-              className="flex-1 bg-transparent border-none px-6 py-4 text-base md:text-lg placeholder:text-ink-300 rounded-xl focus:shadow-none focus:ring-0"
+              aria-label="Name your trip"
+              className="flex-1 bg-transparent border-none px-6 py-4 text-base md:text-lg placeholder:text-ink-500 rounded-xl focus:ring-2 focus:ring-teal-600/30"
             />
             <button
               type="submit"
@@ -552,7 +556,7 @@ export default function LandingPage() {
         <h2 className="text-2xl sm:text-3xl font-bold text-sand-50 mb-4">
           Start splitting expenses in seconds.
         </h2>
-        <p className="text-ink-300 mb-8 max-w-lg mx-auto text-sm sm:text-base">
+        <p className="text-ink-500 mb-8 max-w-lg mx-auto text-sm sm:text-base">
           Create a tab in seconds. App download optional.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">

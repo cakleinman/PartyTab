@@ -346,7 +346,7 @@ export default function CollegeRoommateExpensesProvoPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Moving into a college apartment?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Start a tab, share the link with your roommates, and stop fighting
                         over who owes what.
                     </p>

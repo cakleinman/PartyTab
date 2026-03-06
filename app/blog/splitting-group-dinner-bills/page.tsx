@@ -295,7 +295,7 @@ export default function SplittingGroupDinnerBillsPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Going to dinner with friends?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Log the bill, split it instantly, settle with one Venmo.
                     </p>
                     <Link

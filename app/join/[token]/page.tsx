@@ -179,6 +179,7 @@ export default function JoinPage() {
             <input
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
+              aria-invalid={!!error}
               className="rounded-2xl border border-sand-200 px-4 py-2"
               required
             />
@@ -199,7 +200,7 @@ export default function JoinPage() {
               required
             />
           </label>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <button
             type="submit"
             disabled={joining}
@@ -260,7 +261,7 @@ export default function JoinPage() {
               <span className="text-sm font-medium">I&apos;m someone new</span>
             </label>
           </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <button
             onClick={() => {
               if (selectedClaim === "new") {
@@ -295,12 +296,13 @@ export default function JoinPage() {
             <input
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
+              aria-invalid={!!error}
               className="rounded-2xl border border-sand-200 px-4 py-2"
               required
             />
           </label>
         )}
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={joining}

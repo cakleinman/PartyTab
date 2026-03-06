@@ -160,6 +160,9 @@ function PaymentToggleRow({
       {!disabled ? (
         <button
           type="button"
+          role="switch"
+          aria-checked={enabled}
+          aria-label={`Toggle ${label}`}
           onClick={handleToggle}
           disabled={saving}
           className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
@@ -191,7 +194,7 @@ export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }
       });
       if (!res.ok) {
         const data = await res.json();
-        pushToast(data?.error?.message ?? "Failed to save");
+        pushToast(data?.error?.message ?? "Could not save — please try again");
         return;
       }
       pushToast(`${PAYMENT_TYPES.find((p) => p.type === type)?.label} saved`);
@@ -207,7 +210,7 @@ export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }
         method: "DELETE",
       });
       if (!res.ok) {
-        pushToast("Failed to remove");
+        pushToast("Could not remove — please try again");
         return;
       }
       pushToast(`${PAYMENT_TYPES.find((p) => p.type === type)?.label} removed`);

@@ -425,7 +425,7 @@ export default function FriendsNeverPayBackPage() {
           <h3 className="text-2xl font-bold text-sand-50 mb-2">
             Track Shared Expenses—Not IOUs
           </h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             Split expenses in real time, track who owes what, and settle up without the
             awkwardness. No forgotten debts. No chasing friends for money.
           </p>

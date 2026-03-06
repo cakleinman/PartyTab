@@ -115,10 +115,16 @@ export default function RootLayout({
       </head>
       <body className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
         <div className="min-h-screen bg-sand-50 text-ink-900">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-full focus:bg-ink-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-sand-50"
+          >
+            Skip to main content
+          </a>
           <Header />
           <ProBanner />
           <ToastProvider>
-            <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">{children}</main>
+            <main id="main-content" className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">{children}</main>
           </ToastProvider>
           <Footer />
         </div>

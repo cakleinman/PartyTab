@@ -1,16 +1,32 @@
 "use client";
 
+import { useEffect } from "react";
+
 interface ProPreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 export function ProPreviewModal({ isOpen, onClose }: ProPreviewModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-lg rounded-3xl bg-white p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pro-preview-title"
+        className="w-full max-w-lg rounded-3xl bg-white p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-400">
@@ -18,10 +34,11 @@ export function ProPreviewModal({ isOpen, onClose }: ProPreviewModalProps) {
                 <path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z" />
               </svg>
             </span>
-            <h2 className="text-xl font-semibold">Pro Feature</h2>
+            <h2 id="pro-preview-title" className="text-xl font-semibold">Pro Feature</h2>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="rounded-full p-2 hover:bg-sand-100"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

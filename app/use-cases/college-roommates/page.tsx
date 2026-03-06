@@ -285,7 +285,7 @@ export default function CollegeRoommatesPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Keep your apartment drama-free
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Start a tab for your college apartment. Settle up before finals.
                 </p>
                 <Link

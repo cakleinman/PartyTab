@@ -195,7 +195,7 @@ export default function SkiTripsPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Hit the slopes, not the calculator
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Create a tab and share the link with your ski crew.
                 </p>
                 <Link

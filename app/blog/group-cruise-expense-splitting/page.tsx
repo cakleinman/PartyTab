@@ -302,7 +302,7 @@ export default function GroupCruiseExpenseSplittingPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Cruising with friends?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Track every excursion, dinner, and &quot;I&apos;ll get this round&quot; moment.
                     </p>
                     <Link

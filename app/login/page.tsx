@@ -92,7 +92,8 @@ function LoginContent() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2 text-sm placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-ink-900 focus:ring-offset-2"
+                aria-invalid={!!error}
+                className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2 text-sm placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-900 focus:ring-offset-2"
                 placeholder="you@example.com"
                 required
               />
@@ -104,14 +105,14 @@ function LoginContent() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2 text-sm placeholder:text-ink-300 focus:outline-none focus:ring-2 focus:ring-ink-900 focus:ring-offset-2"
+                className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2 text-sm placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-ink-900 focus:ring-offset-2"
                 placeholder="••••••••"
                 required
               />
             </label>
 
             {error && (
-              <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
+              <div role="alert" className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-600">
                 {error}
               </div>
             )}

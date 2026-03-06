@@ -28,7 +28,7 @@ export default function FeedbackPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data?.error?.message ?? "Failed to submit feedback");
+        throw new Error(data?.error?.message ?? "Could not submit feedback — please try again");
       }
 
       setSubmitted(true);
@@ -123,6 +123,7 @@ export default function FeedbackPage() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              aria-invalid={!!error}
               placeholder="you@example.com"
               className="mt-1 block w-full rounded-xl border border-sand-300 bg-white px-4 py-3 text-ink-900 placeholder:text-ink-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
@@ -144,7 +145,7 @@ export default function FeedbackPage() {
           </div>
 
           {error && (
-            <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+            <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
               {error}
             </div>
           )}

@@ -384,7 +384,7 @@ export default function LargeGroupDinnerBillTipsPage() {
           <h3 className="text-2xl font-bold text-sand-50 mb-2">
             Hosting a Group Dinner?
           </h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             PartyTab makes splitting large group bills effortless. Scan the receipt, everyone
             claims their items, settle in 60 seconds. No math, no awkwardness, no one left
             paying more than their share.

@@ -508,7 +508,7 @@ export default function ReceiptScanningAppsPage() {
           <h3 className="text-2xl font-bold text-sand-50 mb-2">
             Tired of splitting everything evenly?
           </h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             Try PartyTab&apos;s AI-powered receipt scanner. Itemized splitting in seconds, no app
             download required.
           </p>

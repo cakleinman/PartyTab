@@ -216,7 +216,7 @@ export default function BachelorPartyPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Ready to plan the bachelor party?
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Create a tab and send the link to the group chat.
                 </p>
                 <Link

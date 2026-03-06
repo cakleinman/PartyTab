@@ -257,7 +257,7 @@ export default function HowItWorksPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Ready to try it?
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Create your first tab in under a minute.
                 </p>
                 <Link

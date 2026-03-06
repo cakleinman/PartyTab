@@ -68,6 +68,7 @@ export default function SignInPage() {
           <input
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
+            aria-invalid={!!error}
             className="rounded-2xl border border-sand-200 px-4 py-2"
             required
           />
@@ -88,7 +89,7 @@ export default function SignInPage() {
             required
           />
         </label>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={signing}

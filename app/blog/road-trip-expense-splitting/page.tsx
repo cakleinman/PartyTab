@@ -375,7 +375,7 @@ export default function RoadTripExpenseSplittingPage() {
       <div className="mt-16 pt-8 border-t border-sand-200">
         <div className="bg-ink-900 rounded-3xl p-8 text-center">
           <h3 className="text-2xl font-bold text-sand-50 mb-2">Hitting the road with friends?</h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             Track gas, tolls, hotels, and food as you go. Settle up before you get home.
           </p>
           <Link

@@ -35,6 +35,18 @@ export default function SettingsClient() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { pushToast } = useToast();
 
+  useEffect(() => {
+    if (!deleteModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setDeleteModalOpen(false);
+        setDeleteConfirmation("");
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [deleteModalOpen]);
+
   const fetchUser = async () => {
     try {
       const res = await fetch("/api/me");
@@ -46,7 +58,7 @@ export default function SettingsClient() {
         setReminderEmailsEnabled(data.user.reminderEmailsEnabled ?? true);
       }
     } catch {
-      pushToast("Failed to load settings");
+      pushToast("Could not load settings — please check your connection and try again");
     } finally {
       setLoading(false);
     }
@@ -72,13 +84,13 @@ export default function SettingsClient() {
       });
       if (!res.ok) {
         const data = await res.json();
-        pushToast(data?.error?.message ?? "Failed to update display name");
+        pushToast(data?.error?.message ?? "Could not update your name — please try again");
         return;
       }
       setUser((prev) => (prev ? { ...prev, displayName } : null));
       pushToast("Display name updated");
     } catch {
-      pushToast("Failed to update display name");
+      pushToast("Could not update your name — please try again");
     } finally {
       setDisplayNameSaving(false);
     }
@@ -95,13 +107,13 @@ export default function SettingsClient() {
       });
       if (!res.ok) {
         const data = await res.json();
-        pushToast(data?.error?.message ?? "Failed to update email");
+        pushToast(data?.error?.message ?? "Could not update email — please try again");
         return;
       }
       setUser((prev) => (prev ? { ...prev, email } : null));
       pushToast("Email updated");
     } catch {
-      pushToast("Failed to update email");
+      pushToast("Could not update email — please try again");
     } finally {
       setEmailSaving(false);
     }
@@ -122,14 +134,14 @@ export default function SettingsClient() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setPasswordError(data?.error?.message ?? "Failed to update password");
+        setPasswordError(data?.error?.message ?? "Could not update password — please try again");
         return;
       }
       setCurrentPassword("");
       setNewPassword("");
       pushToast("Password updated");
     } catch {
-      setPasswordError("Failed to update password");
+      setPasswordError("Could not update password — please try again");
     } finally {
       setPasswordSaving(false);
     }
@@ -145,13 +157,13 @@ export default function SettingsClient() {
         body: JSON.stringify({ reminderEmailsEnabled: newValue }),
       });
       if (!res.ok) {
-        pushToast("Failed to update reminders");
+        pushToast("Could not update reminders — please try again");
         return;
       }
       setReminderEmailsEnabled(newValue);
       pushToast(newValue ? "Email reminders enabled" : "Email reminders disabled");
     } catch {
-      pushToast("Failed to update reminders");
+      pushToast("Could not update reminders — please try again");
     } finally {
       setReminderSaving(false);
     }
@@ -167,7 +179,7 @@ export default function SettingsClient() {
         body: JSON.stringify({ confirmation: "DELETE" }),
       });
       if (!res.ok) {
-        pushToast("Failed to delete account");
+        pushToast("Could not delete account — please try again");
         setDeleteLoading(false);
         return;
       }
@@ -177,7 +189,7 @@ export default function SettingsClient() {
       await fetch("/api/logout", { method: "POST" });
       window.location.href = "/";
     } catch {
-      pushToast("Failed to delete account");
+      pushToast("Could not delete account — please try again");
       setDeleteLoading(false);
     }
   };
@@ -315,6 +327,7 @@ export default function SettingsClient() {
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
+              aria-invalid={!!passwordError}
               className="w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100"
             />
           </div>
@@ -330,7 +343,7 @@ export default function SettingsClient() {
               className="w-full rounded-xl border border-sand-200 bg-white px-3 py-2 text-sm focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100"
             />
           </div>
-          {passwordError && <p className="text-sm text-red-600">{passwordError}</p>}
+          {passwordError && <p role="alert" className="text-sm text-red-600">{passwordError}</p>}
           <button
             type="button"
             onClick={handlePasswordChange}
@@ -367,6 +380,9 @@ export default function SettingsClient() {
             </div>
             <button
               type="button"
+              role="switch"
+              aria-checked={reminderEmailsEnabled}
+              aria-label="Toggle email reminders"
               onClick={handleReminderToggle}
               disabled={reminderSaving}
               className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
@@ -399,8 +415,13 @@ export default function SettingsClient() {
 
         {deleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 p-4 sm:p-6">
-            <div className="w-full max-w-sm space-y-4 rounded-2xl sm:rounded-3xl bg-white p-5 sm:p-6">
-              <h3 className="text-lg font-semibold">Delete account</h3>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-account-title"
+              className="w-full max-w-sm space-y-4 rounded-2xl sm:rounded-3xl bg-white p-5 sm:p-6"
+            >
+              <h3 id="delete-account-title" className="text-lg font-semibold">Delete account</h3>
               <p className="text-sm text-ink-600">
                 This cannot be undone. Your data will be permanently deleted.
               </p>

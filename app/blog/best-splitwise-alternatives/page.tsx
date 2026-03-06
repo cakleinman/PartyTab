@@ -530,7 +530,7 @@ export default function SplitwiseAlternativesPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Ready to ditch the daily limits?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Start a free tab on PartyTab—no download, no limits. Share the link and start splitting expenses in 30 seconds.
                     </p>
                     <Link

@@ -201,7 +201,7 @@ export default function RoommatesPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Keep the peace in your apartment
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Start a tab for your household today.
                 </p>
                 <Link
