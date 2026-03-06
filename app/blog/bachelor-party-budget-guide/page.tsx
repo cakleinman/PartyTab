@@ -458,7 +458,7 @@ export default function BachelorPartyBudgetGuidePage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Planning a bachelor party?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Create a shared tab in 30 seconds. Share the link. Everyone logs
                         expenses. Settle up with one click.
                     </p>

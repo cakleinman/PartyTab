@@ -306,7 +306,7 @@ export default function GirlsTripBudgetPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Planning a girls trip?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Track expenses, split fairly, keep the drama on the reality TV—not
                         in your friend group.
                     </p>

@@ -469,7 +469,7 @@ export default function RemindSomeoneOwesMoneyPage() {
           <h3 className="text-2xl font-bold text-sand-50 mb-2">
             Let the App Be the Bad Guy
           </h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             Track shared expenses and send automated payment reminders—so you never have to
             chase friends for money again.
           </p>

@@ -485,7 +485,7 @@ export default function SplittingGroceriesWithRoommatesPage() {
           <h3 className="text-2xl font-bold text-white mb-3">
             Living with roommates?
           </h3>
-          <p className="text-ink-300 mb-6 max-w-xl mx-auto">
+          <p className="text-ink-500 mb-6 max-w-xl mx-auto">
             PartyTab makes it easy to track shared expenses like groceries,
             utilities, and household supplies — and settle up without the
             awkward Venmo requests.

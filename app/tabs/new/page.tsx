@@ -72,7 +72,7 @@ function NewTabForm() {
     });
     const data = await response.json();
     if (!response.ok) {
-      setError(data?.error?.message ?? "Could not create tab.");
+      setError(data?.error?.message ?? "Could not create tab — please try again");
       setLoading(false);
       return;
     }

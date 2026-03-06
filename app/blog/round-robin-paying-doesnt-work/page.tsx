@@ -444,7 +444,7 @@ export default function RoundRobinPayingPage() {
           <h3 className="text-2xl font-bold text-sand-50 mb-2">
             Track what matters. Split what&apos;s fair.
           </h3>
-          <p className="text-ink-300 mb-6">
+          <p className="text-ink-500 mb-6">
             PartyTab keeps a running tab of who owes what, so you never have to guess if
             it&apos;s your turn.
           </p>

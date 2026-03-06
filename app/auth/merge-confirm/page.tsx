@@ -139,6 +139,7 @@ export default function MergeConfirmPage() {
                   const value = e.target.value.replace(/\D/g, "").slice(0, 4);
                   setPin(value);
                 }}
+                aria-invalid={!!error}
                 placeholder="••••"
                 className="w-full rounded-xl border border-sand-200 px-4 py-3 text-center text-2xl tracking-[0.5em] focus:border-ink-400 focus:outline-none focus:ring-1 focus:ring-ink-400"
                 autoFocus
@@ -146,7 +147,7 @@ export default function MergeConfirmPage() {
             </div>
 
             {error && (
-              <p className="text-sm text-red-600 text-center">{error}</p>
+              <p role="alert" className="text-sm text-red-600 text-center">{error}</p>
             )}
 
             <button

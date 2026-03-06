@@ -205,7 +205,7 @@ export default function GroupDinnersPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Never fight over the check again
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Next group dinner, start a tab first.
                 </p>
                 <Link

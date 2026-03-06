@@ -367,7 +367,7 @@ export default function WhoPaysForGuestOfHonorPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Planning a bachelor or bachelorette party?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         PartyTab tracks who&apos;s covering the guest of honor with custom splits. Everyone sees what they owe, and you settle up with minimal payments.
                     </p>
                     <Link

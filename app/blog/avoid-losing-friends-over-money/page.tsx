@@ -301,7 +301,7 @@ export default function AvoidLosingFriendsOverMoneyPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Split expenses the easy way
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Clear expense tracking = fewer awkward conversations.
                     </p>
                     <Link

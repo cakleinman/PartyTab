@@ -284,7 +284,7 @@ export default function SplittingHolidayExpensesFamilyPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Family gathering coming up?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Track holiday expenses transparently. No spreadsheets, no awkward texts.
                     </p>
                     <Link

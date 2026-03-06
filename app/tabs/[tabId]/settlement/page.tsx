@@ -446,7 +446,7 @@ export default function SettlementPage() {
                               {actionLoading === `reminder-${actionKey}` ? "Sending…" : "Send reminder"}
                             </button>
                             {reminderError && (
-                              <span className="text-xs text-red-600">{reminderError}</span>
+                              <span role="alert" className="text-xs text-red-600">{reminderError}</span>
                             )}
                           </div>
                         )}

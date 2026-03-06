@@ -386,7 +386,7 @@ export default function SplitAirbnbCostsDifferentRoomsPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Splitting a rental with friends?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Track Airbnb costs, groceries, and more with custom splits—because not
                         everyone deserves to pay the same.
                     </p>

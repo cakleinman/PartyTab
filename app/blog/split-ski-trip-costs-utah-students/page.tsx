@@ -402,7 +402,7 @@ export default function SplitSkiTripCostsUtahPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Ski day coming up?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Create a tab before you leave. Settle up on the drive home.
                     </p>
                     <Link

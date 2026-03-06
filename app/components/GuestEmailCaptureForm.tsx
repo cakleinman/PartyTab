@@ -62,8 +62,8 @@ export function GuestEmailCaptureForm({
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error?.message ?? "Failed to add email");
-        pushToast(data?.error?.message ?? "Failed to add email");
+        setError(data?.error?.message ?? "Could not add email — please try again");
+        pushToast(data?.error?.message ?? "Could not add email — please try again");
         return;
       }
 
@@ -107,6 +107,7 @@ export function GuestEmailCaptureForm({
           placeholder="Enter email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          aria-invalid={!!error}
           disabled={loading}
           className="mt-2 w-full rounded-lg border border-sand-200 bg-white px-4 py-2.5 text-sm text-ink-900 placeholder-ink-400 transition focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100 disabled:bg-sand-50 disabled:text-ink-500"
         />
@@ -131,7 +132,7 @@ export function GuestEmailCaptureForm({
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 p-3">
+        <div role="alert" className="rounded-lg bg-red-50 p-3">
           <p className="text-xs text-red-700">{error}</p>
         </div>
       )}

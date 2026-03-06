@@ -591,7 +591,7 @@ export default function NewExpensePage() {
         router.push(`/tabs/${tabId}`);
       } catch (err) {
         console.error("Failed to save expense:", err);
-        setError("Failed to save expense.");
+        setError("Could not save expense — please check your connection and try again");
         setSaving(false);
       }
       return;
@@ -766,6 +766,7 @@ export default function NewExpensePage() {
                 setError("Amount must be a valid dollar value.");
               }
             }}
+            aria-invalid={!!error}
             className="rounded-2xl border border-sand-200 px-4 py-2"
             placeholder="128.50"
             required
@@ -911,6 +912,7 @@ export default function NewExpensePage() {
                       <input
                         type="text"
                         inputMode="decimal"
+                        aria-label="Tip amount"
                         value={tipValue}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -957,6 +959,7 @@ export default function NewExpensePage() {
                       <input
                         type="text"
                         inputMode="decimal"
+                        aria-label="Tax amount"
                         value={customTaxValue}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -1039,6 +1042,7 @@ export default function NewExpensePage() {
                     <input
                       type="text"
                       inputMode="decimal"
+                      aria-label="Tip amount"
                       value={customTipValue}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -1100,6 +1104,7 @@ export default function NewExpensePage() {
                 <div className="flex gap-2">
                   <input
                     type="text"
+                    aria-label="New participant name"
                     value={newParticipantName}
                     onChange={(e) => setNewParticipantName(e.target.value)}
                     onKeyDown={(e) => {
@@ -1147,7 +1152,7 @@ export default function NewExpensePage() {
           )}
         </div>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"

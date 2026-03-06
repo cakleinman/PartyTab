@@ -88,7 +88,7 @@ export default function BlogPage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Ready to split some expenses?
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     Create a tab and see how easy it can be.
                 </p>
                 <Link

@@ -403,7 +403,7 @@ export default function WhoPaysOnFirstDatePage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Once you&apos;re past the first date—track shared expenses fairly
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         PartyTab helps couples and roommates split rent, utilities, groceries, and shared costs without the mental load. Create a tab, track expenses, settle up fairly.
                     </p>
                     <Link

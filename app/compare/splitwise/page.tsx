@@ -298,7 +298,7 @@ export default function CompareSplitwisePage() {
                 <h2 className="text-2xl font-bold text-sand-50 mb-2">
                     Try PartyTab Free
                 </h2>
-                <p className="text-ink-300 mb-6">
+                <p className="text-ink-500 mb-6">
                     See for yourself why people love the simplicity.
                 </p>
                 <Link

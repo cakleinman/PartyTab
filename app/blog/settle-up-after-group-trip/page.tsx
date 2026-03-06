@@ -445,7 +445,7 @@ export default function SettleUpAfterGroupTripPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Settle up the smart way
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Track expenses during the trip, get an optimized settlement plan at
                         the end. No spreadsheets, no arguments.
                     </p>

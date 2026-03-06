@@ -211,7 +211,7 @@ export function ReceiptUpload({
             )}
           </button>
         )}
-        {error && <p className="text-xs text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
       </div>
     );
   }
@@ -219,10 +219,19 @@ export function ReceiptUpload({
   return (
     <div className="space-y-2">
       <div
+        role="button"
+        tabIndex={0}
+        aria-label="Upload receipt image"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => !disabled && fileInputRef.current?.click()}
+        onKeyDown={(e) => {
+          if ((e.key === "Enter" || e.key === " ") && !disabled) {
+            e.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
         className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition cursor-pointer ${disabled
           ? "border-sand-200 bg-sand-50 cursor-not-allowed opacity-50"
           : dragOver
@@ -265,7 +274,7 @@ export function ReceiptUpload({
           className="hidden"
         />
       </div>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p role="alert" className="text-xs text-red-600">{error}</p>}
     </div>
   );
 }

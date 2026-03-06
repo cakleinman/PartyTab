@@ -483,7 +483,7 @@ export default function SplitCostcoRunWithFriendsPage() {
           <h3 className="text-2xl font-bold text-white mb-3">
             Planning a group shopping trip?
           </h3>
-          <p className="text-ink-300 mb-6 max-w-xl mx-auto">
+          <p className="text-ink-500 mb-6 max-w-xl mx-auto">
             PartyTab makes it easy to split bulk purchases, track shared costs,
             and settle up after a Costco run — without the spreadsheet.
           </p>

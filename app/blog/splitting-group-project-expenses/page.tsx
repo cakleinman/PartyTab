@@ -274,7 +274,7 @@ export default function SplittingGroupProjectExpensesPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Working on a group project?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Log expenses, split costs, graduate without money drama.
                     </p>
                     <Link

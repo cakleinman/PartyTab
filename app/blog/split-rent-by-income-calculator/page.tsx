@@ -444,7 +444,7 @@ export default function SplitRentByIncomeCalculatorPage() {
           <h3 className="text-2xl font-bold text-white mb-3">
             Living with a partner? Split expenses fairly.
           </h3>
-          <p className="text-ink-300 mb-6 max-w-xl mx-auto">
+          <p className="text-ink-500 mb-6 max-w-xl mx-auto">
             PartyTab makes it easy to track shared costs and split them
             proportionally — whether it&apos;s 50/50 or 62/38.
           </p>

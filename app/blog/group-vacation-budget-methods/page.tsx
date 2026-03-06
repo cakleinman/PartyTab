@@ -476,7 +476,7 @@ export default function GroupVacationBudgetMethodsPage() {
                     <h3 className="text-2xl font-bold text-sand-50 mb-2">
                         Planning a group trip?
                     </h3>
-                    <p className="text-ink-300 mb-6">
+                    <p className="text-ink-500 mb-6">
                         Whether you choose the app method or hybrid approach, PartyTab makes
                         tracking and settling group expenses dead simple.
                     </p>

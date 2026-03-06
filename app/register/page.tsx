@@ -47,7 +47,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.error?.message || "Registration failed");
+        setError(data?.error?.message || "Registration failed — please try again");
         setLoading(false);
         return;
       }
@@ -139,6 +139,7 @@ export default function RegisterPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            aria-invalid={!!error}
             className="mt-1 w-full rounded-2xl border border-sand-200 px-4 py-2"
             placeholder="you@example.com"
             required
@@ -170,7 +171,7 @@ export default function RegisterPage() {
           />
         </label>
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
 
         <button
           type="submit"
