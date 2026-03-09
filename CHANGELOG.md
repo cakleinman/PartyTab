@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.1 (2026-03-09) — WCAG AA Contrast Fix
+
+- Added `--ink-400: #756e68` color token to the theme for WCAG AA contrast compliance (4.70:1 on sand-50 background)
+- Registered `--color-ink-400` in Tailwind `@theme` block so 200+ existing `text-ink-400` usages now render as accessible muted text
+- Set up versioned changelog system in CLAUDE.md for ship-it workflow integration
+
+---
+
+## 1.0.0 (2026-02-22) — Production Baseline
+
 ## 2026-02-22 — Payment Methods + Account Settings
 
 ### Payment Methods

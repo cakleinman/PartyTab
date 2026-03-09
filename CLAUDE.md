@@ -5,6 +5,7 @@
 PartyTab is a group expense-splitting web app. Users create tabs, invite friends, track expenses with even or custom splits, and settle up with minimal transfers. Pro subscribers get AI-powered receipt scanning, item-level claiming, and automated payment reminders.
 
 **Production URL:** https://partytab.app
+**Current version:** 1.0.1
 
 ## Tech Stack
 
@@ -120,6 +121,11 @@ prisma/                  # schema.prisma + migrations (5 migration files)
 - **Platform:** Vercel (auto-deploy from `main`)
 - **Cron:** `/api/reminders/run` daily at 2 PM UTC
 - **CI:** GitHub Actions — lint, typecheck, test (parallel) → E2E (sequential)
+
+### Changelog
+
+- **1.0.1** — Add ink-400 color token (#756e68) for WCAG AA contrast compliance (4.70:1 on sand-50). Set up changelog system.
+- **1.0.0** — Production baseline. Payment methods, estimated expenses, shareable cards, free receipt scanning, settlement acknowledgements, accessibility audit (score 100).
 
 ## Maintenance
 
