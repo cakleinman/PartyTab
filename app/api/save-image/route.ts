@@ -67,6 +67,6 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, path: filePath });
     } catch (e: unknown) {
         console.error('Error saving image:', e);
-        return NextResponse.json({ error: String(e) }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to save image' }, { status: 500 });
     }
 }

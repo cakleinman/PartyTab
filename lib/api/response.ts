@@ -43,12 +43,22 @@ export function noContent() {
 }
 
 export function validationError(err: unknown, status = 400) {
-  const message =
-    err instanceof ZodError
-      ? err.issues[0]?.message ?? "Invalid request"
-      : err instanceof Error && err.message
-        ? err.message
-        : "Invalid request";
+  if (err instanceof ZodError) {
+    return error(status, "validation_error", err.issues[0]?.message ?? "Invalid request");
+  }
+  // In production, suppress internal error messages (e.g. Prisma schema details)
+  if (process.env.NODE_ENV === "production") {
+    if (err instanceof Error) console.error("Unexpected validation error:", err.message);
+    return error(status, "validation_error", "Invalid request");
+  }
+  const message = err instanceof Error && err.message ? err.message : "Invalid request";
   return error(status, "validation_error", message);
+}
+
+export function rateLimited(retryAfter: number) {
+  return NextResponse.json(
+    { error: { code: "rate_limited", message: "Too many requests" } },
+    { status: 429, headers: { "Retry-After": String(retryAfter) } },
+  );
 }
 
