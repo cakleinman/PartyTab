@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 import { getSupabaseServer, RECEIPTS_BUCKET } from "@/lib/supabase/client";
 import { parseReceipt } from "@/lib/receipts/parser";
@@ -9,9 +9,10 @@ import { canScanReceipt } from "@/lib/auth/entitlements";
 import { checkReceiptLimit, getReceiptLimit, incrementReceiptUsage } from "@/lib/billing/usage";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -20,6 +21,8 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
 
     // Authorization first — verify user can access this tab
     await requireOpenTab(tabId);
@@ -150,7 +153,7 @@ export async function POST(
     // Increment Usage Count
     await incrementReceiptUsage(user.id);
 
-    return ok({
+    const result = ok({
       items: items.map((item) => ({
         id: item.id,
         name: item.name,
@@ -170,13 +173,17 @@ export async function POST(
         grandTotalCents: (parsed.totalCents ?? 0) + (expense.receiptTipCents ?? 0),
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
     console.error("Parse error:", error);
-    // Extract meaningful error message
-    const message = error instanceof Error ? error.message : "Failed to parse receipt";
-    return apiError(500, "internal_error", message);
+    const result = apiError(500, "internal_error", "Failed to parse receipt");
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
