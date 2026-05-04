@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
 import { parseAmountToCents, parseDateInput, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
 import { parseSplits } from "@/lib/validators/splits";
 
@@ -9,7 +9,6 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> },
 ) {
-  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -18,8 +17,6 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
-    if (rateLimitResponse) return rateLimitResponse;
 
     await requireParticipant(tabId, user.id);
 
@@ -31,7 +28,7 @@ export async function GET(
       throwApiError(404, "not_found", "Expense not found");
     }
 
-    const result = ok({
+    return ok({
       expense: {
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
@@ -52,17 +49,11 @@ export async function GET(
         })),
       },
     });
-    logApiResponse(request, user.id, result.status, startTime);
-    return result;
   } catch (error) {
     if (isApiError(error)) {
-      const result = apiError(error.status, error.code, error.message);
-      logApiResponse(request, null, result.status, startTime);
-      return result;
+      return apiError(error.status, error.code, error.message);
     }
-    const result = validationError(error);
-    logApiResponse(request, null, result.status, startTime);
-    return result;
+    return validationError(error);
   }
 }
 
@@ -70,7 +61,6 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> },
 ) {
-  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -79,8 +69,6 @@ export async function PATCH(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
-    if (rateLimitResponse) return rateLimitResponse;
 
     const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
@@ -195,7 +183,7 @@ export async function PATCH(
       });
     });
 
-    const result = ok({
+    return ok({
       expense: {
         id: updated.id,
         amountTotalCents: updated.amountTotalCents,
@@ -211,17 +199,11 @@ export async function PATCH(
         receiptTipPercent: updated.receiptTipPercent,
       },
     });
-    logApiResponse(request, user.id, result.status, startTime);
-    return result;
   } catch (error) {
     if (isApiError(error)) {
-      const result = apiError(error.status, error.code, error.message);
-      logApiResponse(request, null, result.status, startTime);
-      return result;
+      return apiError(error.status, error.code, error.message);
     }
-    const result = validationError(error);
-    logApiResponse(request, null, result.status, startTime);
-    return result;
+    return validationError(error);
   }
 }
 
@@ -229,7 +211,6 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> },
 ) {
-  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -238,8 +219,6 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
-    if (rateLimitResponse) return rateLimitResponse;
 
     const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
@@ -262,17 +241,11 @@ export async function DELETE(
       await tx.expense.delete({ where: { id: expenseId } });
     });
 
-    const result = ok({ deleted: true });
-    logApiResponse(request, user.id, result.status, startTime);
-    return result;
+    return ok({ deleted: true });
   } catch (error) {
     if (isApiError(error)) {
-      const result = apiError(error.status, error.code, error.message);
-      logApiResponse(request, null, result.status, startTime);
-      return result;
+      return apiError(error.status, error.code, error.message);
     }
-    const result = validationError(error);
-    logApiResponse(request, null, result.status, startTime);
-    return result;
+    return validationError(error);
   }
 }
