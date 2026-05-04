@@ -6,6 +6,7 @@ import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { computeClaimSplits } from "@/lib/receipts/computeClaimSplits";
 import { useToast } from "@/app/components/ToastProvider";
 import { ReceiptUpload, type ReceiptItem } from "@/app/components/ReceiptUpload";
+import { ClaimPanel } from "@/app/components/split";
 
 type Participant = {
   id: string;
@@ -39,47 +40,6 @@ type TabInfo = {
   isCreator: boolean;
 };
 
-// Generate unique initials for participants
-function getUniqueInitials(participants: Participant[]): Record<string, string> {
-  const initialsMap: Record<string, string> = {};
-  const usedInitials: Record<string, string[]> = {}; // initial -> [participantIds]
-
-  // First pass: generate basic initials
-  participants.forEach((p) => {
-    const words = p.displayName.trim().split(/\s+/);
-    let initials = words.map((w) => w[0]?.toUpperCase() || "").join("").slice(0, 2);
-    if (!initials) initials = "??";
-
-    initialsMap[p.id] = initials;
-    if (!usedInitials[initials]) usedInitials[initials] = [];
-    usedInitials[initials].push(p.id);
-  });
-
-  // Second pass: disambiguate duplicates
-  Object.entries(usedInitials).forEach(([initials, ids]) => {
-    if (ids.length > 1) {
-      ids.forEach((id, index) => {
-        const p = participants.find((p) => p.id === id);
-        if (!p) return;
-        const firstName = p.displayName.split(/\s+/)[0] || "";
-        // Try first 2 chars of first name
-        let newInitials = firstName.slice(0, 2).toUpperCase();
-        // If still not unique or same as before, add number
-        if (newInitials === initials || ids.some((otherId, otherIdx) => {
-          if (otherIdx === index) return false;
-          const otherP = participants.find((p) => p.id === otherId);
-          return otherP?.displayName.slice(0, 2).toUpperCase() === newInitials;
-        })) {
-          newInitials = firstName[0]?.toUpperCase() + (index + 1);
-        }
-        initialsMap[id] = newInitials;
-      });
-    }
-  });
-
-  return initialsMap;
-}
-
 export default function ExpenseDetailPage() {
   const params = useParams<{ tabId: string; expenseId: string }>();
   const router = useRouter();
@@ -105,31 +65,37 @@ export default function ExpenseDetailPage() {
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
   const [tipMode, setTipMode] = useState<"percent" | "amount">("percent");
   const [tipValue, setTipValue] = useState("");
+  // Editable tax/fee — initialized from expense, persisted on save
+  const [taxCents, setTaxCents] = useState(0);
+  const [feeCents, setFeeCents] = useState(0);
   const { pushToast } = useToast();
 
-  // Memoize unique initials
-  const uniqueInitials = useMemo(() => getUniqueInitials(participants), [participants]);
+  // Effective subtotal — prefer the receipt's parsed subtotal when present,
+  // otherwise derive from items (manual-entry expenses without an AI parse).
+  const effectiveSubtotalCents = useMemo(() => {
+    if (expense?.receiptSubtotalCents && expense.receiptSubtotalCents > 0) {
+      return expense.receiptSubtotalCents;
+    }
+    return receiptItems.reduce((sum, item) => sum + item.priceCents, 0);
+  }, [expense?.receiptSubtotalCents, receiptItems]);
 
   // Calculate tip in cents based on current mode and value
   const calculatedTipCents = useMemo(() => {
     const val = parseFloat(tipValue) || 0;
-    if (tipMode === "percent" && expense?.receiptSubtotalCents) {
-      return Math.round((expense.receiptSubtotalCents * val) / 100);
+    if (tipMode === "percent" && effectiveSubtotalCents > 0) {
+      return Math.round((effectiveSubtotalCents * val) / 100);
     } else if (tipMode === "amount") {
       return Math.round(val * 100);
     }
     return 0;
-  }, [tipMode, tipValue, expense?.receiptSubtotalCents]);
+  }, [tipMode, tipValue, effectiveSubtotalCents]);
 
   // Auto-compute the total for receipt-based expenses as a derived value
   // This replaces the useEffect that was calling setAmount
   const receiptComputedTotal = useMemo(() => {
-    if (!expense?.receiptSubtotalCents) return null;
-    const subtotal = expense.receiptSubtotalCents;
-    const tax = expense.receiptTaxCents || 0;
-    const fees = expense.receiptFeeCents || 0;
-    return subtotal + tax + fees + calculatedTipCents;
-  }, [calculatedTipCents, expense?.receiptSubtotalCents, expense?.receiptTaxCents, expense?.receiptFeeCents]);
+    if (effectiveSubtotalCents === 0) return null;
+    return effectiveSubtotalCents + taxCents + feeCents + calculatedTipCents;
+  }, [calculatedTipCents, effectiveSubtotalCents, taxCents, feeCents]);
 
   // Sync amount when receipt total changes (only update if different to avoid loops)
   const prevReceiptTotal = useRef<number | null>(null);
@@ -189,6 +155,9 @@ export default function ExpenseDetailPage() {
             setTipMode("amount");
             setTipValue(formatCentsPlain(expenseData.expense.receiptTipCents));
           }
+          // Initialize tax/fee state — editable on this page
+          setTaxCents(expenseData.expense.receiptTaxCents ?? 0);
+          setFeeCents(expenseData.expense.receiptFeeCents ?? 0);
         } else {
           setError(expenseData?.error?.message ?? "Expense not found.");
         }
@@ -252,8 +221,8 @@ export default function ExpenseDetailPage() {
     if (isReceiptBased) {
       splits = computeClaimSplits({
         items: receiptItems,
-        taxCents: expense?.receiptTaxCents ?? 0,
-        feeCents: expense?.receiptFeeCents ?? 0,
+        taxCents,
+        feeCents,
         tipCents: calculatedTipCents,
       });
       if (splits.length === 0) {
@@ -286,6 +255,21 @@ export default function ExpenseDetailPage() {
     if (receipt || receiptItems.length > 0) {
       payload.tipMode = tipMode;
       payload.tipValue = tipValue;
+    }
+
+    // Persist editable tax/fee + manual subtotal so future edits start from
+    // the same numbers the user just confirmed.
+    if (isReceiptBased) {
+      payload.receiptTaxCents = taxCents;
+      payload.receiptFeeCents = feeCents;
+      // Only set subtotal explicitly when there's no parsed receipt to
+      // preserve as the source of truth.
+      if (!expense?.receiptSubtotalCents) {
+        payload.receiptSubtotalCents = receiptItems.reduce(
+          (s, item) => s + item.priceCents,
+          0,
+        );
+      }
     }
 
     if (isReceiptBased && splits) {
@@ -325,6 +309,84 @@ export default function ExpenseDetailPage() {
     });
     setSaving(false);
     pushToast("Expense updated.");
+  };
+
+  // Manual item add/edit/delete — immediate persistence (vs. new-expense
+   // which stages changes until Save). Mirrors the existing claim-toggle
+   // behavior on this page.
+  const handleClaimToggle = async (itemId: string, participantId: string) => {
+    const item = receiptItems.find((it) => it.id === itemId);
+    if (!item) return;
+    const isClaimed = item.claimedBy.some((c) => c.participantId === participantId);
+    const method = isClaimed ? "DELETE" : "POST";
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items/${itemId}/claims`,
+      {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ participantId }),
+      },
+    );
+    const data = await res.json();
+    if (res.ok && data.item) {
+      setReceiptItems((prev) =>
+        prev.map((it) => (it.id === itemId ? data.item : it)),
+      );
+    } else if (!res.ok) {
+      pushToast(data?.error?.message ?? "Could not update claim.");
+    }
+  };
+
+  const handleAddItem = async (name: string, priceCents: number, quantity: number) => {
+    if (!tabId || !expenseId) return;
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, priceCents, quantity }),
+      },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? "Failed to add item");
+    }
+    setReceiptItems((prev) => [...prev, data.item]);
+  };
+
+  const handleEditItem = async (
+    itemId: string,
+    updates: { name?: string; priceCents?: number; quantity?: number },
+  ) => {
+    if (!tabId || !expenseId) return;
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items/${itemId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? "Failed to update item");
+    }
+    setReceiptItems((prev) =>
+      prev.map((it) => (it.id === itemId ? data.item : it)),
+    );
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!tabId || !expenseId) return;
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items/${itemId}`,
+      { method: "DELETE", headers: { "Content-Type": "application/json" } },
+    );
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error?.message ?? "Failed to delete item");
+    }
+    setReceiptItems((prev) => prev.filter((it) => it.id !== itemId));
   };
 
   const handleConfirmEstimate = async () => {
@@ -510,155 +572,21 @@ export default function ExpenseDetailPage() {
         </div>
 
         {receiptItems.length > 0 && (
-          <div className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm font-semibold">Receipt Items</p>
-                <p className="text-xs text-ink-500">
-                  Tap initials to claim. Shared items split evenly.
-                </p>
-              </div>
-              <div className="flex gap-1">
-                {expense?.receiptTaxCents && expense.receiptTaxCents > 0 && (
-                  <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
-                    +{formatCents(expense.receiptTaxCents)} tax
-                  </p>
-                )}
-                {expense?.receiptFeeCents && expense.receiptFeeCents > 0 && (
-                  <p className="text-xs text-ink-500 bg-sand-100 px-2 py-1 rounded-lg">
-                    +{formatCents(expense.receiptFeeCents)} fees
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              {receiptItems.map((item) => {
-                const handleClaimToggle = async (participantId: string) => {
-                  const isClaimed = item.claimedBy.some(
-                    (c) => c.participantId === participantId
-                  );
-                  const method = isClaimed ? "DELETE" : "POST";
-                  const res = await fetch(
-                    `/api/tabs/${tabId}/expenses/${expenseId}/receipt/items/${item.id}/claims`,
-                    {
-                      method,
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ participantId }),
-                    }
-                  );
-                  const data = await res.json();
-                  if (res.ok && data.item) {
-                    setReceiptItems((prev) =>
-                      prev.map((i) => (i.id === item.id ? data.item : i))
-                    );
-                  }
-                };
-
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-xl border border-sand-200 bg-white p-3"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{item.name}</p>
-                        <div className="flex items-center gap-2 text-xs text-ink-500">
-                          <span>{formatCents(item.priceCents)}</span>
-                          {item.quantity > 1 && <span>× {item.quantity}</span>}
-                        </div>
-                      </div>
-                    </div>
-                    {/* Participant claim buttons */}
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {participants.map((participant) => {
-                        const isClaimed = item.claimedBy.some(
-                          (c) => c.participantId === participant.id
-                        );
-                        return (
-                          <button
-                            key={participant.id}
-                            type="button"
-                            onClick={() => handleClaimToggle(participant.id)}
-                            disabled={!canEdit}
-                            title={participant.displayName}
-                            className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${isClaimed
-                              ? "bg-ink-900 text-white"
-                              : "bg-sand-100 text-ink-400 hover:bg-sand-200"
-                              } ${!canEdit ? "opacity-50 cursor-not-allowed" : ""}`}
-                          >
-                            {uniqueInitials[participant.id] || "?"}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Split summary with tax and tip distribution */}
-            {(() => {
-              const totals: Record<string, number> = {};
-              let itemSubtotal = 0;
-              receiptItems.forEach((item) => {
-                if (item.claimedBy.length > 0) {
-                  const splitAmount = Math.floor(item.priceCents / item.claimedBy.length);
-                  item.claimedBy.forEach((claim) => {
-                    totals[claim.participantId] = (totals[claim.participantId] || 0) + splitAmount;
-                    itemSubtotal += splitAmount;
-                  });
-                }
-              });
-              // Add proportional tax
-              const taxCents = expense?.receiptTaxCents || 0;
-              const feeCents = expense?.receiptFeeCents || 0;
-              const baseSubtotal = expense?.receiptSubtotalCents || itemSubtotal;
-              if (taxCents > 0 && itemSubtotal > 0) {
-                Object.keys(totals).forEach((participantId) => {
-                  const share = totals[participantId] / baseSubtotal;
-                  totals[participantId] += Math.round(share * taxCents);
-                });
-              }
-              // Add proportional fees
-              if (feeCents > 0 && itemSubtotal > 0) {
-                Object.keys(totals).forEach((participantId) => {
-                  const share = totals[participantId] / (itemSubtotal + taxCents);
-                  totals[participantId] += Math.round(share * feeCents);
-                });
-              }
-              // Add proportional tip - use calculated tip from user input for real-time preview
-              const tipCents = calculatedTipCents;
-              if (tipCents > 0 && itemSubtotal > 0) {
-                Object.keys(totals).forEach((participantId) => {
-                  const share = totals[participantId] / (itemSubtotal + taxCents + feeCents);
-                  totals[participantId] += Math.round(share * tipCents);
-                });
-              }
-              const hasAnyClaims = Object.keys(totals).length > 0;
-              if (!hasAnyClaims) return null;
-              const extras: string[] = [];
-              if (taxCents > 0) extras.push(`${formatCents(taxCents)} tax`);
-              if (feeCents > 0) extras.push(`${formatCents(feeCents)} fees`);
-              if (tipCents > 0) extras.push(`${formatCents(tipCents)} tip`);
-              return (
-                <div className="rounded-xl bg-sand-100 p-3 space-y-1 mt-3">
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs font-medium text-ink-700">Split Summary</p>
-                    {extras.length > 0 && (
-                      <p className="text-xs text-ink-500">incl. {extras.join(", ")}</p>
-                    )}
-                  </div>
-                  {participants
-                    .filter((p) => totals[p.id])
-                    .map((participant) => (
-                      <div key={participant.id} className="flex justify-between text-xs text-ink-600">
-                        <span>{participant.displayName}</span>
-                        <span>{formatCents(totals[participant.id])}</span>
-                      </div>
-                    ))}
-                </div>
-              );
-            })()}
+          <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4">
+            <ClaimPanel
+              items={receiptItems}
+              participants={participants}
+              currentParticipantId=""
+              onClaimToggle={handleClaimToggle}
+              onItemAdd={canEdit ? handleAddItem : undefined}
+              onItemEdit={canEdit ? handleEditItem : undefined}
+              onItemDelete={canEdit ? handleDeleteItem : undefined}
+              disabled={!canEdit}
+              subtotalCents={effectiveSubtotalCents}
+              taxCents={taxCents}
+              feeCents={feeCents}
+              tipCents={calculatedTipCents}
+            />
           </div>
         )}
 
@@ -710,6 +638,56 @@ export default function ExpenseDetailPage() {
               {tipMode === "percent"
                 ? `Tip: ${tipValue || 0}% of subtotal (${formatCents(calculatedTipCents)})`
                 : `Tip: ${formatCents(calculatedTipCents)}`}
+            </p>
+          </div>
+        )}
+
+        {/* Editable tax & fees — shown alongside tip when receipt items exist */}
+        {receiptItems.length > 0 && (
+          <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4 space-y-3">
+            <p className="text-sm font-semibold">Tax &amp; fees</p>
+            <div className="flex gap-2 items-center">
+              <span className="text-xs text-ink-500 w-10 shrink-0">Tax</span>
+              <span className="text-sm text-ink-400">$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                aria-label="Tax amount"
+                value={taxCents > 0 ? (taxCents / 100).toFixed(2) : ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (/^[0-9]*\.?[0-9]{0,2}$/.test(v)) {
+                    const n = parseFloat(v);
+                    setTaxCents(isFinite(n) && n >= 0 ? Math.round(n * 100) : 0);
+                  }
+                }}
+                placeholder="0.00"
+                disabled={!canEdit}
+                className="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <div className="flex gap-2 items-center">
+              <span className="text-xs text-ink-500 w-10 shrink-0">Fees</span>
+              <span className="text-sm text-ink-400">$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                aria-label="Fees amount"
+                value={feeCents > 0 ? (feeCents / 100).toFixed(2) : ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (/^[0-9]*\.?[0-9]{0,2}$/.test(v)) {
+                    const n = parseFloat(v);
+                    setFeeCents(isFinite(n) && n >= 0 ? Math.round(n * 100) : 0);
+                  }
+                }}
+                placeholder="0.00"
+                disabled={!canEdit}
+                className="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+              />
+            </div>
+            <p className="text-xs text-ink-400">
+              Saved on next update. Distributes proportionally across claimed items.
             </p>
           </div>
         )}

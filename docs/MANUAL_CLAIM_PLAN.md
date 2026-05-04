@@ -157,16 +157,24 @@ adds 50 items, and saves — zero AI quota burned, no Pro pop-up.
 - 12 vitest cases in `tests/api/receipt-items.test.ts`.
 - `sortOrder` already wired (POST uses `MAX(sortOrder) + 1`).
 
-**Phase 2 — new-expense flow (1 PR)**
-- "Enter items manually" affordance on the Claim panel.
-- Inline add/edit/delete UI for items.
-- Inline tax/fee inputs (mirror tip pattern).
-- Reuse `ClaimPanel` for the claim list.
-- Block submit when nothing claimed.
+**Phase 2 — new-expense flow** ✅ shipped
+- "Enter items manually" affordance below the Claim panel upload UI.
+- Inline add/edit/delete on items via the new `ManualItemEntry` and
+  `ItemEditRow` components.
+- Tax/fee inputs alongside the tip input when manual mode is active.
+- `ClaimPanel` extended with `onStartManualEntry` / `onItemAdd` / `onItemEdit`
+  / `onItemDelete` props — same panel handles AI and manual flows.
+- Save guards: blocks when no items, blocks when nothing claimed.
 
-**Phase 3 — detail-page parity (1 PR)**
-- Same item add/edit/delete UI on `app/tabs/[tabId]/expenses/[expenseId]/page.tsx`.
-- Anyone with edit rights can fix items after the fact.
+**Phase 3 — detail-page parity** ✅ shipped
+- Detail page now renders `<ClaimPanel>` instead of inline items UI
+  (~150 lines deleted) — automatically inherits add/edit/delete affordances.
+- Tax/fee inputs editable on the detail page (was read-only).
+- Editable totals persist via the Phase 1 expense PATCH extension.
+- Item handlers use immediate persistence (matches the page's existing
+  claim-toggle behavior).
+- Removed dead `getUniqueInitials` helper now that ClaimPanel owns
+  initial generation.
 
 **Phase 4 — polish**
 - Empty state copy on the manual flow.
