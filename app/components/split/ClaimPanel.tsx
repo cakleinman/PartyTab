@@ -4,6 +4,7 @@ import { useRef, useState, useMemo } from "react";
 import Image from "next/image";
 import { formatCents } from "@/lib/money/cents";
 import { LoadingSpinner } from "@/app/components/LoadingSpinner";
+import { ManualItemEntry, ItemEditRow } from "./ManualItemEntry";
 
 export interface ReceiptItem {
   id: string;
@@ -29,6 +30,12 @@ interface ClaimPanelProps {
   isUploading?: boolean;
   isParsing?: boolean;
   disabled?: boolean;
+  // Manual-entry hooks. When provided, the panel renders an "Enter items
+  // manually" affordance (when empty) and inline add/edit/delete controls.
+  onStartManualEntry?: () => void | Promise<void>;
+  onItemAdd?: (name: string, priceCents: number, quantity: number) => Promise<void> | void;
+  onItemEdit?: (itemId: string, updates: { name?: string; priceCents?: number; quantity?: number }) => Promise<void> | void;
+  onItemDelete?: (itemId: string) => Promise<void> | void;
   // For tax/tip/fee distribution
   subtotalCents?: number;
   taxCents?: number;
@@ -87,6 +94,10 @@ export function ClaimPanel({
   isUploading,
   isParsing,
   disabled,
+  onStartManualEntry,
+  onItemAdd,
+  onItemEdit,
+  onItemDelete,
   subtotalCents,
   taxCents,
   feeCents,
@@ -94,6 +105,7 @@ export function ClaimPanel({
 }: ClaimPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   // Memoize unique initials
   const uniqueInitials = useMemo(() => getUniqueInitials(participants), [participants]);
@@ -264,6 +276,19 @@ export function ClaimPanel({
                 className="hidden"
               />
             </div>
+            {onStartManualEntry && (
+              <>
+                <p className="text-center text-xs text-ink-400">or</p>
+                <button
+                  type="button"
+                  onClick={() => onStartManualEntry()}
+                  disabled={disabled || isUploading}
+                  className="w-full rounded-xl border border-sand-300 bg-white px-4 py-2.5 text-sm font-medium text-ink-700 hover:bg-sand-50 disabled:opacity-50"
+                >
+                  Enter items manually
+                </button>
+              </>
+            )}
           </>
         )}
       </div>
@@ -272,6 +297,16 @@ export function ClaimPanel({
 
   // Show message when no upload handler (expense doesn't exist yet)
   if (items.length === 0) {
+    if (onItemAdd) {
+      return (
+        <div className="space-y-3">
+          <div className="text-center py-3 text-sm text-ink-500">
+            <p>No items yet. Add the first one below.</p>
+          </div>
+          <ManualItemEntry onAdd={onItemAdd} disabled={disabled} />
+        </div>
+      );
+    }
     return (
       <div className="text-center py-6 text-sm text-ink-500">
         <p>No receipt items to claim.</p>
@@ -310,41 +345,90 @@ export function ClaimPanel({
             key={item.id}
             className="rounded-xl border border-sand-200 bg-white p-3"
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{item.name}</p>
-                <div className="flex items-center gap-2 text-xs text-ink-500">
-                  <span>{formatCents(item.priceCents)}</span>
-                  {item.quantity > 1 && <span>× {item.quantity}</span>}
+            {editingItemId === item.id && onItemEdit ? (
+              <ItemEditRow
+                initialName={item.name}
+                initialPriceCents={item.priceCents}
+                initialQuantity={item.quantity}
+                onCancel={() => setEditingItemId(null)}
+                onSave={async (updates) => {
+                  await onItemEdit(item.id, updates);
+                  setEditingItemId(null);
+                }}
+                disabled={disabled}
+              />
+            ) : (
+              <>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{item.name}</p>
+                    <div className="flex items-center gap-2 text-xs text-ink-500">
+                      <span>{formatCents(item.priceCents)}</span>
+                      {item.quantity > 1 && <span>× {item.quantity}</span>}
+                    </div>
+                  </div>
+                  {(onItemEdit || onItemDelete) && (
+                    <div className="flex gap-1 shrink-0">
+                      {onItemEdit && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingItemId(item.id)}
+                          disabled={disabled}
+                          aria-label={`Edit ${item.name}`}
+                          className="text-xs text-ink-400 hover:text-ink-700 px-2 py-1"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {onItemDelete && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (disabled) return;
+                            if (item.claimedBy.length > 0 && !confirm(`Delete "${item.name}"? It has claims.`)) return;
+                            await onItemDelete(item.id);
+                          }}
+                          disabled={disabled}
+                          aria-label={`Delete ${item.name}`}
+                          className="text-xs text-red-500 hover:text-red-700 px-2 py-1"
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-            {/* Participant claim buttons */}
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {participants.map((participant) => {
-                const isClaimed = item.claimedBy.some(
-                  (c) => c.participantId === participant.id
-                );
-                return (
-                  <button
-                    key={participant.id}
-                    type="button"
-                    onClick={() => onClaimToggle(item.id, participant.id)}
-                    disabled={disabled}
-                    title={participant.displayName}
-                    className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${isClaimed
-                      ? "bg-ink-900 text-white"
-                      : "bg-sand-100 text-ink-400 hover:bg-sand-200"
-                      } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {uniqueInitials[participant.id] || "?"}
-                  </button>
-                );
-              })}
-            </div>
+                {/* Participant claim buttons */}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {participants.map((participant) => {
+                    const isClaimed = item.claimedBy.some(
+                      (c) => c.participantId === participant.id
+                    );
+                    return (
+                      <button
+                        key={participant.id}
+                        type="button"
+                        onClick={() => onClaimToggle(item.id, participant.id)}
+                        disabled={disabled}
+                        title={participant.displayName}
+                        className={`w-8 h-8 rounded-full text-xs font-medium transition flex items-center justify-center ${isClaimed
+                          ? "bg-ink-900 text-white"
+                          : "bg-sand-100 text-ink-400 hover:bg-sand-200"
+                          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        {uniqueInitials[participant.id] || "?"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
+
+      {/* Inline add-item form when manual-entry is enabled */}
+      {onItemAdd && <ManualItemEntry onAdd={onItemAdd} disabled={disabled} />}
 
       {/* Unclaimed warning */}
       {unclaimedItems.length > 0 && (

@@ -105,6 +105,7 @@ export default function NewExpensePage() {
   const [receiptExpenseId, setReceiptExpenseIdInternal] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
+  const [manualEntryMode, setManualEntryModeInternal] = useState(false);
 
   // Wrap setReceiptExpenseId to persist to sessionStorage
   const setReceiptExpenseId = (id: string | null) => {
@@ -118,12 +119,23 @@ export default function NewExpensePage() {
     }
   };
 
+  const setManualEntryMode = (on: boolean) => {
+    setManualEntryModeInternal(on);
+    if (typeof window !== "undefined" && tabId) {
+      if (on) sessionStorage.setItem(`expense-manual-${tabId}`, "1");
+      else sessionStorage.removeItem(`expense-manual-${tabId}`);
+    }
+  };
+
   // Restore receiptExpenseId from sessionStorage on mount
   useEffect(() => {
     if (!tabId || hasRestoredState) return;
     const savedExpenseId = sessionStorage.getItem(`expense-receipt-id-${tabId}`);
     if (savedExpenseId) {
       setReceiptExpenseIdInternal(savedExpenseId);
+    }
+    if (sessionStorage.getItem(`expense-manual-${tabId}`) === "1") {
+      setManualEntryModeInternal(true);
     }
   }, [tabId, hasRestoredState]);
 
@@ -182,23 +194,32 @@ export default function NewExpensePage() {
     return participant?.id ?? "";
   }, [participants, currentUserId]);
 
+  // In manual entry mode the subtotal is derived from the items (no AI parser).
+  const manualSubtotalCents = useMemo(
+    () => receiptItems.reduce((sum, item) => sum + item.priceCents, 0),
+    [receiptItems],
+  );
+  const effectiveSubtotalCents = manualEntryMode
+    ? manualSubtotalCents
+    : receiptSubtotalCents;
+
   // Calculate tip in cents based on current mode and value
   const calculatedTipCents = useMemo(() => {
     const val = parseFloat(tipValue) || 0;
-    if (tipMode === "percent" && receiptSubtotalCents > 0) {
-      return Math.round((receiptSubtotalCents * val) / 100);
+    if (tipMode === "percent" && effectiveSubtotalCents > 0) {
+      return Math.round((effectiveSubtotalCents * val) / 100);
     } else if (tipMode === "amount") {
       return Math.round(val * 100);
     }
     return 0;
-  }, [tipMode, tipValue, receiptSubtotalCents]);
+  }, [tipMode, tipValue, effectiveSubtotalCents]);
 
   // Auto-update amount when tip changes for receipt-based expenses
   useEffect(() => {
-    if (splitMode !== "claim" || receiptSubtotalCents === 0) return;
-    const total = receiptSubtotalCents + receiptTaxCents + receiptFeeCents + calculatedTipCents;
+    if (splitMode !== "claim" || effectiveSubtotalCents === 0) return;
+    const total = effectiveSubtotalCents + receiptTaxCents + receiptFeeCents + calculatedTipCents;
     setAmount(formatCentsPlain(total));
-  }, [calculatedTipCents, receiptSubtotalCents, receiptTaxCents, receiptFeeCents, splitMode]);
+  }, [calculatedTipCents, effectiveSubtotalCents, receiptTaxCents, receiptFeeCents, splitMode]);
 
   useEffect(() => {
     if (!tabId) return;
@@ -477,6 +498,91 @@ export default function NewExpensePage() {
     }
   };
 
+  // Manual entry — create a placeholder expense without an uploaded receipt.
+  const handleStartManualEntry = async () => {
+    if (!tabId || !paidBy || receiptExpenseId) return;
+    setError(null);
+    try {
+      const createRes = await fetch(`/api/tabs/${tabId}/expenses`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: "0.01",
+          note: note || "Manual expense",
+          date,
+          paidByParticipantId: paidBy,
+          receiptMode: true,
+          evenSplit: true,
+          splitParticipantIds: participants.map((p) => p.id),
+        }),
+      });
+      if (!createRes.ok) {
+        const data = await createRes.json();
+        setError(data?.error?.message ?? "Could not create expense.");
+        return;
+      }
+      const { expense } = await createRes.json();
+      setReceiptExpenseId(expense.id);
+      setManualEntryMode(true);
+    } catch {
+      setError("Could not start manual entry — check your connection.");
+    }
+  };
+
+  const handleAddItem = async (name: string, priceCents: number, quantity: number) => {
+    if (!tabId || !receiptExpenseId) {
+      throw new Error("Start an expense before adding items");
+    }
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${receiptExpenseId}/receipt/items`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, priceCents, quantity }),
+      },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? "Failed to add item");
+    }
+    setReceiptItems((prev) => [...prev, data.item]);
+  };
+
+  const handleEditItem = async (
+    itemId: string,
+    updates: { name?: string; priceCents?: number; quantity?: number },
+  ) => {
+    if (!tabId || !receiptExpenseId) return;
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${receiptExpenseId}/receipt/items/${itemId}`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      },
+    );
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data?.error?.message ?? "Failed to update item");
+    }
+    setReceiptItems((prev) =>
+      prev.map((item) => (item.id === itemId ? data.item : item)),
+    );
+  };
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!tabId || !receiptExpenseId) return;
+    const res = await fetch(
+      `/api/tabs/${tabId}/expenses/${receiptExpenseId}/receipt/items/${itemId}`,
+      { method: "DELETE", headers: { "Content-Type": "application/json" } },
+    );
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error?.message ?? "Failed to delete item");
+    }
+    setReceiptItems((prev) => prev.filter((item) => item.id !== itemId));
+  };
+
   const handleClaimToggle = (itemId: string, participantId: string) => {
     setReceiptItems((prev) =>
       prev.map((item) => {
@@ -554,6 +660,19 @@ export default function NewExpensePage() {
 
     // If expense was already created from receipt upload, update with tip and claims
     if (receiptExpenseId) {
+      // Block save when there are items but nothing's been claimed yet —
+      // otherwise we'd persist placeholder splits.
+      if (receiptItems.length === 0) {
+        setError("Add at least one item before saving.");
+        setSaving(false);
+        return;
+      }
+      const totalClaims = receiptItems.reduce((n, it) => n + it.claimedBy.length, 0);
+      if (totalClaims === 0) {
+        setError("Tap initials to claim items before saving.");
+        setSaving(false);
+        return;
+      }
       try {
         // Save claims first, in parallel — splits need persisted claims to be consistent
         const claimResults = await Promise.all(
@@ -590,6 +709,16 @@ export default function NewExpensePage() {
           updatePayload.tipMode = tipMode;
           updatePayload.tipValue = tipValue;
         }
+        // Persist the manually-entered receipt totals so the detail page
+        // can recompute splits from claims later.
+        if (manualEntryMode) {
+          updatePayload.receiptTaxCents = receiptTaxCents;
+          updatePayload.receiptFeeCents = receiptFeeCents;
+          updatePayload.receiptSubtotalCents = receiptItems.reduce(
+            (s, item) => s + item.priceCents,
+            0,
+          );
+        }
         if (computedSplits.length > 0) {
           const claimTotal = computedSplits.reduce((s, x) => s + x.amountCents, 0);
           updatePayload.amount = formatCentsPlain(claimTotal);
@@ -611,6 +740,7 @@ export default function NewExpensePage() {
         // Clear session storage for this expense flow
         sessionStorage.removeItem(`expense-mode-${tabId}`);
         sessionStorage.removeItem(`expense-receipt-id-${tabId}`);
+        sessionStorage.removeItem(`expense-manual-${tabId}`);
         pushToast("Expense saved!");
         router.push(`/tabs/${tabId}`);
       } catch (err) {
@@ -896,19 +1026,27 @@ export default function NewExpensePage() {
                   participants={participants}
                   currentParticipantId={currentParticipantId}
                   onClaimToggle={handleClaimToggle}
-                  onReceiptUpload={handleReceiptUpload}
+                  // Hide upload UI once user has chosen manual entry
+                  onReceiptUpload={manualEntryMode ? undefined : handleReceiptUpload}
                   uploadedReceipt={receiptPreviewUrl ? { url: receiptPreviewUrl } : null}
                   isUploading={isUploading}
                   isParsing={isParsing}
                   disabled={isDisabled}
-                  subtotalCents={receiptSubtotalCents}
+                  // Manual-entry hooks — always available so users can amend AI-parsed items too
+                  onStartManualEntry={
+                    !receiptExpenseId && !manualEntryMode ? handleStartManualEntry : undefined
+                  }
+                  onItemAdd={receiptExpenseId ? handleAddItem : undefined}
+                  onItemEdit={receiptExpenseId ? handleEditItem : undefined}
+                  onItemDelete={receiptExpenseId ? handleDeleteItem : undefined}
+                  subtotalCents={effectiveSubtotalCents}
                   taxCents={receiptTaxCents}
                   feeCents={receiptFeeCents}
                   tipCents={calculatedTipCents}
                 />
 
-                {/* Tip input - shown when receipt is uploaded */}
-                {receiptFile && (
+                {/* Tip input - shown when receipt is uploaded or manual entry is active */}
+                {(receiptFile || manualEntryMode) && (
                   <div className="mt-4 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4 space-y-3">
                     <p className="text-sm font-semibold">Add tip (optional)</p>
                     <div className="flex gap-2 items-center">
@@ -955,6 +1093,53 @@ export default function NewExpensePage() {
                         ? `Tip: ${tipValue || 0}% of subtotal (${formatCents(calculatedTipCents)})`
                         : `Tip: ${formatCents(calculatedTipCents)}`}
                     </p>
+                  </div>
+                )}
+
+                {/* Tax & fee inputs — manual mode only. AI flow gets these from the parser. */}
+                {manualEntryMode && (
+                  <div className="mt-3 rounded-2xl border border-sand-200 bg-sand-50 px-4 py-4 space-y-3">
+                    <p className="text-sm font-semibold">Tax &amp; fees (optional)</p>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs text-ink-500 w-10 shrink-0">Tax</span>
+                      <span className="text-sm text-ink-400">$</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        aria-label="Tax amount"
+                        value={receiptTaxCents > 0 ? (receiptTaxCents / 100).toFixed(2) : ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (/^[0-9]*\.?[0-9]{0,2}$/.test(v)) {
+                            const n = parseFloat(v);
+                            setReceiptTaxCents(isFinite(n) && n >= 0 ? Math.round(n * 100) : 0);
+                          }
+                        }}
+                        placeholder="0.00"
+                        disabled={isDisabled}
+                        className="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-xs text-ink-500 w-10 shrink-0">Fees</span>
+                      <span className="text-sm text-ink-400">$</span>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        aria-label="Fees amount"
+                        value={receiptFeeCents > 0 ? (receiptFeeCents / 100).toFixed(2) : ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (/^[0-9]*\.?[0-9]{0,2}$/.test(v)) {
+                            const n = parseFloat(v);
+                            setReceiptFeeCents(isFinite(n) && n >= 0 ? Math.round(n * 100) : 0);
+                          }
+                        }}
+                        placeholder="0.00"
+                        disabled={isDisabled}
+                        className="flex-1 min-w-0 rounded-lg border border-sand-200 px-3 py-2 text-sm"
+                      />
+                    </div>
                   </div>
                 )}
               </>
