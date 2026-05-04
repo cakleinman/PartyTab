@@ -79,7 +79,7 @@ export function ManualItemEntry({ onAdd, disabled }: ManualItemEntryProps) {
             if (/^[0-9]*\.?[0-9]{0,2}$/.test(v)) setPrice(v);
           }}
           placeholder="$0.00"
-          aria-label="Item price"
+          aria-label="Line total"
           disabled={disabled || submitting}
           className="w-24 rounded-lg border border-sand-200 bg-white px-3 py-2 text-sm"
         />
@@ -105,6 +105,10 @@ export function ManualItemEntry({ onAdd, disabled }: ManualItemEntryProps) {
           {submitting ? "Adding…" : "Add"}
         </button>
       </div>
+      <p className="text-[11px] text-ink-400">
+        Enter the <em>line total</em> as it appears on the receipt. Quantity is
+        for display only.
+      </p>
       {localError && (
         <p role="alert" className="text-xs text-red-600">
           {localError}
