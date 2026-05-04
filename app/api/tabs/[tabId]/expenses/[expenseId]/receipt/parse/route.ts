@@ -42,7 +42,12 @@ export async function POST(
     // Get expense with receipt URL and tip settings
     const expense = await prisma.expense.findFirst({
       where: { id: expenseId, tabId },
-      select: { receiptUrl: true, receiptTipCents: true, receiptTipPercent: true },
+      select: {
+        receiptUrl: true,
+        receiptTipCents: true,
+        receiptTipPercent: true,
+        amountTotalCents: true,
+      },
     });
     if (!expense) {
       throwApiError(404, "not_found", "Expense not found");
@@ -109,15 +114,18 @@ export async function POST(
     if (parsed.feeCents) {
       updateData.receiptFeeCents = parsed.feeCents;
     }
-    if (parsed.totalCents) {
-      // Calculate tip: use fixed cents if set, otherwise calculate from percentage
+    // Only seed amountTotalCents on the first parse (placeholder is 0 or 1¢ from
+    // the receipt-mode create flow). Re-parses leave the user-confirmed total
+    // alone — otherwise tip gets double-counted when the receipt's printed
+    // total already includes tip.
+    const isInitialParse = (expense.amountTotalCents ?? 0) <= 1;
+    if (parsed.totalCents && isInitialParse) {
       let tipCents = expense.receiptTipCents ?? 0;
       if (tipCents === 0 && expense.receiptTipPercent && expense.receiptTipPercent > 0) {
-        // Calculate tip from percentage of receipt total (before tip)
-        tipCents = Math.round(parsed.totalCents * (expense.receiptTipPercent / 100));
+        const subtotal = parsed.subtotalCents ?? parsed.totalCents;
+        tipCents = Math.round(subtotal * (expense.receiptTipPercent / 100));
         updateData.receiptTipCents = tipCents;
       }
-      // Total = parsed total + tip (fees are already in parsed total)
       updateData.amountTotalCents = parsed.totalCents + tipCents;
     }
     if (Object.keys(updateData).length > 0) {

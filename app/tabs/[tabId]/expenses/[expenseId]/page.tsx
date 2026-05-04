@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
+import { computeClaimSplits } from "@/lib/receipts/computeClaimSplits";
 import { useToast } from "@/app/components/ToastProvider";
 import { ReceiptUpload, type ReceiptItem } from "@/app/components/ReceiptUpload";
 
@@ -246,7 +247,21 @@ export default function ExpenseDetailPage() {
 
     let splits: { participantId: string; amountCents: number }[] | undefined;
 
-    if (customSplit) {
+    const isReceiptBased = receiptItems.length > 0;
+
+    if (isReceiptBased) {
+      splits = computeClaimSplits({
+        items: receiptItems,
+        taxCents: expense?.receiptTaxCents ?? 0,
+        feeCents: expense?.receiptFeeCents ?? 0,
+        tipCents: calculatedTipCents,
+      });
+      if (splits.length === 0) {
+        setError("Claim at least one item before saving.");
+        setSaving(false);
+        return;
+      }
+    } else if (customSplit) {
       try {
         splits = participants.map((participant) => ({
           participantId: participant.id,
@@ -273,7 +288,13 @@ export default function ExpenseDetailPage() {
       payload.tipValue = tipValue;
     }
 
-    if (customSplit) {
+    if (isReceiptBased && splits) {
+      // For claim-driven expenses, the stored total is the sum of claimed splits.
+      // Unclaimed items are dropped from the total — claim them to include.
+      const claimTotal = splits.reduce((sum, s) => sum + s.amountCents, 0);
+      payload.amount = formatCentsPlain(claimTotal);
+      payload.splits = splits;
+    } else if (customSplit) {
       payload.splits = splits;
     } else {
       if (splitParticipantIds.length === 0) {

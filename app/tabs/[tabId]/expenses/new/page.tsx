@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { formatCents, formatCentsPlain, parseCents } from "@/lib/money/cents";
 import { distributeCustomExtras } from "@/lib/money/allocation";
+import { computeClaimSplits } from "@/lib/receipts/computeClaimSplits";
 import { useToast } from "@/app/components/ToastProvider";
 import { ProPreviewModal } from "@/app/components/ProPreviewModal";
 import {
@@ -554,9 +555,34 @@ export default function NewExpensePage() {
     // If expense was already created from receipt upload, update with tip and claims
     if (receiptExpenseId) {
       try {
-        // Update expense with tip and final amount
+        // Save claims first, in parallel — splits need persisted claims to be consistent
+        const claimResults = await Promise.all(
+          receiptItems.flatMap((item) =>
+            item.claimedBy.map((claim) =>
+              fetch(
+                `/api/tabs/${tabId}/expenses/${receiptExpenseId}/receipt/items/${item.id}/claims`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ participantId: claim.participantId }),
+                }
+              )
+            )
+          )
+        );
+        if (claimResults.some((res) => !res.ok)) {
+          throw new Error("Failed to save one or more claims");
+        }
+
+        // Compute splits from claims so the placeholder (0,1) split is replaced
+        const computedSplits = computeClaimSplits({
+          items: receiptItems,
+          taxCents: receiptTaxCents,
+          feeCents: receiptFeeCents,
+          tipCents: calculatedTipCents,
+        });
+
         const updatePayload: Record<string, unknown> = {
-          amount,
           note,
           isEstimate,
         };
@@ -564,24 +590,22 @@ export default function NewExpensePage() {
           updatePayload.tipMode = tipMode;
           updatePayload.tipValue = tipValue;
         }
-        await fetch(`/api/tabs/${tabId}/expenses/${receiptExpenseId}`, {
+        if (computedSplits.length > 0) {
+          const claimTotal = computedSplits.reduce((s, x) => s + x.amountCents, 0);
+          updatePayload.amount = formatCentsPlain(claimTotal);
+          updatePayload.splits = computedSplits;
+        } else {
+          updatePayload.amount = amount;
+        }
+
+        const patchRes = await fetch(`/api/tabs/${tabId}/expenses/${receiptExpenseId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updatePayload),
         });
-
-        // Save all claims
-        for (const item of receiptItems) {
-          for (const claim of item.claimedBy) {
-            await fetch(
-              `/api/tabs/${tabId}/expenses/${receiptExpenseId}/receipt/items/${item.id}/claims`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ participantId: claim.participantId }),
-              }
-            );
-          }
+        if (!patchRes.ok) {
+          const data = await patchRes.json().catch(() => ({}));
+          throw new Error(data?.error?.message ?? "Failed to update expense");
         }
 
         // Clear session storage for this expense flow
@@ -591,7 +615,8 @@ export default function NewExpensePage() {
         router.push(`/tabs/${tabId}`);
       } catch (err) {
         console.error("Failed to save expense:", err);
-        setError("Could not save expense — please check your connection and try again");
+        const message = err instanceof Error ? err.message : "Could not save expense — please check your connection and try again";
+        setError(message);
         setSaving(false);
       }
       return;
