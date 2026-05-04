@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, created, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -16,6 +17,8 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     await requireParticipant(tabId, user.id);
 
     const expense = await prisma.expense.findFirst({
@@ -43,7 +46,7 @@ export async function GET(
       },
     });
 
-    return ok({
+    const result = ok({
       items: items.map((item) => ({
         id: item.id,
         name: item.name,
@@ -55,11 +58,17 @@ export async function GET(
         })),
       })),
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
@@ -67,6 +76,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -75,14 +85,20 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    await requireOpenTab(tabId);
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+    const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
     const expense = await prisma.expense.findFirst({
       where: { id: expenseId, tabId },
+      select: { id: true, createdByUserId: true },
     });
     if (!expense) {
       throwApiError(404, "not_found", "Expense not found");
+    }
+    if (expense.createdByUserId !== user.id && tab.createdByUserId !== user.id) {
+      throwApiError(403, "forbidden", "Only the expense creator or tab owner can edit items");
     }
 
     const body = await request.json();
@@ -114,7 +130,7 @@ export async function POST(
       },
     });
 
-    return created({
+    const result = created({
       item: {
         id: item.id,
         name: item.name,
@@ -123,10 +139,16 @@ export async function POST(
         claimedBy: [],
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

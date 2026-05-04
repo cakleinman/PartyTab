@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string; itemId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId, itemId: rawItemId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -17,15 +18,20 @@ export async function PATCH(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    await requireOpenTab(tabId);
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+    const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
     const item = await prisma.receiptItem.findFirst({
       where: { id: itemId, expenseId },
-      include: { expense: { select: { tabId: true } } },
+      include: { expense: { select: { tabId: true, createdByUserId: true } } },
     });
     if (!item || item.expense.tabId !== tabId) {
       throwApiError(404, "not_found", "Item not found");
+    }
+    if (item.expense.createdByUserId !== user.id && tab.createdByUserId !== user.id) {
+      throwApiError(403, "forbidden", "Only the expense creator or tab owner can edit items");
     }
 
     const body = await request.json();
@@ -69,7 +75,7 @@ export async function PATCH(
       },
     });
 
-    return ok({
+    const result = ok({
       item: {
         id: updated.id,
         name: updated.name,
@@ -81,18 +87,25 @@ export async function PATCH(
         })),
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string; itemId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId, itemId: rawItemId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -102,26 +115,37 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
-    await requireOpenTab(tabId);
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+    const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
     const item = await prisma.receiptItem.findFirst({
       where: { id: itemId, expenseId },
-      include: { expense: { select: { tabId: true } } },
+      include: { expense: { select: { tabId: true, createdByUserId: true } } },
     });
     if (!item || item.expense.tabId !== tabId) {
       throwApiError(404, "not_found", "Item not found");
+    }
+    if (item.expense.createdByUserId !== user.id && tab.createdByUserId !== user.id) {
+      throwApiError(403, "forbidden", "Only the expense creator or tab owner can delete items");
     }
 
     await prisma.receiptItem.delete({
       where: { id: itemId },
     });
 
-    return ok({ deleted: true });
+    const result = ok({ deleted: true });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

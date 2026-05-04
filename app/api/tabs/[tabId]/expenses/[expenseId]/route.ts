@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseAmountToCents, parseDateInput, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
 import { parseSplits } from "@/lib/validators/splits";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -17,6 +18,9 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     await requireParticipant(tabId, user.id);
 
     const expense = await prisma.expense.findFirst({
@@ -27,7 +31,7 @@ export async function GET(
       throwApiError(404, "not_found", "Expense not found");
     }
 
-    return ok({
+    const result = ok({
       expense: {
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
@@ -48,11 +52,17 @@ export async function GET(
         })),
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
@@ -60,6 +70,7 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -68,6 +79,9 @@ export async function PATCH(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -90,6 +104,26 @@ export async function PATCH(
     const paidByParticipantId = parseUuid(body?.paidByParticipantId ?? expense.paidByParticipantId, "paidByParticipantId");
     const isEstimate = body?.isEstimate !== undefined ? body.isEstimate === true : expense.isEstimate;
 
+    // Handle manual receipt totals (for the manual-claim flow without an AI parse)
+    const parseNonNegativeInt = (value: unknown, label: string): number => {
+      if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+        throwApiError(400, "validation_error", `${label} must be a non-negative number`);
+      }
+      return Math.round(value);
+    };
+    const receiptSubtotalCents =
+      body?.receiptSubtotalCents !== undefined
+        ? parseNonNegativeInt(body.receiptSubtotalCents, "receiptSubtotalCents")
+        : expense.receiptSubtotalCents;
+    const receiptTaxCents =
+      body?.receiptTaxCents !== undefined
+        ? parseNonNegativeInt(body.receiptTaxCents, "receiptTaxCents")
+        : expense.receiptTaxCents;
+    const receiptFeeCents =
+      body?.receiptFeeCents !== undefined
+        ? parseNonNegativeInt(body.receiptFeeCents, "receiptFeeCents")
+        : expense.receiptFeeCents;
+
     // Handle tip fields
     let receiptTipCents: number | null = expense.receiptTipCents;
     let receiptTipPercent: number | null = expense.receiptTipPercent;
@@ -104,13 +138,19 @@ export async function PATCH(
       const tipPercent = parseFloat(body.tipValue);
       if (!isNaN(tipPercent) && tipPercent >= 0) {
         receiptTipPercent = tipPercent;
-        // Calculate tip cents from subtotal
-        const subtotal = expense.receiptSubtotalCents ?? 0;
+        // Use the new subtotal if it's part of this update, otherwise the saved one
+        const subtotal = receiptSubtotalCents ?? 0;
         receiptTipCents = Math.round(subtotal * (tipPercent / 100));
       }
     } else if (body?.tipCents !== undefined) {
       // Direct tip cents (backwards compatibility)
       receiptTipCents = typeof body.tipCents === "number" ? body.tipCents : null;
+    } else if (body?.receiptSubtotalCents !== undefined && receiptTipPercent !== null) {
+      // Subtotal changed and a tip-percent is in effect — recompute tip cents
+      // so it stays consistent with the new subtotal.
+      receiptTipCents = Math.round(
+        (receiptSubtotalCents ?? 0) * (receiptTipPercent / 100),
+      );
     }
 
     const participants = await prisma.participant.findMany({
@@ -140,6 +180,9 @@ export async function PATCH(
           date,
           isEstimate,
           paidByParticipantId,
+          receiptSubtotalCents,
+          receiptTaxCents,
+          receiptFeeCents,
           receiptTipCents,
           receiptTipPercent,
           splits: {
@@ -152,7 +195,7 @@ export async function PATCH(
       });
     });
 
-    return ok({
+    const result = ok({
       expense: {
         id: updated.id,
         amountTotalCents: updated.amountTotalCents,
@@ -161,22 +204,32 @@ export async function PATCH(
         isEstimate: updated.isEstimate,
         paidByParticipantId: updated.paidByParticipantId,
         createdAt: updated.createdAt.toISOString(),
+        receiptSubtotalCents: updated.receiptSubtotalCents,
+        receiptTaxCents: updated.receiptTaxCents,
+        receiptFeeCents: updated.receiptFeeCents,
         receiptTipCents: updated.receiptTipCents,
         receiptTipPercent: updated.receiptTipPercent,
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -185,6 +238,9 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const tab = await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -206,11 +262,17 @@ export async function DELETE(
       await tx.expense.delete({ where: { id: expenseId } });
     });
 
-    return ok({ deleted: true });
+    const result = ok({ deleted: true });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

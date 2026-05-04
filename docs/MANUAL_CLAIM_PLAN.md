@@ -66,38 +66,40 @@ is a reliable proxy.
 
 ## API surface
 
-### New endpoints
+### Routes (all paths under `/api/tabs/[tabId]/expenses/[expenseId]`)
 
 ```
-POST   /api/tabs/[tabId]/expenses/[expenseId]/items
-  body: { name: string, priceCents: number, quantity?: number }
-  returns: { item }
-
-PATCH  /api/tabs/[tabId]/expenses/[expenseId]/items/[itemId]
-  body: { name?, priceCents?, quantity? }
-  returns: { item }
-
-DELETE /api/tabs/[tabId]/expenses/[expenseId]/items/[itemId]
-  returns: { deleted: true }
-
-PATCH  /api/tabs/[tabId]/expenses/[expenseId]/totals
-  body: { receiptSubtotalCents?, receiptTaxCents?, receiptFeeCents? }
-  returns: { expense }
+POST   /receipt/items                     name, priceCents, quantity?
+PATCH  /receipt/items/[itemId]            name?, priceCents?, quantity?
+DELETE /receipt/items/[itemId]            -
+POST   /receipt/items/[itemId]/claims     participantId          (anyone)
+DELETE /receipt/items/[itemId]/claims     participantId          (anyone)
+PATCH  /                                  receiptSubtotal/Tax/FeeCents,
+                                          tipMode, tipValue, splits, ...
 ```
 
-Auth: `requireOpenTab` + `requireParticipant` (same as claim endpoints). Edit
-allowed for expense creator or tab owner (matches existing edit policy).
+The mutating item routes — POST/PATCH/DELETE on items — require the caller to
+be the expense creator or tab owner. Claim toggling stays open to any
+participant (intentional — that's the social model). All mutations require an
+open tab (`requireOpenTab`).
 
-### Existing endpoints reused
+### Phase 1 — what shipped
 
-- Claim toggle: `POST/DELETE /receipt/items/[itemId]/claims` — unchanged.
-- Save: `PATCH /api/tabs/[tabId]/expenses/[expenseId]` — already accepts
-  `splits`. We send claim-derived splits (post-fix).
+The receipt items POST/PATCH/DELETE endpoints already existed for the AI
+flow. Phase 1 hardened and extended them:
 
-### Endpoint we can drop / make optional
-
-- `POST .../receipt/parse` — never called in the manual flow. It already
-  guards on `receiptUrl` being present, so the route is no-op safe.
+- **Ownership check** added to POST/PATCH/DELETE on items (was: any
+  participant could mutate; now: expense creator or tab owner only).
+- **PATCH `/expenses/[expenseId]`** extended to accept `receiptSubtotalCents`,
+  `receiptTaxCents`, `receiptFeeCents`. (Decided against a separate `/totals`
+  route — fewer endpoints, same shape.) Tip percent auto-recomputes when
+  subtotal changes so totals stay consistent.
+- **No Pro gate** on any of these — `canScanReceipt` and the receipt quota
+  only apply to the AI parse route (`/receipt/parse`), so manual entry is
+  free for everyone.
+- **Tests**: `tests/api/receipt-items.test.ts` — 12 cases covering 401/403
+  ownership boundaries, validation (empty name, zero/negative price), tab
+  scoping, and 200/201 happy paths for both creator and tab-owner callers.
 
 ## Free-tier gating
 
@@ -148,10 +150,12 @@ adds 50 items, and saves — zero AI quota burned, no Pro pop-up.
 
 ## Implementation phases
 
-**Phase 1 — backend (1 PR)**
-- Add the 4 new routes (items POST/PATCH/DELETE, totals PATCH).
-- Vitest coverage for each (auth, validation, ownership).
-- Wire `sortOrder` on manual create.
+**Phase 1 — backend** ✅ shipped
+- Item routes already existed; added ownership checks (creator + tab owner).
+- Extended expense PATCH with `receiptSubtotalCents`/`receiptTaxCents`/
+  `receiptFeeCents` instead of adding a separate `/totals` endpoint.
+- 12 vitest cases in `tests/api/receipt-items.test.ts`.
+- `sortOrder` already wired (POST uses `MAX(sortOrder) + 1`).
 
 **Phase 2 — new-expense flow (1 PR)**
 - "Enter items manually" affordance on the Claim panel.
