@@ -7,7 +7,7 @@
  * Falls back to in-memory rate limiting when not configured (local dev, tests).
  */
 
-import { getAuthRateLimiter, getGenericRateLimiter } from "@/lib/upstash/client";
+import { getAuthRateLimiter, getGenericRateLimiter, getUserRateLimiter } from "@/lib/upstash/client";
 
 // ============================================================================
 // In-memory fallback (for local dev and tests)
@@ -232,4 +232,78 @@ export async function checkGenericRateLimit(
 
     // Fall back to in-memory
     return checkGenericRateLimitInMemory(ip, endpoint);
+}
+
+// ============================================================================
+// Per-user rate limiter (for authenticated API requests)
+// ============================================================================
+
+interface UserRateLimitRecord {
+    count: number;
+    windowStart: number;
+}
+
+const userLimits = new Map<string, UserRateLimitRecord>();
+
+const USER_WINDOW_MS = 60 * 1000; // 1 minute window
+const USER_MAX_REQUESTS = 60; // Max 60 requests per minute per user
+
+/**
+ * In-memory per-user rate limit check (fallback).
+ */
+function checkUserRateLimitInMemory(
+    userId: string,
+): { blocked: true; retryAfter: number } | null {
+    const now = Date.now();
+    const record = userLimits.get(userId);
+
+    // Cleanup old entries occasionally
+    if (Math.random() < 0.01) {
+        for (const [k, v] of userLimits.entries()) {
+            if (now - v.windowStart > USER_WINDOW_MS) {
+                userLimits.delete(k);
+            }
+        }
+    }
+
+    if (!record || now - record.windowStart > USER_WINDOW_MS) {
+        userLimits.set(userId, { count: 1, windowStart: now });
+        return null;
+    }
+
+    if (record.count >= USER_MAX_REQUESTS) {
+        const retryAfter = Math.ceil((USER_WINDOW_MS - (now - record.windowStart)) / 1000);
+        return { blocked: true, retryAfter };
+    }
+
+    record.count++;
+    return null;
+}
+
+/**
+ * Check per-user rate limit for authenticated API requests.
+ * 60 requests per minute per user ID.
+ * Uses Upstash Redis when configured, in-memory fallback otherwise.
+ */
+export async function checkUserRateLimit(
+    userId: string,
+): Promise<{ blocked: true; retryAfter: number } | null> {
+    // Try Upstash first
+    const limiter = getUserRateLimiter();
+    if (limiter) {
+        try {
+            const result = await limiter.limit(userId);
+            if (!result.success) {
+                const retryAfter = Math.ceil((result.reset - Date.now()) / 1000);
+                return { blocked: true, retryAfter: Math.max(1, retryAfter) };
+            }
+            return null;
+        } catch (e) {
+            console.error("Upstash user rate limit error, falling back to in-memory:", e);
+            // Fall through to in-memory
+        }
+    }
+
+    // Fall back to in-memory
+    return checkUserRateLimitInMemory(userId);
 }

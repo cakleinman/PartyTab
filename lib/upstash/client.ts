@@ -55,3 +55,17 @@ export function getGenericRateLimiter(): Ratelimit | null {
         prefix: "ratelimit:generic",
     });
 }
+
+/**
+ * Rate limiter for per-user API requests.
+ * 60 requests per minute per user ID.
+ */
+export function getUserRateLimiter(): Ratelimit | null {
+    const r = getRedis();
+    if (!r) return null;
+    return new Ratelimit({
+        redis: r,
+        limiter: Ratelimit.slidingWindow(60, "1 m"),
+        prefix: "ratelimit:user",
+    });
+}
