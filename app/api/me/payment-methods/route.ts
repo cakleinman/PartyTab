@@ -24,6 +24,7 @@ export const GET = withSimpleApiHandler(async () => {
       label: true,
     },
     orderBy: { createdAt: "asc" },
+    take: 20,
   });
 
   return ok({ paymentMethods });

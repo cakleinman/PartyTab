@@ -54,6 +54,7 @@ export async function listAcknowledgements(
 
   const acknowledgements = await prisma.settlementAcknowledgement.findMany({
     where: { tabId },
+    take: 200,
   });
 
   const ackMap = new Map(
