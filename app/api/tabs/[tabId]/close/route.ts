@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
 
@@ -9,6 +9,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -16,6 +17,10 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const tab = await requireTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can close the tab");
@@ -66,17 +71,23 @@ export async function POST(
       return { settlement, closedTab, transfers };
     });
 
-    return created({
+    const response = created({
       settlement: {
         createdAt: result.settlement.createdAt.toISOString(),
         transfers: result.transfers,
       },
       estimatesConverted: convertEstimates,
     });
+    logApiResponse(request, user.id, response.status, startTime);
+    return response;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const response = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, response.status, startTime);
+      return response;
     }
-    return validationError(error);
+    const response = validationError(error);
+    logApiResponse(request, null, response.status, startTime);
+    return response;
   }
 }

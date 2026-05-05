@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { ok, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession } from "@/lib/api/guards";
+import { getUserFromSession, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 import { requirePro } from "@/lib/auth/entitlements";
 import { computeNets } from "@/lib/settlement/computeSettlement";
@@ -13,6 +13,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ tabId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -22,6 +23,8 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
 
     // 2. Verify caller is Pro
     const isPro = await requirePro(user.id);
@@ -175,14 +178,20 @@ export async function POST(
       },
     });
 
-    return ok({
+    const result = ok({
       success: true,
       message: "Reminder sent successfully",
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

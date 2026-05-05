@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireTab, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 function generateToken(): string {
@@ -10,9 +10,10 @@ function generateToken(): string {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -20,6 +21,8 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     const tab = await requireTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can view invites");
@@ -31,19 +34,26 @@ export async function GET(
       select: { token: true, createdAt: true },
     });
 
-    return ok({ invite: invite ? { token: invite.token, createdAt: invite.createdAt.toISOString() } : null });
+    const result = ok({ invite: invite ? { token: invite.token, createdAt: invite.createdAt.toISOString() } : null });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -51,6 +61,8 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     const tab = await requireOpenTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can create invites");
@@ -74,11 +86,17 @@ export async function POST(
       });
     }
 
-    return ok({ invite });
+    const result = ok({ invite });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

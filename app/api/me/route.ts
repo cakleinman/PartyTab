@@ -3,13 +3,21 @@ import { getSessionUserId, setSessionUserId } from "@/lib/session/session";
 import { parseDisplayName, parseEmail } from "@/lib/validators/schemas";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
+import { checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const startTime = Date.now();
   try {
     const sessionUserId = await getSessionUserId();
     if (!sessionUserId) {
-      return ok({ user: null });
+      const result = ok({ user: null });
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, sessionUserId);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const user = await prisma.user.findUnique({
       where: { id: sessionUserId },
       select: {
@@ -40,21 +48,28 @@ export async function GET() {
       },
     });
     if (!user) {
-      return ok({ user: null });
+      const result = ok({ user: null });
+      logApiResponse(request, sessionUserId, result.status, startTime);
+      return result;
     }
-    return ok({
+    const result = ok({
       user: {
         ...user,
         entitlementState: user.entitlement?.state || "FREE",
         reminderEmailsEnabled: user.emailPreference?.reminderEmailsEnabled ?? true,
       },
     });
+    logApiResponse(request, sessionUserId, result.status, startTime);
+    return result;
   } catch {
-    return apiError(500, "internal_error", "Unexpected error");
+    const result = apiError(500, "internal_error", "Unexpected error");
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
 export async function PATCH(request: Request) {
+  const startTime = Date.now();
   try {
     const body = await request.json();
     const sessionUserId = await getSessionUserId();
@@ -67,8 +82,13 @@ export async function PATCH(request: Request) {
         select: { id: true, displayName: true },
       });
       await setSessionUserId(user.id);
-      return ok({ user });
+      const result = ok({ user });
+      logApiResponse(request, user.id, result.status, startTime);
+      return result;
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, sessionUserId);
+    if (rateLimitResponse) return rateLimitResponse;
 
     const updateData: Record<string, unknown> = {};
 
@@ -114,14 +134,23 @@ export async function PATCH(request: Request) {
         data: updateData,
         select: { id: true, displayName: true, email: true },
       });
-      return ok({ user });
+      const result = ok({ user });
+      logApiResponse(request, sessionUserId, result.status, startTime);
+      return result;
     }
 
-    return ok({ success: true });
+    const result = ok({ success: true });
+    logApiResponse(request, sessionUserId, result.status, startTime);
+    return result;
   } catch (error) {
+    const userId: string | null = null;
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, userId, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, userId, result.status, startTime);
+    return result;
   }
 }

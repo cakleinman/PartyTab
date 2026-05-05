@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { ok, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession } from "@/lib/api/guards";
+import { getUserFromSession, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { id: rawId } = await params;
     const id = parseUuid(rawId, "id");
@@ -15,6 +16,9 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
 
     const notification = await prisma.inAppNotification.findUnique({
       where: { id },
@@ -33,11 +37,18 @@ export async function POST(
       data: { read: true },
     });
 
-    return ok({ notification: updated });
+    const result = ok({ notification: updated });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
+    const userId: string | null = null;
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, userId, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, userId, result.status, startTime);
+    return result;
   }
 }

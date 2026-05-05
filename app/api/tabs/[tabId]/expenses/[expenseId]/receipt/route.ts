@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { canScanReceipt } from "@/lib/auth/entitlements";
 import { parseUuid } from "@/lib/validators/schemas";
 import {
@@ -25,9 +25,10 @@ function getExtension(mimeType: string): string {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -36,6 +37,8 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     await requireParticipant(tabId, user.id);
 
     const expense = await prisma.expense.findFirst({
@@ -47,21 +50,29 @@ export async function GET(
     }
 
     if (!expense.receiptUrl) {
-      return ok({ receipt: null });
+      const result = ok({ receipt: null });
+      logApiResponse(request, user.id, result.status, startTime);
+      return result;
     }
 
     const signedUrl = await getReceiptSignedUrl(expense.receiptUrl);
-    return ok({
+    const result = ok({
       receipt: {
         path: expense.receiptUrl,
         url: signedUrl,
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
@@ -69,6 +80,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -77,6 +89,8 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -144,24 +158,31 @@ export async function POST(
 
     const signedUrl = await getReceiptSignedUrl(path);
 
-    return ok({
+    const result = ok({
       receipt: {
         path,
         url: signedUrl,
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -170,6 +191,8 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -187,7 +210,9 @@ export async function DELETE(
     }
 
     if (!expense.receiptUrl) {
-      return ok({ deleted: true });
+      const result = ok({ deleted: true });
+      logApiResponse(request, user.id, result.status, startTime);
+      return result;
     }
 
     // Delete from Supabase Storage
@@ -212,11 +237,17 @@ export async function DELETE(
       data: { receiptUrl: null },
     });
 
-    return ok({ deleted: true });
+    const result = ok({ deleted: true });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

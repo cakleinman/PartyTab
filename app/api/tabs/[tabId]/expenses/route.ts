@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseAmountToCents, parseDateInput, parseOptionalString, parseUuid } from "@/lib/validators/schemas";
 import { parseSplits } from "@/lib/validators/splits";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -16,11 +17,15 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     await requireParticipant(tabId, user.id);
 
     const expenses = await prisma.expense.findMany({
       where: { tabId },
       orderBy: { createdAt: "desc" },
+      take: 500,
       select: {
         id: true,
         amountTotalCents: true,
@@ -54,7 +59,7 @@ export async function GET(
       },
     });
 
-    return ok({
+    const result = ok({
       expenses: expenses.map((expense) => ({
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
@@ -71,11 +76,17 @@ export async function GET(
         })),
       })),
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
@@ -83,6 +94,7 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -90,6 +102,9 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     await requireOpenTab(tabId);
 
     const participant = await requireParticipant(tabId, user.id);
@@ -147,7 +162,7 @@ export async function POST(
       },
     });
 
-    return created({
+    const result = created({
       expense: {
         id: expense.id,
         amountTotalCents: expense.amountTotalCents,
@@ -158,10 +173,16 @@ export async function POST(
         createdAt: expense.createdAt.toISOString(),
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

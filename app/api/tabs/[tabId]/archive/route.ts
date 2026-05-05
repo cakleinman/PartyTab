@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { ok, noContent, error as apiError, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -15,6 +16,10 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const tab = await requireTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can archive the tab");
@@ -56,19 +61,26 @@ export async function POST(
       data: { archivedAt: new Date() },
     });
 
-    return ok({ archivedAt: updated.archivedAt?.toISOString() });
+    const response = ok({ archivedAt: updated.archivedAt?.toISOString() });
+    logApiResponse(request, user.id, response.status, startTime);
+    return response;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const response = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, response.status, startTime);
+      return response;
     }
-    return validationError(error);
+    const response = validationError(error);
+    logApiResponse(request, null, response.status, startTime);
+    return response;
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -76,6 +88,10 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const tab = await requireTab(tabId);
     if (tab.createdByUserId !== user.id) {
       throwApiError(403, "forbidden", "Only the creator can unarchive the tab");
@@ -89,11 +105,17 @@ export async function DELETE(
       data: { archivedAt: null },
     });
 
-    return noContent();
+    const response = noContent();
+    logApiResponse(request, user.id, response.status, startTime);
+    return response;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const response = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, response.status, startTime);
+      return response;
     }
-    return validationError(error);
+    const response = validationError(error);
+    logApiResponse(request, null, response.status, startTime);
+    return response;
   }
 }

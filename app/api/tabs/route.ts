@@ -1,17 +1,23 @@
 import { prisma } from "@/lib/db/prisma";
 import { created, error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireUser } from "@/lib/api/guards";
+import { getUserFromSession, requireUser, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseDateInput, parseDescription, parseTabName, parseUuid } from "@/lib/validators/schemas";
 import { randomBytes } from "crypto";
 
 const BASIC_TAB_LIMIT = 1;
 
-export async function GET() {
+export async function GET(request: Request) {
+  const startTime = Date.now();
   try {
     const user = await getUserFromSession();
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user?.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     if (!user) {
-      return ok({ tabs: [] });
+      const result = ok({ tabs: [] });
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
     const tabs = await prisma.tab.findMany({
       where: {
@@ -21,6 +27,7 @@ export async function GET() {
         archivedAt: null,
       },
       orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      take: 100,
       select: {
         id: true,
         name: true,
@@ -45,7 +52,7 @@ export async function GET() {
       },
     });
 
-    return ok({
+    const result = ok({
       tabs: tabs.map((tab) => {
         const totalTransfers = tab.settlement?.transfers.length ?? 0;
         const confirmedCount = tab.acknowledgements.filter((a) => a.status === "ACKNOWLEDGED").length;
@@ -67,13 +74,21 @@ export async function GET() {
         };
       }),
     });
-  } catch {
-    return apiError(500, "forbidden", "Unexpected error");
+    logApiResponse(request, user?.id ?? null, result.status, startTime);
+    return result;
+  } catch (error) {
+    const result = apiError(500, "forbidden", "Unexpected error");
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
   try {
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, undefined);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const body = await request.json();
     const user = await requireUser(body?.displayName, body?.pin);
     const name = parseTabName(body?.name);
@@ -170,7 +185,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return created({
+    const result = created({
       tab: {
         id: tab.id,
         name: tab.name,
@@ -181,10 +196,16 @@ export async function POST(request: Request) {
         closedAt: tab.closedAt ? tab.closedAt.toISOString() : null,
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

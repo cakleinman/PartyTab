@@ -1,12 +1,18 @@
 import { prisma } from "@/lib/db/prisma";
 import { ok, error as apiError } from "@/lib/api/response";
-import { getUserFromSession } from "@/lib/api/guards";
+import { getUserFromSession, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const startTime = Date.now();
   try {
     const user = await getUserFromSession();
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user?.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     if (!user) {
-      return ok({ tabs: [] });
+      const result = ok({ tabs: [] });
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
     const tabs = await prisma.tab.findMany({
       where: {
@@ -16,6 +22,7 @@ export async function GET() {
         archivedAt: { not: null },
       },
       orderBy: { archivedAt: "desc" },
+      take: 100,
       select: {
         id: true,
         name: true,
@@ -29,7 +36,7 @@ export async function GET() {
       },
     });
 
-    return ok({
+    const result = ok({
       tabs: tabs.map((tab) => ({
         id: tab.id,
         name: tab.name,
@@ -42,7 +49,11 @@ export async function GET() {
         isCreator: tab.createdByUserId === user.id,
       })),
     });
-  } catch {
-    return apiError(500, "internal_error", "Unexpected error");
+    logApiResponse(request, user?.id ?? null, result.status, startTime);
+    return result;
+  } catch (error) {
+    const result = apiError(500, "internal_error", "Unexpected error");
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

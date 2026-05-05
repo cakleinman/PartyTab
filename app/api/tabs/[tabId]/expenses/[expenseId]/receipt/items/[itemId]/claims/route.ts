@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, created, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string; itemId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId, itemId: rawItemId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -17,6 +18,8 @@ export async function POST(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -50,7 +53,9 @@ export async function POST(
       },
     });
     if (existingClaim) {
-      return ok({ message: "Already claimed" });
+      const result = ok({ message: "Already claimed" });
+      logApiResponse(request, user.id, result.status, startTime);
+      return result;
     }
 
     // Create claim
@@ -79,7 +84,7 @@ export async function POST(
       },
     });
 
-    return created({
+    const result = created({
       item: {
         id: updated!.id,
         name: updated!.name,
@@ -91,11 +96,17 @@ export async function POST(
         })),
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
@@ -103,6 +114,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ tabId: string; expenseId: string; itemId: string }> }
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, expenseId: rawExpenseId, itemId: rawItemId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -112,6 +124,8 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
     await requireOpenTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -153,7 +167,7 @@ export async function DELETE(
       },
     });
 
-    return ok({
+    const result = ok({
       item: {
         id: updated!.id,
         name: updated!.name,
@@ -165,10 +179,16 @@ export async function DELETE(
         })),
       },
     });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

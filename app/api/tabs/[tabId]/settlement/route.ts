@@ -1,14 +1,15 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 import { computeNets, computeSettlement } from "@/lib/settlement/computeSettlement";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -16,6 +17,10 @@ export async function GET(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const tab = await requireTab(tabId);
     await requireParticipant(tabId, user.id);
 
@@ -30,7 +35,7 @@ export async function GET(
         throwApiError(404, "not_found", "Settlement not found");
       }
 
-      return ok({
+      const response = ok({
         settlement: {
           createdAt: settlement.createdAt.toISOString(),
           transfers: settlement.transfers.map((transfer) => ({
@@ -41,6 +46,8 @@ export async function GET(
         },
         isPreview: false,
       });
+      logApiResponse(request, user.id, response.status, startTime);
+      return response;
     }
 
     // For active tabs, compute settlement on-the-fly (preview mode)
@@ -53,7 +60,7 @@ export async function GET(
     const nets = computeNets(participants, expenses, splits);
     const transfers = computeSettlement(nets.map((net) => ({ ...net })));
 
-    return ok({
+    const response = ok({
       settlement: {
         createdAt: new Date().toISOString(),
         transfers: transfers.map((transfer) => ({
@@ -64,10 +71,16 @@ export async function GET(
       },
       isPreview: true,
     });
+    logApiResponse(request, user.id, response.status, startTime);
+    return response;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const response = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, response.status, startTime);
+      return response;
     }
-    return validationError(error);
+    const response = validationError(error);
+    logApiResponse(request, null, response.status, startTime);
+    return response;
   }
 }

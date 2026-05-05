@@ -1,18 +1,22 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireParticipant, requireTab, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireParticipant, requireTab, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { computeNets } from "@/lib/settlement/computeSettlement";
 import { parseDateInput, parseDescription, parseTabName, parseUuid } from "@/lib/validators/schemas";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
     const user = await getUserFromSession();
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user?.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
@@ -38,7 +42,7 @@ export async function GET(
     // Pro features are available if the tab creator has a Pro subscription
     const hasProFeatures = tabCreator?.subscriptionTier === "PRO";
 
-    return ok({
+    const result = ok({
       tab: {
         id: tab.id,
         name: tab.name,
@@ -57,11 +61,17 @@ export async function GET(
         hasProFeatures,
       },
     });
+    logApiResponse(request, user?.id ?? null, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
 
@@ -69,10 +79,14 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ tabId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
     const user = await getUserFromSession();
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user?.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
@@ -98,7 +112,7 @@ export async function PATCH(
       data,
     });
 
-    return ok({
+    const result = ok({
       tab: {
         id: updated.id,
         name: updated.name,
@@ -111,10 +125,16 @@ export async function PATCH(
         isCreator: updated.createdByUserId === user.id,
       },
     });
+    logApiResponse(request, user?.id ?? null, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

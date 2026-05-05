@@ -1,13 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { error as apiError, ok, validationError } from "@/lib/api/response";
 import { isApiError, throwApiError } from "@/lib/api/errors";
-import { getUserFromSession, requireTab, requireOpenTab } from "@/lib/api/guards";
+import { getUserFromSession, requireTab, requireOpenTab, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { parseUuid } from "@/lib/validators/schemas";
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ tabId: string; participantId: string }> },
 ) {
+  const startTime = Date.now();
   try {
     const { tabId: rawTabId, participantId: rawParticipantId } = await params;
     const tabId = parseUuid(rawTabId, "tabId");
@@ -17,6 +18,8 @@ export async function DELETE(
     if (!user) {
       throwApiError(401, "unauthorized", "Unauthorized");
     }
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
 
     const tab = await requireOpenTab(tabId);
     if (tab.createdByUserId !== user.id) {
@@ -61,11 +64,17 @@ export async function DELETE(
       where: { id: participantId },
     });
 
-    return ok({ removed: true });
+    const result = ok({ removed: true });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch (error) {
     if (isApiError(error)) {
-      return apiError(error.status, error.code, error.message);
+      const result = apiError(error.status, error.code, error.message);
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
-    return validationError(error);
+    const result = validationError(error);
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }

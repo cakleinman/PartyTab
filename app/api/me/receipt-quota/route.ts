@@ -1,16 +1,27 @@
 import { ok, error as apiError } from "@/lib/api/response";
-import { getUserFromSession } from "@/lib/api/guards";
+import { getUserFromSession, checkApiRateLimit, logApiResponse } from "@/lib/api/guards";
 import { getReceiptQuotaInfo } from "@/lib/billing/usage";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const startTime = Date.now();
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return apiError(401, "unauthorized", "Unauthorized");
+      const result = apiError(401, "unauthorized", "Unauthorized");
+      logApiResponse(request, null, result.status, startTime);
+      return result;
     }
+
+    const { response: rateLimitResponse } = await checkApiRateLimit(request, user.id);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const quota = await getReceiptQuotaInfo(user.id);
-    return ok({ quota });
+    const result = ok({ quota });
+    logApiResponse(request, user.id, result.status, startTime);
+    return result;
   } catch {
-    return apiError(500, "internal_error", "Failed to fetch receipt quota");
+    const result = apiError(500, "internal_error", "Failed to fetch receipt quota");
+    logApiResponse(request, null, result.status, startTime);
+    return result;
   }
 }
