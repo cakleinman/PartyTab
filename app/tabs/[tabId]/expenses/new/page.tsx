@@ -1010,15 +1010,27 @@ export default function NewExpensePage() {
 
             {splitMode === "claim" && (
               <>
-                {receiptQuota && receiptQuota.remaining > 0 && (
+                {!hasProFeatures && receiptQuota && receiptQuota.remaining > 0 && (
                   <p className="text-xs text-ink-500 mb-2">
-                    {receiptQuota.remaining} of {receiptQuota.limit} free scan{receiptQuota.remaining !== 1 ? "s" : ""} remaining this month
+                    {receiptQuota.remaining} of {receiptQuota.limit} scan{receiptQuota.remaining !== 1 ? "s" : ""} remaining this month
                   </p>
                 )}
                 {receiptQuota && receiptQuota.remaining === 0 && (
                   <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 mb-2">
-                    <p className="text-sm font-medium text-amber-800">No scans remaining this month</p>
-                    <a href="/upgrade" className="text-xs text-amber-700 underline">Upgrade to Pro for {15} scans/month</a>
+                    {hasProFeatures ? (
+                      <>
+                        <p className="text-sm font-medium text-amber-800">Monthly scan limit reached</p>
+                        <p className="text-xs text-amber-700 mt-1">
+                          We cap receipt scans at 100/month to prevent abuse.{" "}
+                          <a href="/feedback" className="underline">Contact us</a> if you think this is in error.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-medium text-amber-800">No scans remaining this month</p>
+                        <a href="/upgrade" className="text-xs text-amber-700 underline">Upgrade to Pro for receipt scanning</a>
+                      </>
+                    )}
                   </div>
                 )}
                 <ClaimPanel

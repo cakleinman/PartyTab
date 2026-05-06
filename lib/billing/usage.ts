@@ -43,11 +43,11 @@ export async function incrementReceiptUsage(userId: string) {
 
 export async function getReceiptLimit(userId: string): Promise<number> {
   const isPro = await requirePro(userId);
-  return isPro ? 15 : 2;
+  return isPro ? 100 : 2;
 }
 
 export async function checkReceiptLimit(userId: string, limit?: number) {
-  const maxLimit = limit ?? 15;
+  const maxLimit = limit ?? 100;
   const count = await getReceiptUsage(userId);
   if (count >= maxLimit) {
     throw new Error(`Monthly receipt parsing limit exceeded (${maxLimit}/month).`);
