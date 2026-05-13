@@ -193,11 +193,11 @@ export function PaymentMethodForm({
 
   // Step-up re-auth: email-auth users confirm their current password before
   // any mutation. Stored in component state so the user types it once per
-  // page visit, not per row. Google-auth users are blocked entirely until
-  // passkeys ship (the server returns 412 step_up_required either way).
+  // page visit, not per row. Google users are allowed without step-up today;
+  // once the passkey-assertion bridge ships, Google users with an enrolled
+  // passkey will be prompted to satisfy it.
   const requiresPassword = authProvider === "EMAIL";
-  const isGoogleBlocked = authProvider === "GOOGLE";
-  const formDisabled = disabled || isGoogleBlocked;
+  const formDisabled = disabled;
   const [currentPassword, setCurrentPassword] = useState("");
 
   const handleSave = async (type: PaymentType, handle: string) => {
@@ -251,49 +251,6 @@ export function PaymentMethodForm({
       pushToast("Network error");
     }
   };
-
-  if (isGoogleBlocked) {
-    return (
-      <div className="space-y-3">
-        <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-3">
-          <p className="text-sm text-ink-900">
-            Changing payment methods on a Google-linked account will require a passkey.
-          </p>
-          <p className="mt-1 text-xs text-ink-500">
-            We&apos;re shipping passkey enrolment soon — until then, contact support if you need
-            to update a saved handle.
-          </p>
-        </div>
-        {PAYMENT_TYPES.map(({ type, label, placeholder, prefix, toggle }) => {
-          const saved = paymentMethods.find((pm) => pm.type === type);
-          if (toggle) {
-            return (
-              <PaymentToggleRow
-                key={type}
-                label={label}
-                enabled={!!saved}
-                disabled
-                onToggle={async () => {}}
-              />
-            );
-          }
-          return (
-            <PaymentTypeRow
-              key={type}
-              type={type}
-              label={label}
-              placeholder={placeholder}
-              prefix={prefix}
-              savedHandle={saved?.handle ?? null}
-              disabled
-              onSave={async () => {}}
-              onRemove={async () => {}}
-            />
-          );
-        })}
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-3">

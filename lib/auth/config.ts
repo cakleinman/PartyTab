@@ -76,6 +76,14 @@ export const authConfig: NextAuthConfig = {
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email as string },
+          select: {
+            id: true,
+            email: true,
+            displayName: true,
+            passwordHash: true,
+            failedLoginAttempts: true,
+            lockedUntil: true,
+          },
         });
 
         // Not-found / no-password path: pay the bcrypt cost against a real
@@ -294,15 +302,26 @@ export const authConfig: NextAuthConfig = {
     },
     async jwt({ token, user, account }) {
       if (user) {
-        // First sign in - get our internal user ID
+        // First sign in - resolve our internal user ID. Each provider has a
+        // different reliable lookup key.
         let dbUser;
         if (account?.provider === "google") {
           dbUser = await prisma.user.findUnique({
             where: { googleId: account.providerAccountId },
+            select: { id: true, displayName: true, authProvider: true },
+          });
+        } else if (account?.provider === "passkey" && user.id) {
+          // Passkey authorize() returns the internal user.id directly. Look
+          // up by id (not email) to avoid colliding accounts that share an
+          // email but belong to different auth providers.
+          dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { id: true, displayName: true, authProvider: true },
           });
         } else if (user.email) {
           dbUser = await prisma.user.findUnique({
             where: { email: user.email },
+            select: { id: true, displayName: true, authProvider: true },
           });
         }
 

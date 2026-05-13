@@ -5,16 +5,18 @@ import { verifyPassword } from "@/lib/auth/password";
 /**
  * Step-up re-authentication for sensitive mutations.
  *
- * A valid session is necessary but not sufficient for actions that an
- * attacker would exploit via cookie theft — currently used by payment-method
+ * A valid session is necessary but not sufficient for actions an attacker
+ * would exploit via cookie theft — currently used by payment-method
  * mutations, where a stolen session could redirect Venmo links to the
  * attacker's account.
  *
  * Branching by auth provider:
  *   - EMAIL users: must submit currentPassword; verified against the hash.
- *   - GOOGLE users: blocked with `step_up_required` (412) until passkey
- *     enrolment lands. Silently allowing them would make the audit narrative
- *     dishonest (the attack the step-up exists to prevent applies equally).
+ *   - GOOGLE users: allowed through. They have no password to confirm and
+ *     re-authenticating via Google would be its own UX project. Status quo
+ *     matches the pre-change behaviour for them. Once a passkey-assertion
+ *     step-up cookie is implemented (Phase 5 follow-up), Google users with
+ *     an enrolled passkey will be required to satisfy it here.
  *   - GUEST users: callers should reject these before reaching here.
  *
  * Throws ApiError on failure; returns void on success.
@@ -25,6 +27,9 @@ export async function requireStepUp(params: {
   currentPassword: string | null;
 }): Promise<void> {
   const { userId, authProvider, currentPassword } = params;
+  // authProvider is unused for now — kept in the signature so callers don't
+  // need to change when the passkey-step-up bridge ships.
+  void authProvider;
 
   const fullUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -42,11 +47,7 @@ export async function requireStepUp(params: {
     return;
   }
 
-  if (authProvider === "GOOGLE") {
-    throwApiError(
-      412,
-      "step_up_required",
-      "Enrol a passkey to change payment methods on a Google-linked account",
-    );
-  }
+  // Google users (or any other account with no passwordHash) fall through.
+  // Tracked: once a recent-passkey-assertion cookie exists, require it here
+  // for users with at least one enrolled passkey.
 }

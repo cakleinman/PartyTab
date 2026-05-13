@@ -68,29 +68,24 @@ describe("requireStepUp", () => {
     }
   });
 
-  it("throws 412 step_up_required for a Google user (no password to verify)", async () => {
+  it("allows Google users through (no password to verify)", async () => {
     mockFindUnique.mockResolvedValue({ passwordHash: null });
-    try {
-      await requireStepUp({
+    // Pre-change behaviour: Google users had no step-up at all. Keeping that
+    // status quo until a passkey-assertion step-up cookie ships, so existing
+    // Google users with saved Venmo handles aren't locked out on deploy.
+    await expect(
+      requireStepUp({
         userId: "u1",
         authProvider: "GOOGLE",
         currentPassword: null,
-      });
-      throw new Error("should have thrown");
-    } catch (e) {
-      expect(isApiError(e)).toBe(true);
-      if (isApiError(e)) {
-        expect(e.status).toBe(412);
-        expect(e.code).toBe("step_up_required");
-      }
-    }
+      }),
+    ).resolves.toBeUndefined();
   });
 
   it("falls through silently for unexpected auth providers (defensive)", async () => {
     mockFindUnique.mockResolvedValue({ passwordHash: null });
     // Guest users shouldn't reach here, but if they do, requireStepUp must
-    // not silently succeed. Callers should always reject guests upstream.
-    // Behaviour: returns void (no throw) so the caller's own guards run.
+    // not throw — callers always reject guests upstream with their own check.
     await expect(
       requireStepUp({
         userId: "u1",
