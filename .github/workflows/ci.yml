@@ -58,7 +58,7 @@ jobs:
         continue-on-error: true
       - name: Generate CycloneDX SBOM
         run: npx --yes @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.json
