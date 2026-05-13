@@ -1,0 +1,44 @@
+License baseline for partytab dependency tree.
+
+Captured: 2026-05-12 via `npx license-checker --summary`.
+
+Summary
+-------
+MIT                : 425
+Apache-2.0         : 36
+ISC                : 23
+BSD-2-Clause       : 8
+MPL-2.0            : 7
+BSD-3-Clause       : 5
+LGPL-3.0-or-later  : 3
+Python-2.0         : 1
+CC-BY-4.0          : 1
+CC0-1.0            : 1
+0BSD               : 1
+UNLICENSED         : 1   # the partytab package itself (private)
+
+Non-permissive licenses to track
+--------------------------------
+MPL-2.0 (weak copyleft, file-level):
+  - @vercel/analytics
+  - axe-core
+  - lightningcss (+ platform binaries)
+  - web-push
+
+LGPL-3.0-or-later (weak copyleft, dynamic linking allowed):
+  - @img/sharp-libvips-{darwin-arm64,linux-arm64,linuxmusl-arm64}
+    (transitive via sharp; pre-built native binaries, dynamically loaded)
+
+Both license families are acceptable for a closed-source SaaS as long as we do
+not modify and redistribute the libraries themselves. No remediation required.
+
+CI gate
+-------
+.github/workflows/ci.yml runs license-checker with --onlyAllow against the
+allowlist below. If a new license appears, the build fails — investigate the
+new package, decide whether it's acceptable, and either drop the dep or add
+the license here (and to the CI allowlist).
+
+Allowlist:
+  MIT, ISC, Apache-2.0, BSD-2-Clause, BSD-3-Clause, CC0-1.0, CC-BY-4.0,
+  0BSD, Unlicense, Python-2.0, LGPL-3.0-or-later, MPL-2.0
