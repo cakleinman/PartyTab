@@ -34,7 +34,7 @@ export const POST = withSimpleApiHandler(async () => {
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
-    userID: Buffer.from(user.id),
+    userID: user.id,
     userName: user.email ?? user.displayName,
     userDisplayName: user.displayName,
     attestationType: "none",
