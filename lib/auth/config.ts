@@ -108,17 +108,23 @@ export const authConfig: NextAuthConfig = {
         );
 
         if (!isValid) {
-          const nextCount = (user.failedLoginAttempts ?? 0) + 1;
-          await prisma.user.update({
+          // Atomic increment to avoid a race when parallel failed logins
+          // arrive together (e.g. a credential-stuffing bot). Prisma's
+          // `increment` compiles to `SET col = col + 1`, which is safe under
+          // concurrency. We read the post-increment value and, if it crosses
+          // the threshold, follow up with a lock — that second write is
+          // idempotent so a parallel duplicate is harmless.
+          const after = await prisma.user.update({
             where: { id: user.id },
-            data: {
-              failedLoginAttempts: nextCount,
-              lockedUntil:
-                nextCount >= MAX_FAILED_ATTEMPTS
-                  ? new Date(Date.now() + LOCKOUT_MS)
-                  : null,
-            },
+            data: { failedLoginAttempts: { increment: 1 } },
+            select: { failedLoginAttempts: true },
           });
+          if (after.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { lockedUntil: new Date(Date.now() + LOCKOUT_MS) },
+            });
+          }
           return null;
         }
 
@@ -308,7 +314,7 @@ export const authConfig: NextAuthConfig = {
         if (account?.provider === "google") {
           dbUser = await prisma.user.findUnique({
             where: { googleId: account.providerAccountId },
-            select: { id: true, displayName: true, authProvider: true },
+            select: { id: true, email: true, displayName: true, authProvider: true },
           });
         } else if (account?.provider === "passkey" && user.id) {
           // Passkey authorize() returns the internal user.id directly. Look
@@ -316,12 +322,12 @@ export const authConfig: NextAuthConfig = {
           // email but belong to different auth providers.
           dbUser = await prisma.user.findUnique({
             where: { id: user.id },
-            select: { id: true, displayName: true, authProvider: true },
+            select: { id: true, email: true, displayName: true, authProvider: true },
           });
         } else if (user.email) {
           dbUser = await prisma.user.findUnique({
             where: { email: user.email },
-            select: { id: true, displayName: true, authProvider: true },
+            select: { id: true, email: true, displayName: true, authProvider: true },
           });
         }
 
@@ -329,6 +335,13 @@ export const authConfig: NextAuthConfig = {
           token.userId = dbUser.id;
           token.displayName = dbUser.displayName;
           token.authProvider = dbUser.authProvider;
+          // Persist email explicitly. NextAuth populates token.email from the
+          // user object on first sign-in, but on subsequent JWT reads (after
+          // ~24h refresh) only the token survives — and the session callback
+          // below depends on it for downstream consumers like Stripe checkout.
+          if (dbUser.email) {
+            token.email = dbUser.email;
+          }
         }
       }
       return token;
@@ -338,6 +351,9 @@ export const authConfig: NextAuthConfig = {
         session.user.id = token.userId as string;
         session.user.displayName = token.displayName as string;
         session.user.authProvider = token.authProvider as string;
+        if (typeof token.email === "string") {
+          session.user.email = token.email;
+        }
       }
       return session;
     },

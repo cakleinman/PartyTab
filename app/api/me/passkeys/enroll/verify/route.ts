@@ -34,13 +34,12 @@ export const POST = withSimpleApiHandler(async (request) => {
   const cookieStore = await cookies();
   const cookieRaw = cookieStore.get(PASSKEY_CHALLENGE_COOKIE)?.value;
   const challenge = parseChallenge(cookieRaw);
-  // Clear the challenge cookie immediately — single-use.
-  cookieStore.delete(PASSKEY_CHALLENGE_COOKIE);
 
   if (!challenge || challenge.userId !== user.id) {
     throwApiError(400, "validation_error", "No active enrolment challenge");
   }
   if (Date.now() - challenge.iat > PASSKEY_CHALLENGE_TTL_MS) {
+    cookieStore.delete(PASSKEY_CHALLENGE_COOKIE);
     throwApiError(400, "validation_error", "Enrolment challenge expired");
   }
 
@@ -54,12 +53,21 @@ export const POST = withSimpleApiHandler(async (request) => {
       requireUserVerification: false,
     });
   } catch (err) {
+    // Burn the challenge on a verification throw — single-use semantics
+    // preserved even though the user will need to start over.
+    cookieStore.delete(PASSKEY_CHALLENGE_COOKIE);
     throwApiError(
       400,
       "validation_error",
       err instanceof Error ? err.message : "Verification failed",
     );
   }
+
+  // Single-use: clear the cookie now that the challenge has been consumed,
+  // whether verification succeeded or not. Keeping the cookie alive across
+  // a failed verification would let an attacker retry with multiple
+  // attestation responses against the same challenge.
+  cookieStore.delete(PASSKEY_CHALLENGE_COOKIE);
 
   if (!verification.verified || !verification.registrationInfo) {
     throwApiError(400, "validation_error", "Passkey could not be verified");

@@ -76,7 +76,7 @@ describe("authorize() lockout policy", () => {
     expect(result).toBeNull();
   });
 
-  it("returns null and increments failedLoginAttempts on wrong password", async () => {
+  it("atomically increments failedLoginAttempts on wrong password", async () => {
     const passwordHash = await bcrypt.hash("correct-password", 12);
     mockFindUnique.mockResolvedValue({
       id: "u1",
@@ -86,17 +86,18 @@ describe("authorize() lockout policy", () => {
       failedLoginAttempts: 2,
       lockedUntil: null,
     });
-    mockUpdate.mockResolvedValue({});
+    // The post-increment value the DB returns.
+    mockUpdate.mockResolvedValue({ failedLoginAttempts: 3 });
 
     const result = await authorize({ email: "x@example.com", password: "wrong-password" });
 
     expect(result).toBeNull();
+    // One update call: SQL-level atomic increment via Prisma's { increment: 1 }.
+    expect(mockUpdate).toHaveBeenCalledOnce();
     expect(mockUpdate).toHaveBeenCalledWith({
       where: { id: "u1" },
-      data: {
-        failedLoginAttempts: 3,
-        lockedUntil: null,
-      },
+      data: { failedLoginAttempts: { increment: 1 } },
+      select: { failedLoginAttempts: true },
     });
   });
 
@@ -110,18 +111,30 @@ describe("authorize() lockout policy", () => {
       failedLoginAttempts: 4,
       lockedUntil: null,
     });
-    mockUpdate.mockResolvedValue({});
+    // First call (the increment) returns the post-increment row.
+    mockUpdate.mockResolvedValueOnce({ failedLoginAttempts: 5 });
+    // Second call (setting lockedUntil) returns nothing meaningful.
+    mockUpdate.mockResolvedValueOnce({});
 
     const before = Date.now();
     const result = await authorize({ email: "x@example.com", password: "wrong-password" });
     const after = Date.now();
 
     expect(result).toBeNull();
-    expect(mockUpdate).toHaveBeenCalledOnce();
-    const call = mockUpdate.mock.calls[0][0];
-    expect(call.data.failedLoginAttempts).toBe(5);
-    expect(call.data.lockedUntil).toBeInstanceOf(Date);
-    const lockedAtMs = (call.data.lockedUntil as Date).getTime();
+    expect(mockUpdate).toHaveBeenCalledTimes(2);
+
+    // First call: atomic increment.
+    expect(mockUpdate.mock.calls[0][0]).toEqual({
+      where: { id: "u1" },
+      data: { failedLoginAttempts: { increment: 1 } },
+      select: { failedLoginAttempts: true },
+    });
+
+    // Second call: set lockedUntil ~15 min in the future.
+    const lockCall = mockUpdate.mock.calls[1][0];
+    expect(lockCall.where).toEqual({ id: "u1" });
+    expect(lockCall.data.lockedUntil).toBeInstanceOf(Date);
+    const lockedAtMs = (lockCall.data.lockedUntil as Date).getTime();
     // 15-minute lockout, allow ±5s for scheduling slop.
     expect(lockedAtMs).toBeGreaterThanOrEqual(before + 15 * 60 * 1000 - 5000);
     expect(lockedAtMs).toBeLessThanOrEqual(after + 15 * 60 * 1000 + 5000);
