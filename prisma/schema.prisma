@@ -103,6 +103,25 @@ model User {
 
   // Payment methods
   paymentMethods PaymentMethod[]
+
+  // Passkeys (WebAuthn passwordless sign-in)
+  passkeys Passkey[]
+}
+
+model Passkey {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  credentialId Bytes     @unique
+  publicKey    Bytes
+  counter      BigInt    @default(0)
+  transports   String[]
+  deviceName   String?
+  createdAt    DateTime  @default(now())
+  lastUsedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // Claim token for placeholder users (added by others, claimed via link)

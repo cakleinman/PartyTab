@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/app/components/LoadingSpinner";
 import { PaymentMethodForm, type PaymentMethod } from "@/app/components/PaymentMethodForm";
+import { PasskeySettings } from "@/app/components/PasskeySettings";
 import { useToast } from "@/app/components/ToastProvider";
 
 type User = {
@@ -370,6 +371,19 @@ export default function SettingsClient() {
           authProvider={user.authProvider}
         />
       </section>
+
+      {/* Sign-in methods (passkeys) */}
+      {!isGuest && (
+        <section className="rounded-2xl sm:rounded-3xl border border-sand-200 bg-white/80 p-4 sm:p-6 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">Sign-in methods</h2>
+            <p className="text-xs text-ink-500">
+              Skip the password — sign in with your fingerprint or device biometrics.
+            </p>
+          </div>
+          <PasskeySettings />
+        </section>
+      )}
 
       {/* Notifications */}
       {!isGuest && (

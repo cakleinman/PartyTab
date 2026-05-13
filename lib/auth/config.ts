@@ -3,8 +3,17 @@ import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
+import { verifyAuthenticationResponse } from "@simplewebauthn/server";
+import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { prisma } from "@/lib/db/prisma";
 import { SESSION_COOKIE, parseSession } from "@/lib/session/parse";
+import {
+  EXPECTED_ORIGIN,
+  PASSKEY_CHALLENGE_COOKIE,
+  PASSKEY_CHALLENGE_TTL_MS,
+  RP_ID,
+} from "@/lib/passkeys/config";
+import { parseChallenge } from "@/lib/passkeys/challengeCookie";
 import { verifyPassword } from "./password";
 
 // Per-account brute-force lockout configuration. Complements the IP-based
@@ -117,6 +126,86 @@ export const authConfig: NextAuthConfig = {
           id: user.id,
           email: user.email,
           name: user.displayName,
+        };
+      },
+    }),
+    // Passwordless passkey sign-in. The browser calls signIn("passkey",
+    // { assertion: JSON.stringify(...) }) directly; NextAuth then mints the
+    // session from authorize()'s return value. All WebAuthn verification
+    // happens here so we don't have to mint sessions from a route handler.
+    Credentials({
+      id: "passkey",
+      name: "Passkey",
+      credentials: {
+        assertion: { label: "Assertion", type: "text" },
+      },
+      async authorize(credentials) {
+        if (typeof credentials?.assertion !== "string") return null;
+
+        let response: AuthenticationResponseJSON;
+        try {
+          response = JSON.parse(credentials.assertion) as AuthenticationResponseJSON;
+        } catch {
+          return null;
+        }
+
+        const cookieStore = await cookies();
+        const cookieRaw = cookieStore.get(PASSKEY_CHALLENGE_COOKIE)?.value;
+        cookieStore.delete(PASSKEY_CHALLENGE_COOKIE);
+
+        const challenge = parseChallenge(cookieRaw);
+        if (!challenge) return null;
+        if (Date.now() - challenge.iat > PASSKEY_CHALLENGE_TTL_MS) return null;
+
+        const credentialIdBuf = Buffer.from(response.id, "base64url");
+        const passkey = await prisma.passkey.findUnique({
+          where: { credentialId: credentialIdBuf },
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                displayName: true,
+                authProvider: true,
+              },
+            },
+          },
+        });
+
+        if (!passkey) return null;
+
+        try {
+          const verification = await verifyAuthenticationResponse({
+            response,
+            expectedChallenge: challenge.challenge,
+            expectedOrigin: EXPECTED_ORIGIN,
+            expectedRPID: RP_ID,
+            credential: {
+              id: response.id,
+              publicKey: new Uint8Array(passkey.publicKey),
+              counter: Number(passkey.counter),
+              transports: passkey.transports as AuthenticatorTransport[],
+            },
+            requireUserVerification: false,
+          });
+
+          if (!verification.verified) return null;
+
+          await prisma.passkey.update({
+            where: { id: passkey.id },
+            data: {
+              counter: BigInt(verification.authenticationInfo.newCounter),
+              lastUsedAt: new Date(),
+            },
+          });
+        } catch {
+          return null;
+        }
+
+        return {
+          id: passkey.user.id,
+          email: passkey.user.email,
+          name: passkey.user.displayName,
         };
       },
     }),

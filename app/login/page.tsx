@@ -4,6 +4,10 @@ import { signIn } from "next-auth/react";
 import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import {
+  browserSupportsWebAuthn,
+  startAuthentication,
+} from "@simplewebauthn/browser";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -16,6 +20,43 @@ function LoginContent() {
 
   const handleGoogleSignIn = () => {
     signIn("google", { callbackUrl });
+  };
+
+  const handlePasskeySignIn = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      if (!browserSupportsWebAuthn()) {
+        setError("This browser doesn't support passkeys");
+        return;
+      }
+      const challengeRes = await fetch("/api/auth/passkey/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!challengeRes.ok) {
+        setError("Could not start passkey sign-in");
+        return;
+      }
+      const { options } = await challengeRes.json();
+      const assertion = await startAuthentication({ optionsJSON: options });
+      const result = await signIn("passkey", {
+        assertion: JSON.stringify(assertion),
+        redirect: false,
+      });
+      if (result?.error) {
+        setError("Passkey not recognised");
+        return;
+      }
+      window.location.href = callbackUrl;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Sign-in failed";
+      if (!msg.toLowerCase().includes("cancel") && !msg.toLowerCase().includes("aborted")) {
+        setError(msg);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
@@ -125,6 +166,15 @@ function LoginContent() {
               {loading ? "Signing in..." : "Sign in with Email"}
             </button>
           </form>
+
+          <button
+            type="button"
+            onClick={handlePasskeySignIn}
+            disabled={loading}
+            className="w-full rounded-full border border-sand-200 bg-white px-6 py-3 text-sm font-medium hover:bg-sand-50 transition disabled:opacity-50"
+          >
+            Sign in with a passkey
+          </button>
         </div>
 
         {/* Additional options */}
