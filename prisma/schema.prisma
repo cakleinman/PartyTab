@@ -65,6 +65,10 @@ model User {
   passwordHash     String?          // bcrypt hash for email auth
   pinHash          String?          // Hashed 4-digit PIN for guest mode
 
+  // Brute-force lockout (per-account, complements IP-based limiter in lib/auth/rate-limit.ts)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+
   // Account linking (for merging guest → authenticated)
   linkedFromId String?      @db.Uuid
   linkedFrom   User?        @relation("AccountLink", fields: [linkedFromId], references: [id])

@@ -1,10 +1,27 @@
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import { SESSION_COOKIE, parseSession } from "@/lib/session/parse";
 import { verifyPassword } from "./password";
+
+// Per-account brute-force lockout configuration. Complements the IP-based
+// limiter in lib/auth/rate-limit.ts — IP throttling slows a single attacker
+// while account-level lockout stops distributed credential stuffing.
+const MAX_FAILED_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
+// Real bcrypt hash of an unrelated string, generated once at module load.
+// We run bcrypt.compare against this on the "user not found" path so the
+// response time matches "user found but wrong password" — without this, the
+// fast-return on missing users is an email-enumeration oracle. Cost factor
+// 12 to match SALT_ROUNDS in lib/auth/password.ts.
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(
+  "partytab-timing-equaliser",
+  12
+);
 
 async function getGuestUserId(): Promise<string | null> {
   try {
@@ -52,7 +69,19 @@ export const authConfig: NextAuthConfig = {
           where: { email: credentials.email as string },
         });
 
+        // Not-found / no-password path: pay the bcrypt cost against a real
+        // dummy hash so timing matches the "user found but wrong password"
+        // branch. Without this, response time leaks email registration state.
         if (!user?.passwordHash) {
+          await bcrypt.compare(credentials.password as string, DUMMY_PASSWORD_HASH);
+          return null;
+        }
+
+        // Account locked: short-circuit before even checking the password.
+        // Same null return as a wrong password — never surface a distinct
+        // "locked" message to the caller (it would help an attacker confirm
+        // they've triggered the lockout on a real account).
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
           return null;
         }
 
@@ -62,7 +91,26 @@ export const authConfig: NextAuthConfig = {
         );
 
         if (!isValid) {
+          const nextCount = (user.failedLoginAttempts ?? 0) + 1;
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              failedLoginAttempts: nextCount,
+              lockedUntil:
+                nextCount >= MAX_FAILED_ATTEMPTS
+                  ? new Date(Date.now() + LOCKOUT_MS)
+                  : null,
+            },
+          });
           return null;
+        }
+
+        // Successful login: reset the failure counter.
+        if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { failedLoginAttempts: 0, lockedUntil: null },
+          });
         }
 
         return {
