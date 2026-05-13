@@ -3,6 +3,7 @@ import { throwApiError } from "@/lib/api/errors";
 import { getUserFromSession } from "@/lib/api/guards";
 import { ok } from "@/lib/api/response";
 import { prisma } from "@/lib/db/prisma";
+import { requireStepUp } from "@/lib/auth/stepUp";
 import {
   parsePaymentMethodType,
   parsePaymentHandle,
@@ -45,6 +46,17 @@ export const PUT = withSimpleApiHandler(async (request) => {
   const type = parsePaymentMethodType(body?.type);
   const handle = parsePaymentHandle(body?.handle);
   const label = parsePaymentLabel(body?.label);
+  const currentPassword =
+    typeof body?.currentPassword === "string" ? body.currentPassword : null;
+
+  // Step-up re-auth: a saved payment method controls where group payments
+  // get routed (Venmo handle etc.), so changing it requires a fresh proof
+  // that the session belongs to the real user — not just a stolen cookie.
+  await requireStepUp({
+    userId: user.id,
+    authProvider: user.authProvider,
+    currentPassword,
+  });
 
   const paymentMethod = await prisma.paymentMethod.upsert({
     where: {

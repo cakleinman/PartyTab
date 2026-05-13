@@ -15,7 +15,8 @@ export type ErrorCode =
   | "internal_error"
   | "email_exists"
   | "upgrade_required"
-  | "rate_limited";
+  | "rate_limited"
+  | "step_up_required";
 
 export function error(status: number, code: ErrorCode, message: string, details?: unknown) {
   return NextResponse.json(

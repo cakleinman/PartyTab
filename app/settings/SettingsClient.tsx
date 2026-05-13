@@ -367,6 +367,7 @@ export default function SettingsClient() {
           paymentMethods={user.paymentMethods}
           onUpdate={fetchUser}
           disabled={isGuest}
+          authProvider={user.authProvider}
         />
       </section>
 

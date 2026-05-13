@@ -14,6 +14,7 @@ type Props = {
   paymentMethods: PaymentMethod[];
   onUpdate: () => void;
   disabled?: boolean;
+  authProvider?: "GUEST" | "EMAIL" | "GOOGLE";
 };
 
 type PaymentType = "VENMO" | "ZELLE" | "PAYPAL" | "CASHAPP" | "CASH" | "CUSTOM";
@@ -182,15 +183,37 @@ function PaymentToggleRow({
   );
 }
 
-export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }: Props) {
+export function PaymentMethodForm({
+  paymentMethods,
+  onUpdate,
+  disabled = false,
+  authProvider,
+}: Props) {
   const { pushToast } = useToast();
 
+  // Step-up re-auth: email-auth users confirm their current password before
+  // any mutation. Stored in component state so the user types it once per
+  // page visit, not per row. Google-auth users are blocked entirely until
+  // passkeys ship (the server returns 412 step_up_required either way).
+  const requiresPassword = authProvider === "EMAIL";
+  const isGoogleBlocked = authProvider === "GOOGLE";
+  const formDisabled = disabled || isGoogleBlocked;
+  const [currentPassword, setCurrentPassword] = useState("");
+
   const handleSave = async (type: PaymentType, handle: string) => {
+    if (requiresPassword && !currentPassword) {
+      pushToast("Enter your current password to save");
+      return;
+    }
     try {
       const res = await fetch("/api/me/payment-methods", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, handle }),
+        body: JSON.stringify({
+          type,
+          handle,
+          ...(requiresPassword ? { currentPassword } : {}),
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -198,6 +221,7 @@ export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }
         return;
       }
       pushToast(`${PAYMENT_TYPES.find((p) => p.type === type)?.label} saved`);
+      setCurrentPassword("");
       onUpdate();
     } catch {
       pushToast("Network error");
@@ -205,23 +229,96 @@ export function PaymentMethodForm({ paymentMethods, onUpdate, disabled = false }
   };
 
   const handleRemove = async (type: PaymentType) => {
+    if (requiresPassword && !currentPassword) {
+      pushToast("Enter your current password to remove");
+      return;
+    }
     try {
       const res = await fetch(`/api/me/payment-methods/${type}`, {
         method: "DELETE",
+        headers: requiresPassword ? { "Content-Type": "application/json" } : undefined,
+        body: requiresPassword ? JSON.stringify({ currentPassword }) : undefined,
       });
       if (!res.ok) {
-        pushToast("Could not remove — please try again");
+        const data = await res.json().catch(() => null);
+        pushToast(data?.error?.message ?? "Could not remove — please try again");
         return;
       }
       pushToast(`${PAYMENT_TYPES.find((p) => p.type === type)?.label} removed`);
+      setCurrentPassword("");
       onUpdate();
     } catch {
       pushToast("Network error");
     }
   };
 
+  if (isGoogleBlocked) {
+    return (
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-3">
+          <p className="text-sm text-ink-900">
+            Changing payment methods on a Google-linked account will require a passkey.
+          </p>
+          <p className="mt-1 text-xs text-ink-500">
+            We&apos;re shipping passkey enrolment soon — until then, contact support if you need
+            to update a saved handle.
+          </p>
+        </div>
+        {PAYMENT_TYPES.map(({ type, label, placeholder, prefix, toggle }) => {
+          const saved = paymentMethods.find((pm) => pm.type === type);
+          if (toggle) {
+            return (
+              <PaymentToggleRow
+                key={type}
+                label={label}
+                enabled={!!saved}
+                disabled
+                onToggle={async () => {}}
+              />
+            );
+          }
+          return (
+            <PaymentTypeRow
+              key={type}
+              type={type}
+              label={label}
+              placeholder={placeholder}
+              prefix={prefix}
+              savedHandle={saved?.handle ?? null}
+              disabled
+              onSave={async () => {}}
+              onRemove={async () => {}}
+            />
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
+      {requiresPassword && (
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-3">
+          <label
+            htmlFor="pm-current-password"
+            className="text-sm font-medium text-ink-900"
+          >
+            Confirm with your current password
+          </label>
+          <p className="mt-1 text-xs text-ink-500">
+            Required when saving or removing a payment handle — protects you against session theft.
+          </p>
+          <input
+            id="pm-current-password"
+            type="password"
+            autoComplete="current-password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            disabled={formDisabled}
+            className="mt-2 w-full rounded-xl border border-sand-200 bg-white px-3 py-2.5 text-sm placeholder-ink-400 focus:border-ink-400 focus:outline-none focus:ring-2 focus:ring-ink-100 disabled:bg-sand-100 disabled:text-ink-500"
+          />
+        </div>
+      )}
       {PAYMENT_TYPES.map(({ type, label, placeholder, prefix, toggle }) => {
         const saved = paymentMethods.find((pm) => pm.type === type);
         if (toggle) {
