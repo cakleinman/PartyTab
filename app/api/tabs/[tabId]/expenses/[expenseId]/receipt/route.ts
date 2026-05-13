@@ -5,6 +5,10 @@ import { getUserFromSession, requireParticipant, requireOpenTab, checkApiRateLim
 import { canScanReceipt } from "@/lib/auth/entitlements";
 import { parseUuid } from "@/lib/validators/schemas";
 import {
+  ALLOWED_RECEIPT_MIME_TYPES,
+  verifyImageMagicBytes,
+} from "@/lib/receipts/verifyImageMagicBytes";
+import {
   getSupabaseServer,
   RECEIPTS_BUCKET,
   getReceiptPath,
@@ -12,17 +16,7 @@ import {
 } from "@/lib/supabase/client";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
-
-function getExtension(mimeType: string): string {
-  const map: Record<string, string> = {
-    "image/jpeg": "jpg",
-    "image/png": "png",
-    "image/webp": "webp",
-    "image/heic": "heic",
-  };
-  return map[mimeType] ?? "jpg";
-}
+const ALLOWED_TYPES: readonly string[] = ALLOWED_RECEIPT_MIME_TYPES;
 
 export async function GET(
   request: Request,
@@ -127,21 +121,31 @@ export async function POST(
       throwApiError(400, "validation_error", "File too large. Max size: 10MB");
     }
 
+    // Magic-byte verification: the client-supplied file.type can be spoofed,
+    // so detect the true format from the buffer header before storing.
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const magic = await verifyImageMagicBytes(buffer);
+    if (!magic.ok) {
+      throwApiError(
+        415,
+        "validation_error",
+        "File contents do not match an allowed image type"
+      );
+    }
+
     const supabase = getSupabaseServer();
-    const ext = getExtension(file.type);
-    const path = getReceiptPath(tabId, expenseId, ext);
+    const path = getReceiptPath(tabId, expenseId, magic.ext);
 
     // Delete old receipt if exists
     if (expense.receiptUrl) {
       await supabase.storage.from(RECEIPTS_BUCKET).remove([expense.receiptUrl]);
     }
 
-    // Upload new receipt
-    const buffer = await file.arrayBuffer();
+    // Upload new receipt using the detected (not client-claimed) content type.
     const { error: uploadError } = await supabase.storage
       .from(RECEIPTS_BUCKET)
       .upload(path, buffer, {
-        contentType: file.type,
+        contentType: magic.mime,
         upsert: true,
       });
 
