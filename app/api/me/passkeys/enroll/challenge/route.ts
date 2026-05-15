@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
+import type { AuthenticatorTransportFuture } from "@simplewebauthn/server";
 import { withSimpleApiHandler } from "@/lib/api/handler";
 import { throwApiError } from "@/lib/api/errors";
 import { getUserFromSession } from "@/lib/api/guards";
@@ -31,16 +32,19 @@ export const POST = withSimpleApiHandler(async () => {
     take: 20,
   });
 
+  // v13: userID is optional — the library generates a random opaque identifier.
+  // We bind the resulting credential to the user via the Passkey.userId FK on
+  // the verify route, so we don't need (and shouldn't leak) our real user.id
+  // into the WebAuthn handle that authenticators store locally.
   const options = await generateRegistrationOptions({
     rpName: RP_NAME,
     rpID: RP_ID,
-    userID: user.id,
     userName: user.email ?? user.displayName,
     userDisplayName: user.displayName,
     attestationType: "none",
     excludeCredentials: existing.map((p) => ({
       id: Buffer.from(p.credentialId).toString("base64url"),
-      transports: p.transports as AuthenticatorTransport[],
+      transports: p.transports as AuthenticatorTransportFuture[],
     })),
     authenticatorSelection: {
       residentKey: "required",   // we want discoverable credentials

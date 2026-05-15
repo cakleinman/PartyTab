@@ -4,7 +4,10 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { cookies } from "next/headers";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
-import type { AuthenticationResponseJSON } from "@simplewebauthn/server";
+import type {
+  AuthenticationResponseJSON,
+  AuthenticatorTransportFuture,
+} from "@simplewebauthn/server";
 import { prisma } from "@/lib/db/prisma";
 import { SESSION_COOKIE, parseSession } from "@/lib/session/parse";
 import {
@@ -198,7 +201,7 @@ export const authConfig: NextAuthConfig = {
               id: response.id,
               publicKey: new Uint8Array(passkey.publicKey),
               counter: Number(passkey.counter),
-              transports: passkey.transports as AuthenticatorTransport[],
+              transports: passkey.transports as AuthenticatorTransportFuture[],
             },
             requireUserVerification: false,
           });
