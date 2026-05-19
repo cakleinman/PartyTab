@@ -1,6 +1,8 @@
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/db/prisma";
 import { throwApiError } from "@/lib/api/errors";
 import { verifyPassword } from "@/lib/auth/password";
+import { STEP_UP_COOKIE, STEP_UP_TTL_MS, parseStepUp } from "@/lib/auth/stepUpCookie";
 
 /**
  * Step-up re-authentication for sensitive mutations.
@@ -12,11 +14,10 @@ import { verifyPassword } from "@/lib/auth/password";
  *
  * Branching by auth provider:
  *   - EMAIL users: must submit currentPassword; verified against the hash.
- *   - GOOGLE users: allowed through. They have no password to confirm and
- *     re-authenticating via Google would be its own UX project. Status quo
- *     matches the pre-change behaviour for them. Once a passkey-assertion
- *     step-up cookie is implemented (Phase 5 follow-up), Google users with
- *     an enrolled passkey will be required to satisfy it here.
+ *   - GOOGLE users: must present a fresh partytab_stepup cookie set by
+ *     /api/auth/stepup/google/complete after a Google OAuth re-prompt.
+ *     Throws 412 step_up_required with details.method="google_oauth" when
+ *     missing/expired so the client can render the re-auth banner.
  *   - GUEST users: callers should reject these before reaching here.
  *
  * Throws ApiError on failure; returns void on success.
@@ -27,9 +28,6 @@ export async function requireStepUp(params: {
   currentPassword: string | null;
 }): Promise<void> {
   const { userId, authProvider, currentPassword } = params;
-  // authProvider is unused for now — kept in the signature so callers don't
-  // need to change when the passkey-step-up bridge ships.
-  void authProvider;
 
   const fullUser = await prisma.user.findUnique({
     where: { id: userId },
@@ -47,7 +45,25 @@ export async function requireStepUp(params: {
     return;
   }
 
-  // Google users (or any other account with no passwordHash) fall through.
-  // Tracked: once a recent-passkey-assertion cookie exists, require it here
-  // for users with at least one enrolled passkey.
+  if (authProvider === "GOOGLE") {
+    const cookieStore = await cookies();
+    const raw = cookieStore.get(STEP_UP_COOKIE)?.value;
+    const payload = parseStepUp(raw);
+    if (
+      payload &&
+      payload.userId === userId &&
+      Date.now() - payload.iat < STEP_UP_TTL_MS
+    ) {
+      return;
+    }
+    throwApiError(
+      412,
+      "step_up_required",
+      "Confirm with Google to change payment methods",
+      { method: "google_oauth" },
+    );
+  }
+
+  // Guests are rejected upstream; any other unexpected provider falls
+  // through silently to preserve historical behaviour.
 }

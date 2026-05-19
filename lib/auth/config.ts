@@ -310,6 +310,15 @@ export const authConfig: NextAuthConfig = {
       return true;
     },
     async jwt({ token, user, account }) {
+      // Stamp a fresh-Google-auth timestamp when account is provided by a
+      // google callback. account is only populated on initial sign-in (and
+      // re-sign-in via signIn() round-trips with prompt=login), NOT on
+      // subsequent JWT refreshes — so this field is the load-bearing freshness
+      // signal for /api/auth/stepup/google/complete. JWT `iat` would refresh
+      // on every session call and isn't safe to use here.
+      if (account?.provider === "google") {
+        token.googleSignInAt = Date.now();
+      }
       if (user) {
         // First sign in - resolve our internal user ID. Each provider has a
         // different reliable lookup key.
@@ -382,5 +391,6 @@ declare module "next-auth" {
     userId: string;
     displayName: string;
     authProvider: string;
+    googleSignInAt?: number;
   }
 }

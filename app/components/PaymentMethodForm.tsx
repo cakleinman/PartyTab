@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useToast } from "@/app/components/ToastProvider";
 
 export type PaymentMethod = {
@@ -192,13 +193,14 @@ export function PaymentMethodForm({
   const { pushToast } = useToast();
 
   // Step-up re-auth: email-auth users confirm their current password before
-  // any mutation. Stored in component state so the user types it once per
-  // page visit, not per row. Google users are allowed without step-up today;
-  // once the passkey-assertion bridge ships, Google users with an enrolled
-  // passkey will be prompted to satisfy it.
+  // any mutation; Google users are bounced through a fresh OAuth round-trip
+  // (signIn with prompt=login) that sets a short-lived partytab_stepup
+  // cookie. Banner state toggles when the server returns 412
+  // step_up_required with details.method="google_oauth".
   const requiresPassword = authProvider === "EMAIL";
   const formDisabled = disabled;
   const [currentPassword, setCurrentPassword] = useState("");
+  const [stepUpNeeded, setStepUpNeeded] = useState(false);
 
   const handleSave = async (type: PaymentType, handle: string) => {
     if (requiresPassword && !currentPassword) {
@@ -215,6 +217,13 @@ export function PaymentMethodForm({
           ...(requiresPassword ? { currentPassword } : {}),
         }),
       });
+      if (res.status === 412) {
+        const data = await res.json().catch(() => null);
+        if (data?.error?.details?.method === "google_oauth") {
+          setStepUpNeeded(true);
+          return;
+        }
+      }
       if (!res.ok) {
         const data = await res.json();
         pushToast(data?.error?.message ?? "Could not save — please try again");
@@ -222,6 +231,7 @@ export function PaymentMethodForm({
       }
       pushToast(`${PAYMENT_TYPES.find((p) => p.type === type)?.label} saved`);
       setCurrentPassword("");
+      setStepUpNeeded(false);
       onUpdate();
     } catch {
       pushToast("Network error");
@@ -239,6 +249,13 @@ export function PaymentMethodForm({
         headers: requiresPassword ? { "Content-Type": "application/json" } : undefined,
         body: requiresPassword ? JSON.stringify({ currentPassword }) : undefined,
       });
+      if (res.status === 412) {
+        const data = await res.json().catch(() => null);
+        if (data?.error?.details?.method === "google_oauth") {
+          setStepUpNeeded(true);
+          return;
+        }
+      }
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         pushToast(data?.error?.message ?? "Could not remove — please try again");
@@ -246,14 +263,43 @@ export function PaymentMethodForm({
       }
       pushToast(`${PAYMENT_TYPES.find((p) => p.type === type)?.label} removed`);
       setCurrentPassword("");
+      setStepUpNeeded(false);
       onUpdate();
     } catch {
       pushToast("Network error");
     }
   };
 
+  const handleGoogleStepUp = () => {
+    // authorizationParams is the 3rd arg of next-auth/react signIn, NOT a
+    // field on options. prompt=login forces Google to re-prompt; max_age=0
+    // tells Google to require fresh auth even if the user is signed in.
+    void signIn(
+      "google",
+      { callbackUrl: "/api/auth/stepup/google/complete?next=/settings" },
+      { prompt: "login", max_age: "0" },
+    );
+  };
+
   return (
     <div className="space-y-3">
+      {stepUpNeeded && (
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-3">
+          <p className="text-sm font-medium text-ink-900">
+            Re-authenticate with Google to continue
+          </p>
+          <p className="mt-1 text-xs text-ink-500">
+            Required when saving or removing a payment handle on a Google-linked account.
+          </p>
+          <button
+            type="button"
+            onClick={handleGoogleStepUp}
+            className="mt-3 rounded-xl bg-ink-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-800"
+          >
+            Re-authenticate with Google
+          </button>
+        </div>
+      )}
       {requiresPassword && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 px-4 py-3">
           <label

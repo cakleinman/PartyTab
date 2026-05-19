@@ -82,7 +82,7 @@ export function withApiHandler<P = Record<string, string>>(
                 durationMs: Date.now() - start,
             });
             if (isApiError(error)) {
-                return apiError(error.status, error.code, error.message);
+                return apiError(error.status, error.code, error.message, error.details);
             }
             return validationError(error);
         }
@@ -133,7 +133,7 @@ export function withSimpleApiHandler(
                 durationMs: Date.now() - start,
             });
             if (isApiError(error)) {
-                return apiError(error.status, error.code, error.message);
+                return apiError(error.status, error.code, error.message, error.details);
             }
             return validationError(error);
         }
