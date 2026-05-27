@@ -92,6 +92,8 @@ model User {
   entitlement         Entitlement?
   receiptUsage        ReceiptUsage[]
   receipts            Receipt[]
+  idkypUsage          IdkypUsage[]
+  idkypDecisions      IdkypDecision[]
 
   // Reminders / Notifications
   createdReminderSettings TabReminderSetting[]
@@ -457,4 +459,31 @@ model PaymentMethod {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([userId, type])
   @@map("payment_methods")
+}
+
+model IdkypUsage {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid @map("user_id")
+  month     String   // YYYY-MM
+  count     Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@unique([userId, month])
+  @@map("idkyp_usage")
+}
+
+model IdkypDecision {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @db.Uuid @map("user_id")
+  winnerPlaceId   String   @map("winner_place_id")
+  winnerName      String   @map("winner_name")
+  winnerLat       Float    @map("winner_lat")
+  winnerLng       Float    @map("winner_lng")
+  filtersSnapshot Json     @map("filters_snapshot")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+  @@index([userId, createdAt])
+  @@map("idkyp_decision")
 }
