@@ -22,12 +22,20 @@ export type Quota = {
   unlimited: boolean;
 };
 
+export type GeoStatus =
+  | "unknown"        // initial — haven't asked yet
+  | "requesting"     // permission prompt or position fetch in flight
+  | "granted"        // we have a real user position
+  | "denied"         // user said no
+  | "unavailable";   // browser API missing, timeout, or other error
+
 type ClientState = IdkypState & {
   searchResults: Restaurant[];
   searchMode: "live" | "demo" | null;
   searchLoading: boolean;
   searchError: string | null;
   quota: Quota | null;
+  geoStatus: GeoStatus;
 };
 
 type Action =
@@ -42,6 +50,7 @@ type Action =
     }
   | { type: "set_search_error"; message: string }
   | { type: "set_quota"; quota: Quota }
+  | { type: "set_geo_status"; status: GeoStatus }
   | { type: "start_session"; trio: Restaurant[]; pool: Restaurant[] }
   | { type: "eliminate_next"; trio: Restaurant[]; pool: Restaurant[]; eliminated: Restaurant }
   | { type: "eliminate_final"; finalists: Restaurant[]; eliminated: Restaurant }
@@ -66,6 +75,7 @@ function initialState(): ClientState {
     searchLoading: false,
     searchError: null,
     quota: null,
+    geoStatus: "unknown",
   };
 }
 
@@ -91,6 +101,8 @@ function reducer(state: ClientState, action: Action): ClientState {
       return { ...state, searchLoading: false, searchError: action.message };
     case "set_quota":
       return { ...state, quota: action.quota };
+    case "set_geo_status":
+      return { ...state, geoStatus: action.status };
     case "start_session":
       return {
         ...state,
@@ -125,9 +137,11 @@ function reducer(state: ClientState, action: Action): ClientState {
       return {
         ...initialState(),
         screen: "map",
+        userPin: state.userPin,
         searchResults: state.searchResults,
         searchMode: state.searchMode,
         quota: state.quota,
+        geoStatus: state.geoStatus,
       };
     default:
       return state;
@@ -183,6 +197,38 @@ export default function IdkypClient() {
     [],
   );
 
+  const requestLocation = useCallback(() => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      dispatch({ type: "set_geo_status", status: "unavailable" });
+      return;
+    }
+    dispatch({ type: "set_geo_status", status: "requesting" });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        dispatch({
+          type: "set_user_pin",
+          pin: { lat: pos.coords.latitude, lng: pos.coords.longitude },
+        });
+        dispatch({ type: "set_geo_status", status: "granted" });
+      },
+      (err) => {
+        dispatch({
+          type: "set_geo_status",
+          status: err.code === err.PERMISSION_DENIED ? "denied" : "unavailable",
+        });
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
+    );
+  }, []);
+
+  // Auto-request location the first time we enter the map screen
+  useEffect(() => {
+    if (auth !== "signed_in") return;
+    if (state.screen !== "map") return;
+    if (state.geoStatus !== "unknown") return;
+    requestLocation();
+  }, [auth, state.screen, state.geoStatus, requestLocation]);
+
   const searchHere = useCallback(
     async (pin: LatLng, radiusMiles: number) => {
       dispatch({ type: "set_search_loading" });
@@ -212,13 +258,25 @@ export default function IdkypClient() {
     [],
   );
 
-  // Auto-fetch the first batch when the user opens the map for the first time
+  // Auto-fetch the first batch — but only after geolocation has resolved,
+  // so we don't waste a search call on the MAP_CENTER default and then
+  // immediately discard the results once the user pin moves.
   useEffect(() => {
     if (auth !== "signed_in") return;
     if (state.screen !== "map") return;
+    if (state.geoStatus === "unknown" || state.geoStatus === "requesting") return;
     if (state.searchResults.length > 0 || state.searchLoading) return;
     void searchHere(state.userPin, state.filters.radius);
-  }, [auth, state.screen, state.searchResults.length, state.searchLoading, state.userPin, state.filters.radius, searchHere]);
+  }, [
+    auth,
+    state.screen,
+    state.geoStatus,
+    state.searchResults.length,
+    state.searchLoading,
+    state.userPin,
+    state.filters.radius,
+    searchHere,
+  ]);
 
   const filtered = useMemo(
     () => applyFilters(state.searchResults, state.filters),
@@ -256,11 +314,13 @@ export default function IdkypClient() {
           mode={state.searchMode}
           loading={state.searchLoading}
           errorMessage={state.searchError}
+          geoStatus={state.geoStatus}
           onPinChange={(pin) => dispatch({ type: "set_user_pin", pin })}
           onRadiusChange={(radius) =>
             dispatch({ type: "set_filters", filters: { ...state.filters, radius } })
           }
           onSearchHere={() => searchHere(state.userPin, state.filters.radius)}
+          onRequestLocation={requestLocation}
           onContinue={() => dispatch({ type: "set_screen", screen: "filters" })}
         />
       );

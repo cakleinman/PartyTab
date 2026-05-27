@@ -10,9 +10,14 @@ type Props = {
 
 export function WinnerScreen({ winner, onTryAgain }: Props) {
   const [hoursOpen, setHoursOpen] = useState(false);
-  const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  // Google Maps Universal URL — opens directly in the route-planning view
+  // with destination pre-filled. Origin defaults to the user's current
+  // location. Falls back to the Maps web app on desktop and the native
+  // Maps app on mobile (Google Maps on Android, system handler on iOS).
+  // Passing both destination text and place_id makes the match unambiguous.
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
     `${winner.name} ${winner.address}`,
-  )}`;
+  )}&destination_place_id=${encodeURIComponent(winner.placeId)}&travelmode=driving`;
   const websiteUrl =
     winner.websiteUrl ??
     `https://www.google.com/search?q=${encodeURIComponent(`${winner.name} ${winner.address}`)}`;
@@ -80,7 +85,7 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
               rel="noopener noreferrer"
               className="rounded-full bg-teal-600 px-4 py-2.5 text-center text-sm font-medium text-white transition hover:bg-teal-700"
             >
-              Directions →
+              Route me there →
             </a>
             <a
               href={websiteUrl}

@@ -1,9 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { LatLng, Restaurant } from "@/lib/idkyp/types";
 import { distanceMiles } from "@/lib/idkyp/geo";
+import type { GeoStatus } from "../IdkypClient";
 
 const LeafletMap = dynamic(() => import("./LeafletMap").then((m) => m.LeafletMap), {
   ssr: false,
@@ -21,9 +22,11 @@ type Props = {
   mode: "live" | "demo" | null;
   loading: boolean;
   errorMessage: string | null;
+  geoStatus: GeoStatus;
   onPinChange: (pin: LatLng) => void;
   onRadiusChange: (radius: number) => void;
   onSearchHere: () => void;
+  onRequestLocation: () => void;
   onContinue: () => void;
 };
 
@@ -34,13 +37,13 @@ export function MapScreen({
   mode,
   loading,
   errorMessage,
+  geoStatus,
   onPinChange,
   onRadiusChange,
   onSearchHere,
+  onRequestLocation,
   onContinue,
 }: Props) {
-  const [geoState, setGeoState] = useState<"idle" | "locating" | "denied" | "unavailable">("idle");
-
   const inRangeCount = useMemo(
     () =>
       restaurants.filter((r) => distanceMiles(userPin, { lat: r.lat, lng: r.lng }) <= radius).length,
@@ -49,25 +52,7 @@ export function MapScreen({
 
   const tooFew = inRangeCount < 3 && !loading;
   const canContinue = inRangeCount >= 3;
-
-  const useMyLocation = () => {
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setGeoState("unavailable");
-      return;
-    }
-    setGeoState("locating");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoState("idle");
-        onPinChange({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        // User taps "Search this area" next — avoids stale-closure race
-      },
-      (err) => {
-        setGeoState(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable");
-      },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
-    );
-  };
+  const locating = geoStatus === "requesting";
 
   return (
     <div className="space-y-4">
@@ -76,12 +61,16 @@ export function MapScreen({
           <p className="text-xs uppercase tracking-[0.2em] text-ink-400">map</p>
           <button
             type="button"
-            onClick={useMyLocation}
-            disabled={geoState === "locating"}
+            onClick={onRequestLocation}
+            disabled={locating}
             className="rounded-full border border-sand-200 bg-white px-2.5 py-1 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50 disabled:opacity-50"
             aria-label="Use my current location"
           >
-            {geoState === "locating" ? "Locating…" : "📍 Use my location"}
+            {locating
+              ? "Locating…"
+              : geoStatus === "granted"
+                ? "📍 Recenter on me"
+                : "📍 Use my location"}
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -95,19 +84,25 @@ export function MapScreen({
               tooFew ? "bg-orange-50 text-orange-700" : "bg-teal-50 text-teal-700"
             }`}
           >
-            {loading ? "Searching…" : `${inRangeCount} ${inRangeCount === 1 ? "place" : "places"} in range`}
+            {loading
+              ? "Searching…"
+              : locating
+                ? "Locating…"
+                : `${inRangeCount} ${inRangeCount === 1 ? "place" : "places"} in range`}
           </p>
         </div>
       </div>
 
-      {geoState === "denied" && (
+      {geoStatus === "denied" && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
-          Location access denied — drag the pin manually instead.
+          Location access denied — drag the pin to your area, then tap{" "}
+          <em className="font-medium text-ink-900">Search this area</em>.
         </div>
       )}
-      {geoState === "unavailable" && (
+      {geoStatus === "unavailable" && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
-          Location unavailable — drag the pin manually instead.
+          Couldn&apos;t get your location — drag the pin manually, then tap{" "}
+          <em className="font-medium text-ink-900">Search this area</em>.
         </div>
       )}
 
@@ -120,7 +115,7 @@ export function MapScreen({
         </div>
       )}
 
-      {!loading && !errorMessage && restaurants.length === 0 && (
+      {!loading && !errorMessage && !locating && restaurants.length === 0 && geoStatus !== "unknown" && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
           No restaurants found here. Try moving the pin or widening the radius, then{" "}
           <button type="button" onClick={onSearchHere} className="font-medium text-teal-700 underline">
@@ -168,7 +163,7 @@ export function MapScreen({
         <button
           type="button"
           onClick={onSearchHere}
-          disabled={loading}
+          disabled={loading || locating}
           className="rounded-full border border-sand-200 bg-white px-5 py-3 text-sm font-medium text-ink-900 transition hover:bg-sand-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {loading ? "Searching…" : "Search this area"}
