@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import type { Filters } from "@/lib/idkyp/types";
-import { RESTAURANTS } from "@/lib/idkyp/data";
+import type { Filters, Restaurant } from "@/lib/idkyp/types";
 
 const DIETARY = [
   { key: "vegetarian", label: "Vegetarian" },
@@ -20,18 +19,26 @@ function priceLabel(level: number) {
 
 type Props = {
   filters: Filters;
+  allRestaurants: Restaurant[];
   matchCount: number;
   onChange: (filters: Filters) => void;
   onBack: () => void;
   onStart: () => void;
 };
 
-export function FiltersScreen({ filters, matchCount, onChange, onBack, onStart }: Props) {
+export function FiltersScreen({
+  filters,
+  allRestaurants,
+  matchCount,
+  onChange,
+  onBack,
+  onStart,
+}: Props) {
   const allCuisines = useMemo(() => {
     const set = new Set<string>();
-    for (const r of RESTAURANTS) set.add(r.cuisine);
+    for (const r of allRestaurants) set.add(r.cuisine);
     return Array.from(set).sort();
-  }, []);
+  }, [allRestaurants]);
 
   const tooFew = matchCount < 6;
   const canStart = matchCount >= 3;

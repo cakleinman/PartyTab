@@ -31,7 +31,7 @@ PartyTab is a group expense-splitting web app. Users create tabs, invite friends
 ```bash
 npm run dev              # Dev server (port 3000)
 npm run build            # Production build (runs prisma generate)
-npm run test             # Vitest unit tests (~155 cases across 20 files)
+npm run test             # Vitest unit tests (~160 cases across 21 files)
 npm run test:e2e         # Playwright E2E tests
 npm run lint             # ESLint
 npm run typecheck        # TypeScript type checking

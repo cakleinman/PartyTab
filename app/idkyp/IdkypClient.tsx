@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import Link from "next/link";
 import { StartScreen } from "./components/StartScreen";
 import { FiltersScreen } from "./components/FiltersScreen";
@@ -8,25 +8,39 @@ import { EliminateScreen } from "./components/EliminateScreen";
 import { Final2Screen } from "./components/Final2Screen";
 import { WinnerScreen } from "./components/WinnerScreen";
 import { MapScreen } from "./components/MapScreen";
-import { recomputeDistances } from "@/lib/idkyp/data";
 import { applyFilters } from "@/lib/idkyp/filters";
 import { eliminate, startSession } from "@/lib/idkyp/elimination";
 import { defaultFilters, MAP_CENTER } from "@/lib/idkyp/types";
-import type { Filters, IdkypState, Restaurant, Screen } from "@/lib/idkyp/types";
+import type { Filters, IdkypState, LatLng, Restaurant, Screen } from "@/lib/idkyp/types";
 
 type AuthState = "loading" | "signed_out" | "signed_in";
+
+type ClientState = IdkypState & {
+  searchResults: Restaurant[];
+  searchMode: "live" | "demo" | null;
+  searchLoading: boolean;
+  searchError: string | null;
+};
 
 type Action =
   | { type: "set_screen"; screen: Screen }
   | { type: "set_filters"; filters: Filters }
-  | { type: "set_user_pin"; pin: { lat: number; lng: number } }
+  | { type: "set_user_pin"; pin: LatLng }
+  | { type: "set_search_loading" }
+  | {
+      type: "set_search_results";
+      restaurants: Restaurant[];
+      mode: "live" | "demo";
+    }
+  | { type: "set_search_error"; message: string }
   | { type: "start_session"; trio: Restaurant[]; pool: Restaurant[] }
   | { type: "eliminate_next"; trio: Restaurant[]; pool: Restaurant[]; eliminated: Restaurant }
   | { type: "eliminate_final"; finalists: Restaurant[]; eliminated: Restaurant }
   | { type: "pick_winner"; winner: Restaurant }
+  | { type: "reset_to_filters" }
   | { type: "reset" };
 
-function initialState(): IdkypState {
+function initialState(): ClientState {
   return {
     screen: "start",
     filters: defaultFilters(),
@@ -38,10 +52,14 @@ function initialState(): IdkypState {
     winner: null,
     isAnimating: false,
     justReplacedIdx: null,
+    searchResults: [],
+    searchMode: null,
+    searchLoading: false,
+    searchError: null,
   };
 }
 
-function reducer(state: IdkypState, action: Action): IdkypState {
+function reducer(state: ClientState, action: Action): ClientState {
   switch (action.type) {
     case "set_screen":
       return { ...state, screen: action.screen };
@@ -49,6 +67,18 @@ function reducer(state: IdkypState, action: Action): IdkypState {
       return { ...state, filters: action.filters };
     case "set_user_pin":
       return { ...state, userPin: action.pin };
+    case "set_search_loading":
+      return { ...state, searchLoading: true, searchError: null };
+    case "set_search_results":
+      return {
+        ...state,
+        searchResults: action.restaurants,
+        searchMode: action.mode,
+        searchLoading: false,
+        searchError: null,
+      };
+    case "set_search_error":
+      return { ...state, searchLoading: false, searchError: action.message };
     case "start_session":
       return {
         ...state,
@@ -77,8 +107,10 @@ function reducer(state: IdkypState, action: Action): IdkypState {
       };
     case "pick_winner":
       return { ...state, screen: "winner", winner: action.winner };
+    case "reset_to_filters":
+      return { ...state, screen: "filters", trio: [], pool: [], eliminated: [], finalists: [] };
     case "reset":
-      return initialState();
+      return { ...initialState(), screen: "map", searchResults: state.searchResults, searchMode: state.searchMode };
     default:
       return state;
   }
@@ -95,10 +127,46 @@ export default function IdkypClient() {
       .catch(() => setAuth("signed_out"));
   }, []);
 
-  const restaurants = useMemo(() => recomputeDistances(state.userPin), [state.userPin]);
+  const searchHere = useCallback(
+    async (pin: LatLng, radiusMiles: number) => {
+      dispatch({ type: "set_search_loading" });
+      try {
+        const res = await fetch("/api/idkyp/places", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ lat: pin.lat, lng: pin.lng, radiusMiles }),
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as {
+          restaurants: Restaurant[];
+          mode: "live" | "demo";
+        };
+        dispatch({
+          type: "set_search_results",
+          restaurants: data.restaurants,
+          mode: data.mode,
+        });
+      } catch (e) {
+        dispatch({
+          type: "set_search_error",
+          message: e instanceof Error ? e.message : "Search failed",
+        });
+      }
+    },
+    [],
+  );
+
+  // Auto-fetch the first batch when the user opens the map for the first time
+  useEffect(() => {
+    if (auth !== "signed_in") return;
+    if (state.screen !== "map") return;
+    if (state.searchResults.length > 0 || state.searchLoading) return;
+    void searchHere(state.userPin, state.filters.radius);
+  }, [auth, state.screen, state.searchResults.length, state.searchLoading, state.userPin, state.filters.radius, searchHere]);
+
   const filtered = useMemo(
-    () => applyFilters(restaurants, state.filters),
-    [restaurants, state.filters],
+    () => applyFilters(state.searchResults, state.filters),
+    [state.searchResults, state.filters],
   );
 
   if (auth === "loading") {
@@ -127,12 +195,16 @@ export default function IdkypClient() {
       return (
         <MapScreen
           userPin={state.userPin}
-          restaurants={restaurants}
+          restaurants={state.searchResults}
           radius={state.filters.radius}
+          mode={state.searchMode}
+          loading={state.searchLoading}
+          errorMessage={state.searchError}
           onPinChange={(pin) => dispatch({ type: "set_user_pin", pin })}
           onRadiusChange={(radius) =>
             dispatch({ type: "set_filters", filters: { ...state.filters, radius } })
           }
+          onSearchHere={() => searchHere(state.userPin, state.filters.radius)}
           onContinue={() => dispatch({ type: "set_screen", screen: "filters" })}
         />
       );
@@ -140,6 +212,7 @@ export default function IdkypClient() {
       return (
         <FiltersScreen
           filters={state.filters}
+          allRestaurants={state.searchResults}
           matchCount={filtered.length}
           onChange={(filters) => dispatch({ type: "set_filters", filters })}
           onBack={() => dispatch({ type: "set_screen", screen: "map" })}
@@ -173,7 +246,7 @@ export default function IdkypClient() {
               });
             }
           }}
-          onRestart={() => dispatch({ type: "set_screen", screen: "filters" })}
+          onRestart={() => dispatch({ type: "reset_to_filters" })}
         />
       );
     case "final2":
