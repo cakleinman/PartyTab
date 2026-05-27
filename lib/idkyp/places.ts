@@ -20,6 +20,7 @@ export type PlacesResult = {
 
 const MILE_IN_METERS = 1609.344;
 const MAX_RESULTS = 20;
+const PHOTO_MAX_HEIGHT_PX = 800;
 
 const PLACES_FIELD_MASK = [
   "places.id",
@@ -31,6 +32,8 @@ const PLACES_FIELD_MASK = [
   "places.userRatingCount",
   "places.priceLevel",
   "places.regularOpeningHours.weekdayDescriptions",
+  "places.currentOpeningHours.openNow",
+  "places.photos.name",
   "places.websiteUri",
 ].join(",");
 
@@ -73,7 +76,17 @@ export async function fetchNearbyRestaurants(query: PlacesQuery): Promise<Places
   }
 
   const data = (await res.json()) as { places?: PlaceResponse[] };
-  const restaurants = (data.places ?? []).map((p, i) => adaptPlace(p, query.center, i + 1));
+  const draft = (data.places ?? []).map((p, i) => adaptPlace(p, query.center, i + 1));
+
+  // Resolve all photo URLs in parallel (best-effort; falls back to cuisine photo on failure)
+  const restaurants = await Promise.all(
+    draft.map(async (r, i) => {
+      const photoName = data.places?.[i]?.photos?.[0]?.name;
+      if (!photoName) return r;
+      const resolved = await resolvePhotoUrl(photoName).catch(() => null);
+      return resolved ? { ...r, photo: resolved } : r;
+    }),
+  );
 
   await writeCache(query, restaurants);
   return { restaurants, mode: "live" };
@@ -91,6 +104,24 @@ function filterToRadius(list: Restaurant[], query: PlacesQuery): Restaurant[] {
       };
     })
     .filter((r) => r.distance <= query.radiusMiles);
+}
+
+/**
+ * Resolve a Places Photo resource name to a Google CDN URL via
+ * `skipHttpRedirect=true` (returns JSON with `photoUri` instead of a 302).
+ * That CDN URL is signed/short-lived but loadable from the browser
+ * without exposing our API key.
+ */
+async function resolvePhotoUrl(photoName: string): Promise<string | null> {
+  const url = new URL(`https://places.googleapis.com/v1/${photoName}/media`);
+  url.searchParams.set("maxHeightPx", String(PHOTO_MAX_HEIGHT_PX));
+  url.searchParams.set("skipHttpRedirect", "true");
+  const res = await fetch(url.toString(), {
+    headers: { "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY! },
+  });
+  if (!res.ok) return null;
+  const data = (await res.json()) as { photoUri?: string };
+  return data.photoUri ?? null;
 }
 
 // ----- Places API response adapter -----
@@ -111,6 +142,8 @@ type PlaceResponse = {
     | "PRICE_LEVEL_VERY_EXPENSIVE"
     | "PRICE_LEVEL_UNSPECIFIED";
   regularOpeningHours?: { weekdayDescriptions?: string[] };
+  currentOpeningHours?: { openNow?: boolean };
+  photos?: { name: string }[];
   websiteUri?: string;
 };
 
@@ -143,9 +176,11 @@ export function adaptPlace(p: PlaceResponse, center: LatLng, id: number): Restau
     lat,
     lng,
     photo: PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant,
-    hours: null,
+    hours: p.regularOpeningHours?.weekdayDescriptions ?? null,
+    openNow: typeof p.currentOpeningHours?.openNow === "boolean" ? p.currentOpeningHours.openNow : null,
     realReviews: null,
     website: Boolean(p.websiteUri),
+    websiteUrl: p.websiteUri ?? null,
   };
 }
 
@@ -162,7 +197,9 @@ function cacheKey(query: PlacesQuery): string {
 
 function cacheTtlSeconds(): number {
   const v = Number(process.env.IDKYP_PLACES_CACHE_TTL_SECONDS);
-  return Number.isFinite(v) && v > 0 ? v : 86400;
+  // 30 minutes default — Places Photo CDN URLs are short-lived so we keep
+  // cached restaurant rows relatively fresh.
+  return Number.isFinite(v) && v > 0 ? v : 1800;
 }
 
 async function readCache(query: PlacesQuery): Promise<Restaurant[] | null> {

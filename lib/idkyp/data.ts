@@ -94,8 +94,10 @@ function toRestaurant(p: RawPlace, idx: number): Restaurant {
     lng: p.lng,
     photo: PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant,
     hours: null,
+    openNow: null,
     realReviews: null,
     website: true,
+    websiteUrl: null,
   };
 }
 

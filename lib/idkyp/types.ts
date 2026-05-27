@@ -17,8 +17,6 @@ export type LatLng = { lat: number; lng: number };
 
 export type RestaurantReview = { text: string; author: string };
 
-export type RestaurantHours = Record<string, { open: string; close: string }>;
-
 export type Restaurant = {
   id: number;
   placeId: string;
@@ -34,9 +32,13 @@ export type Restaurant = {
   lat: number;
   lng: number;
   photo: string;
-  hours: RestaurantHours | null;
+  /** Per-weekday descriptions from Places API (e.g. "Monday: 9:00 AM – 10:00 PM") */
+  hours: string[] | null;
+  /** Live open/closed status from Places currentOpeningHours; null if unknown */
+  openNow: boolean | null;
   realReviews: RestaurantReview[] | null;
   website: boolean;
+  websiteUrl: string | null;
 };
 
 export type IdkypState = {

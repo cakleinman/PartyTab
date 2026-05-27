@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Restaurant } from "@/lib/idkyp/types";
 
 type Props = {
@@ -8,12 +9,13 @@ type Props = {
 };
 
 export function WinnerScreen({ winner, onTryAgain }: Props) {
+  const [hoursOpen, setHoursOpen] = useState(false);
   const directionsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
     `${winner.name} ${winner.address}`,
   )}`;
-  const websiteUrl = `https://www.google.com/search?q=${encodeURIComponent(
-    `${winner.name} ${winner.address}`,
-  )}`;
+  const websiteUrl =
+    winner.websiteUrl ??
+    `https://www.google.com/search?q=${encodeURIComponent(`${winner.name} ${winner.address}`)}`;
 
   return (
     <div className="animate-fade-in-up space-y-6">
@@ -33,7 +35,7 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
           <p className="text-xs uppercase tracking-wide text-ink-500">{winner.cuisine}</p>
           <h1 className="text-3xl font-semibold tracking-tight text-ink-900">{winner.name}</h1>
           <p className="text-sm text-ink-500">{winner.address}</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-500">
             <span>
               ★ {winner.rating.toFixed(1)}{" "}
               <span className="text-ink-400">({winner.reviews})</span>
@@ -42,7 +44,34 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
             <span>
               {winner.distance.toFixed(1)} mi · {winner.drive} min
             </span>
+            {winner.openNow === true && (
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                Open now
+              </span>
+            )}
+            {winner.openNow === false && (
+              <span className="rounded-full bg-sand-100 px-2 py-0.5 text-xs font-medium text-ink-500">
+                Closed
+              </span>
+            )}
           </div>
+
+          {winner.hours && winner.hours.length > 0 && (
+            <details
+              open={hoursOpen}
+              onToggle={(e) => setHoursOpen((e.target as HTMLDetailsElement).open)}
+              className="rounded-xl border border-sand-200 bg-sand-50 px-3 py-2 text-sm"
+            >
+              <summary className="cursor-pointer font-medium text-ink-900">
+                Hours
+              </summary>
+              <ul className="mt-2 space-y-0.5 text-xs text-ink-500">
+                {winner.hours.map((line) => (
+                  <li key={line}>{line}</li>
+                ))}
+              </ul>
+            </details>
+          )}
 
           <div className="grid gap-2 pt-2 sm:grid-cols-2">
             <a

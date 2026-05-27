@@ -29,8 +29,10 @@ const restaurant = (overrides: Partial<Restaurant> = {}): Restaurant => ({
   lng: 0,
   photo: "",
   hours: null,
+  openNow: null,
   realReviews: null,
   website: true,
+  websiteUrl: null,
   ...overrides,
 });
 
