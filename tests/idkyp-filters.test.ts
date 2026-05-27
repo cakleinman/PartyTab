@@ -6,7 +6,7 @@ const baseFilters: Filters = {
   whenMode: "now",
   day: "0",
   hour: "19",
-  radiusMiles: 5,
+  radius: 5,
   priceLevels: [1, 2, 3, 4],
   minRating: 3.5,
   dietary: [],
@@ -14,24 +14,29 @@ const baseFilters: Filters = {
 };
 
 const restaurant = (overrides: Partial<Restaurant> = {}): Restaurant => ({
+  id: 1,
   placeId: "p1",
   name: "Test",
-  formattedAddress: "1 Main St",
+  address: "1 Main St",
+  cuisine: "American",
+  rating: 4.2,
+  reviews: 100,
+  price: 2,
+  distance: 1,
+  drive: 5,
+  tags: [],
   lat: 0,
   lng: 0,
-  rating: 4.2,
-  userRatingsTotal: 100,
-  priceLevel: 2,
-  types: ["restaurant"],
-  cuisine: "American",
-  distanceMiles: 1,
-  driveMinutes: 5,
+  photo: "",
+  hours: null,
+  realReviews: null,
+  website: true,
   ...overrides,
 });
 
 describe("matchesFilters", () => {
   it("excludes restaurants outside the radius", () => {
-    expect(matchesFilters(restaurant({ distanceMiles: 10 }), baseFilters)).toBe(false);
+    expect(matchesFilters(restaurant({ distance: 10 }), baseFilters)).toBe(false);
   });
 
   it("excludes restaurants below the rating threshold", () => {
@@ -46,13 +51,22 @@ describe("matchesFilters", () => {
       }),
     ).toBe(false);
   });
+
+  it("requires all selected dietary tags", () => {
+    expect(
+      matchesFilters(restaurant({ tags: ["vegetarian"] }), {
+        ...baseFilters,
+        dietary: ["vegetarian", "vegan"],
+      }),
+    ).toBe(false);
+  });
 });
 
 describe("applyFilters", () => {
   it("returns only matching restaurants", () => {
     const list = [
-      restaurant({ placeId: "a", distanceMiles: 1 }),
-      restaurant({ placeId: "b", distanceMiles: 99 }),
+      restaurant({ placeId: "a", distance: 1 }),
+      restaurant({ placeId: "b", distance: 99 }),
     ];
     const result = applyFilters(list, baseFilters);
     expect(result.map((r) => r.placeId)).toEqual(["a"]);
