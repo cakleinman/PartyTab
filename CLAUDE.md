@@ -5,7 +5,7 @@
 PartyTab is a group expense-splitting web app. Users create tabs, invite friends, track expenses with even or custom splits, and settle up with minimal transfers. Pro subscribers get AI-powered receipt scanning, item-level claiming, and automated payment reminders.
 
 **Production URL:** https://partytab.app
-**Current version:** 1.0.1
+**Current version:** 1.1.0-dev (feature/idkyp branch)
 
 ## Tech Stack
 
@@ -31,7 +31,7 @@ PartyTab is a group expense-splitting web app. Users create tabs, invite friends
 ```bash
 npm run dev              # Dev server (port 3000)
 npm run build            # Production build (runs prisma generate)
-npm run test             # Vitest unit tests (~78 cases across 11 files)
+npm run test             # Vitest unit tests (~167 cases across 21 files)
 npm run test:e2e         # Playwright E2E tests
 npm run lint             # ESLint
 npm run typecheck        # TypeScript type checking
@@ -44,12 +44,13 @@ npm run db:reset         # Reset DB + seed
 
 ```
 app/
-  api/                   # ~50 route handlers (Next.js Route Handlers)
+  api/                   # ~59 route handlers (Next.js Route Handlers)
   components/            # Shared React components (including split/ subdirectory)
   hooks/                 # Custom hooks (usePushNotifications)
   share/                 # Public shareable tab summary pages (no auth)
   tabs/                  # Core app pages (tab dashboard, expenses, settlement)
   settings/              # Account settings page (payment methods, profile, danger zone)
+  idkyp/                 # "I Don't Know, You Pick" — restaurant-decision feature (in progress on feature/idkyp)
   auth/ login/ signin/ register/ join/ claim/  # Auth flows
   upgrade/ feedback/ demo/ how-it-works/       # App pages
   blog/ use-cases/ compare/ privacy/ terms/    # SEO/marketing/legal
@@ -60,9 +61,12 @@ lib/
   billing/               # usage.ts (receipt quota tracking)
   db/                    # prisma.ts (singleton client)
   email/                 # client.ts (Postmark + escapeHtml)
+  idkyp/                 # types.ts, places.ts (Google Places client),
+                         # usage.ts (freemium quota), filters.ts, elimination.ts
   money/                 # cents.ts (parsing/formatting), allocation.ts (distribution)
   payment/               # venmo.ts (deep link utilities)
   notifications/         # create.ts (in-app notifications)
+  passkeys/              # WebAuthn passkey helpers (challenge issuance, verification)
   push/                  # server.ts (VAPID push)
   receipts/              # parser.ts (Claude AI receipt parsing)
   reminders/             # runner.ts (cron job logic)
@@ -75,7 +79,7 @@ lib/
 
 tests/                   # Vitest unit tests
 e2e/                     # Playwright E2E tests
-prisma/                  # schema.prisma + migrations (5 migration files)
+prisma/                  # schema.prisma + migrations (11 migration files)
 ```
 
 ## Key Architecture
@@ -109,12 +113,13 @@ prisma/                  # schema.prisma + migrations (5 migration files)
 - Guest cookie is `partytab_session` with HMAC-SHA256 — don't confuse with NextAuth session
 - Supabase is used ONLY for file storage (receipts) — all data lives in Prisma/PostgreSQL
 - Rate limiting falls back to in-memory Maps when Upstash is not configured
+- **IDKYP:** places data must come from the server-side proxy at `/api/idkyp/places` — never expose `GOOGLE_PLACES_API_KEY` to the client. Freemium quota = 4 decisions/month free, unlimited for Pro (`lib/idkyp/usage.ts`).
 
 ## Environment Variables
 
 **Required:** `DATABASE_URL`, `SESSION_SECRET`, `APP_BASE_URL`, `AUTH_SECRET`
 
-**Optional (features degrade gracefully):** `GOOGLE_CLIENT_ID`/`SECRET`, `STRIPE_SECRET_KEY` + price IDs, `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `POSTMARK_SERVER_TOKEN`, `UPSTASH_REDIS_REST_URL`/`TOKEN`, `PUSH_VAPID_PUBLIC_KEY`/`PRIVATE_KEY`
+**Optional (features degrade gracefully):** `GOOGLE_CLIENT_ID`/`SECRET`, `STRIPE_SECRET_KEY` + price IDs, `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `POSTMARK_SERVER_TOKEN`, `UPSTASH_REDIS_REST_URL`/`TOKEN`, `PUSH_VAPID_PUBLIC_KEY`/`PRIVATE_KEY`, `GOOGLE_PLACES_API_KEY` (IDKYP)
 
 ## Deployment
 
@@ -124,6 +129,7 @@ prisma/                  # schema.prisma + migrations (5 migration files)
 
 ### Changelog
 
+- **1.1.0-dev** *(in progress on feature/idkyp)* — IDKYP feature scaffolding: new `/idkyp` page, `lib/idkyp/` modules, three `/api/idkyp/*` stub routes (501 until Phase 2+3), `IdkypUsage` + `IdkypDecision` Prisma models with RLS deny-all migration, Header icon nav entry, `GOOGLE_PLACES_API_KEY` documented as optional. Counts refreshed to actual on-disk state (155 tests / 20 files, 11 migrations, ~59 routes); `lib/passkeys/` added to inventory. `not_implemented` + `service_unavailable` ErrorCodes added.
 - **1.0.1** — Add ink-400 color token (#756e68) for WCAG AA contrast compliance (4.70:1 on sand-50). Set up changelog system.
 - **1.0.0** — Production baseline. Payment methods, estimated expenses, shareable cards, free receipt scanning, settlement acknowledgements, accessibility audit (score 100).
 

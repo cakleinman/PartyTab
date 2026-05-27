@@ -1,0 +1,3474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#FAFAF7">
+<title>idkyp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<style>
+:root {
+  --bg:        #FAFAF7;
+  --bg-dim:    #F0F0EC;
+  --line:      #E5E5E1;
+  --line-soft: #EFEFEB;
+  --ink:       #0A0A0A;
+  --ink-2:     #4A4A4A;
+  --ink-3:     #8A8A8A;
+  --ink-4:     #BABAB8;
+  --accent:    #FF3B30;
+  --highlight: #FFE066;
+  --on-photo:  #FFFFFF;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.04);
+  --ease-out:  cubic-bezier(0.2, 0, 0, 1);
+  --ease-in:   cubic-bezier(0.4, 0, 1, 1);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  letter-spacing: -0.005em;
+}
+
+body {
+  min-height: 100vh;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 20px 32px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Type system ---------- */
+
+.wordmark {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.wordmark .dot {
+  width: 5px; height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+  transform: translateY(-2px);
+}
+
+.h-display { font-weight: 800; font-size: 38px; line-height: 1.02; letter-spacing: -0.035em; margin: 0; }
+.h-large   { font-weight: 700; font-size: 26px; line-height: 1.12; letter-spacing: -0.02em; margin: 0; }
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.body-lg { font-size: 18px; line-height: 1.4; font-weight: 500; }
+
+.caption {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-3);
+  letter-spacing: 0;
+}
+
+.mono-num { font-variant-numeric: tabular-nums; }
+
+/* ---------- App header ---------- */
+
+.app-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.head-meta { font-size: 12px; color: var(--ink-3); font-weight: 500; letter-spacing: 0.04em; }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 6px 10px 6px 0;
+  font-family: inherit;
+  letter-spacing: -0.005em;
+  transition: color 150ms ease, transform 100ms ease;
+}
+
+.back-btn:hover { color: var(--ink); }
+.back-btn:active { transform: scale(0.96); }
+.back-btn svg { width: 14px; height: 14px; transition: transform 200ms var(--ease-out); }
+.back-btn:hover svg { transform: translateX(-2px); }
+
+/* ---------- Buttons ---------- */
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+button.cta {
+  width: 100%;
+  background: var(--ink);
+  color: var(--bg);
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  transition: transform 120ms var(--ease-out), background 120ms ease, box-shadow 200ms ease;
+  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+button.cta:active { transform: scale(0.985); box-shadow: 0 0 0 1px rgba(0,0,0,0.04); }
+button.cta:disabled { background: var(--ink-4); cursor: not-allowed; box-shadow: none; }
+button.cta:disabled:active { transform: none; }
+
+button.cta .arrow { transition: transform 200ms var(--ease-out); }
+button.cta:not(:disabled):hover .arrow { transform: translateX(2px); }
+
+button.ghost {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-3);
+  padding: 10px 14px;
+  border-radius: 6px;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+button.ghost:hover { color: var(--ink); }
+button.ghost:active { background: var(--bg-dim); }
+
+button.cta-secondary {
+  width: 100%;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 150ms ease, transform 100ms ease;
+}
+
+button.cta-secondary:active { transform: scale(0.985); background: var(--bg-dim); }
+
+/* ---------- Screens ---------- */
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  animation: screen-in 360ms var(--ease-out) both;
+}
+
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- START SCREEN ---------- */
+
+.start-screen {
+  justify-content: space-between;
+  min-height: calc(100vh - 100px);
+  min-height: calc(100dvh - 100px);
+  padding-top: 60px;
+}
+
+.start-hero { display: flex; flex-direction: column; gap: 18px; }
+
+.start-display {
+  font-weight: 800;
+  font-size: 64px;
+  line-height: 1.04;
+  letter-spacing: -0.045em;
+  margin: 0;
+}
+
+.start-display .accent { color: var(--accent); }
+
+.start-tagline {
+  font-size: 19px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: var(--ink-2);
+  max-width: 320px;
+}
+
+.start-tagline em {
+  font-style: normal;
+  font-weight: 700;
+  background: linear-gradient(transparent 62%, var(--highlight) 62%, var(--highlight) 92%, transparent 92%);
+  background-size: 100% 100%;
+  padding: 0 2px;
+  color: var(--ink);
+}
+
+.start-actions { display: flex; flex-direction: column; gap: 12px; }
+
+.start-meta {
+  font-size: 12px;
+  color: var(--ink-4);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* ---------- MAP SCREEN ---------- */
+
+.map-screen {
+  padding: 0;
+  margin: 0;
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  max-width: 480px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.map-head {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 401;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: linear-gradient(to bottom, rgba(250,250,247,0.96), rgba(250,250,247,0));
+  pointer-events: none;
+}
+
+.map-head .wordmark { pointer-events: auto; }
+
+.map-recenter {
+  pointer-events: auto;
+  background: white;
+  border: 0;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 120ms var(--ease-out), background 150ms ease;
+}
+
+.map-recenter:active { transform: scale(0.92); background: var(--bg-dim); }
+
+.map-recenter svg { width: 18px; height: 18px; }
+
+#map-container {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-dim);
+  position: relative;
+}
+
+/* Custom Leaflet markers */
+.user-pin {
+  width: 22px; height: 22px;
+  background: var(--accent);
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.18), 0 2px 6px rgba(0,0,0,0.25);
+  cursor: grab;
+  position: relative;
+}
+
+.user-pin::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 3px solid white;
+  border-radius: 50%;
+  animation: pulse-ring 2s ease-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.user-pin.dragging { cursor: grabbing; }
+
+.restaurant-pin {
+  width: 12px; height: 12px;
+  background: var(--ink);
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: transform 150ms ease, opacity 150ms ease;
+}
+
+.restaurant-pin.outside-radius {
+  background: white;
+  border-color: var(--ink-4);
+  opacity: 0.55;
+}
+
+.leaflet-container {
+  background: var(--bg-dim) !important;
+  font-family: inherit !important;
+}
+
+/* Hide leaflet attribution prefix */
+.leaflet-attribution-flag { display: none !important; }
+.leaflet-control-attribution {
+  background: rgba(255,255,255,0.8) !important;
+  font-size: 9px !important;
+  padding: 2px 6px !important;
+}
+
+.map-bottom-sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  padding: 20px 20px 24px;
+  z-index: 401;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.map-count-block {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.map-count-num {
+  font-weight: 800;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+  transition: color 220ms ease;
+}
+
+.map-count-num.warn { color: var(--accent); }
+
+.map-count-meta { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+
+.map-count-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+  text-align: right;
+}
+
+.map-count-hint {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Floating count pill — sits on top of the map below the header */
+.map-count-overlay {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 401;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: saturate(140%) blur(8px);
+  -webkit-backdrop-filter: saturate(140%) blur(8px);
+  border-radius: 999px;
+  padding: 8px 16px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}
+.map-count-overlay .num {
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  transition: color 220ms ease;
+}
+.map-count-overlay .num.warn { color: var(--accent); }
+.map-count-overlay .label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* Collapsed "time" chip in the bottom sheet — taps to expand pickers */
+.time-chip-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.time-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--bg-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 14px 10px 16px;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+  font-family: inherit;
+  color: var(--ink);
+}
+.time-chip:active { transform: scale(0.985); background: #E8E8E2; }
+.time-chip-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.time-chip-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.time-chip-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.time-chip-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.time-chip-dot.inactive { background: var(--ink-4); }
+.time-chip-chevron {
+  width: 14px; height: 14px;
+  color: var(--ink-3);
+  transition: transform 220ms var(--ease-out);
+  flex-shrink: 0;
+}
+.time-chip.expanded .time-chip-chevron { transform: rotate(180deg); }
+
+.time-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 260ms var(--ease-out), margin 220ms var(--ease-out);
+  margin-top: 0;
+}
+.time-panel > .time-panel-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.time-panel.expanded {
+  grid-template-rows: 1fr;
+  margin-top: 12px;
+}
+.time-panel .when-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.map-radius-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.map-radius-row .label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.map-radius-row input[type="range"] { flex: 1; }
+
+.map-radius-row .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ---------- FILTERS SCREEN ---------- */
+
+.filters-screen {
+  gap: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.count-block {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 16px 0 28px;
+}
+
+.count-num {
+  font-weight: 800;
+  font-size: 38px;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  transition: color 220ms ease;
+}
+
+.count-num.warn { color: var(--accent); }
+
+.count-meta { display: flex; flex-direction: column; gap: 1px; }
+
+.count-meta .count-label { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+.count-meta .count-hint {
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.count-meta .count-hint.warn { color: var(--accent); }
+
+.field { margin-bottom: 24px; }
+.field:last-of-type { margin-bottom: 28px; }
+
+.field-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+
+.field-head .label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.field-head .value { font-size: 14px; font-weight: 600; color: var(--ink); }
+
+input[type="range"] {
+  width: 100%;
+  height: 24px;
+  -webkit-appearance: none;
+  background: transparent;
+  margin: 0;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--line); border-radius: 1px; }
+input[type="range"]::-moz-range-track { height: 2px; background: var(--line); border-radius: 1px; }
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  margin-top: -10px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  transition: transform 140ms var(--ease-out);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 0;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  transition: transform 140ms var(--ease-out);
+}
+
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.18); }
+input[type="range"]:active::-moz-range-thumb { transform: scale(1.18); }
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  letter-spacing: -0.005em;
+  transition: background 160ms var(--ease-out), color 160ms ease, border-color 160ms ease, transform 100ms ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.chip:active { transform: scale(0.95); }
+.chip.selected { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip.exclude.selected { background: transparent; color: var(--ink-4); border-color: var(--ink-4); text-decoration: line-through; }
+.chip:disabled { opacity: 0.35; cursor: not-allowed; }
+.chip:disabled:active { transform: none; }
+
+.chip-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.6);
+  pointer-events: none;
+  transform: scale(0);
+  animation: ripple 480ms var(--ease-out);
+}
+
+@keyframes ripple {
+  to { transform: scale(2.5); opacity: 0; }
+}
+
+.actions-row {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.filters-fields {
+  display: flex;
+  flex-direction: column;
+}
+
+/* When picker — Now button + horizontal scroll-snap drums */
+
+.when-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.now-btn {
+  width: 100%;
+  padding: 11px 16px;
+  background: var(--ink);
+  color: var(--bg);
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease, color 150ms ease;
+  letter-spacing: -0.005em;
+}
+
+.now-btn.inactive {
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+
+.now-btn:active { transform: scale(0.985); }
+
+.now-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+  animation: now-pulse 1.6s ease-in-out infinite;
+  box-shadow: 0 0 0 0 var(--accent);
+}
+
+.now-btn.inactive .now-dot {
+  background: var(--ink-3);
+  animation: none;
+}
+
+@keyframes now-pulse {
+  0%, 100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.45); }
+  50%      { transform: scale(1.1);  box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
+}
+
+.picker-strip {
+  position: relative;
+  height: 44px;
+  background: var(--bg-dim);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.picker-track {
+  display: flex;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  align-items: center;
+  /* The padding centers the first/last items inside the cursor */
+  padding: 0 calc(50% - 48px);
+}
+
+.picker-track::-webkit-scrollbar { display: none; }
+
+.picker-item {
+  flex: 0 0 96px;
+  scroll-snap-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  letter-spacing: -0.005em;
+  transition: color 220ms var(--ease-out), font-size 220ms var(--ease-out), font-weight 220ms var(--ease-out), opacity 220ms ease;
+  position: relative;
+  z-index: 1;
+  padding: 0 6px;
+}
+
+.picker-item.center {
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.picker-item.adjacent { opacity: 0.7; }
+.picker-item.far      { opacity: 0.35; }
+
+/* The cursor: a soft pill at the center indicating the selection slot */
+.picker-cursor {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 102px;
+  height: 32px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.picker-mask {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 36px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.picker-mask.left  { left:  0; background: linear-gradient(to right, var(--bg-dim) 0%, transparent 100%); }
+.picker-mask.right { right: 0; background: linear-gradient(to left,  var(--bg-dim) 0%, transparent 100%); }
+
+/* ---------- ELIMINATE SCREEN ---------- */
+
+.eliminate-screen { gap: 0; }
+
+.progress-bar {
+  height: 3px;
+  background: var(--line-soft);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--ink);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 520ms var(--ease-out);
+}
+
+.elim-prompt {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  margin: 0 0 18px 0;
+  color: var(--ink);
+}
+
+.elim-prompt em {
+  font-style: normal;
+  font-weight: 800;
+  background: linear-gradient(transparent 60%, var(--highlight) 60%, var(--highlight) 92%, transparent 92%);
+  padding: 0 2px;
+  color: var(--ink);
+}
+
+.cards { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+.card {
+  position: relative;
+  width: 100%;
+  height: 156px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg-dim);
+  box-shadow: var(--shadow-sm);
+  transition: transform 200ms var(--ease-out), box-shadow 200ms ease;
+  will-change: transform;
+}
+
+.card:active { transform: scale(0.985); box-shadow: var(--shadow-md); }
+
+.card-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1);
+  transition: transform 600ms var(--ease-out);
+}
+
+.card:active .card-photo { transform: scale(1.04); }
+
+.card-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 82%;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.94) 0%,
+    rgba(0,0,0,0.88) 12%,
+    rgba(0,0,0,0.72) 28%,
+    rgba(0,0,0,0.42) 55%,
+    rgba(0,0,0,0.14) 80%,
+    rgba(0,0,0,0) 100%
+  );
+  pointer-events: none;
+}
+
+.final-card .card-overlay {
+  height: 75%;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.95) 0%,
+    rgba(0,0,0,0.92) 18%,
+    rgba(0,0,0,0.78) 38%,
+    rgba(0,0,0,0.45) 65%,
+    rgba(0,0,0,0.12) 90%,
+    rgba(0,0,0,0) 100%
+  );
+}
+
+.card-corner {
+  position: absolute;
+  top: 12px; left: 12px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--on-photo);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.card-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 24%;
+  padding: 16px 14px 14px 16px;
+  color: var(--on-photo);
+}
+
+.card-name {
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6), 0 2px 14px rgba(0,0,0,0.5);
+}
+
+.card-meta {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.98);
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.85), 0 1px 8px rgba(0,0,0,0.55);
+}
+
+.card-meta .sep { color: rgba(255,255,255,0.6); }
+
+/* Stagger entrance */
+.card.entering-1 { animation: card-enter 460ms var(--ease-out) 0ms both; }
+.card.entering-2 { animation: card-enter 460ms var(--ease-out) 80ms both; }
+.card.entering-3 { animation: card-enter 460ms var(--ease-out) 160ms both; }
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card.replacing { animation: card-replace 480ms var(--ease-out) both; }
+
+@keyframes card-replace {
+  0%   { opacity: 0; transform: translateY(28px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.card.eliminating {
+  animation: card-eliminate 420ms var(--ease-in) forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.card.eliminating .card-flash { animation: card-flash 420ms var(--ease-in) forwards; }
+
+.card-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+@keyframes card-flash {
+  0% { opacity: 0; }
+  18% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+@keyframes card-eliminate {
+  0%   { opacity: 1; transform: translateX(0) scale(1) rotate(0); }
+  18%  { transform: scale(1.015); }
+  100% { opacity: 0; transform: translateX(115%) scale(0.93) rotate(2deg); }
+}
+
+/* ---------- Right strip: split into PHOTOS (top) + WEBSITE (bottom) ---------- */
+
+.card-strip {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 24%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.22) 35%, rgba(0,0,0,0.58) 100%);
+  overflow: hidden;
+}
+
+.card-strip::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.22) 18%, rgba(255,255,255,0.22) 82%, transparent 100%);
+  pointer-events: none;
+}
+
+.strip-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: var(--on-photo);
+  font-family: inherit;
+  position: relative;
+  transition: background 200ms var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.strip-half + .strip-half {
+  border-top: 1px solid rgba(255,255,255,0.18);
+}
+
+@media (hover: hover) {
+  .strip-half:hover { background: rgba(0,0,0,0.18); }
+  .strip-half:hover svg { transform: scale(1.08); opacity: 1; }
+  .strip-half:hover .strip-label { opacity: 1; }
+}
+
+.strip-half:active { background: rgba(0,0,0,0.32); }
+
+.strip-half svg {
+  width: 20px; height: 20px;
+  display: block;
+  opacity: 0.96;
+  transition: transform 180ms var(--ease-out), opacity 180ms ease;
+  position: relative;
+  z-index: 1;
+}
+
+.strip-half:active svg { transform: scale(0.88); opacity: 1; }
+
+.strip-half .strip-count {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  transition: transform 180ms var(--ease-out);
+}
+
+.strip-half:active .strip-count { transform: translateY(-1px) scale(1.05); }
+
+.strip-half .strip-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.78;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  transition: opacity 180ms ease;
+  padding: 0 4px;
+}
+
+.strip-half.pulsing::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: strip-pulse 520ms var(--ease-out);
+}
+
+@keyframes strip-pulse {
+  0%   { width: 0; height: 0; opacity: 0.5; }
+  60%  { width: 220%; height: 220%; opacity: 0.18; }
+  100% { width: 280%; height: 280%; opacity: 0; }
+}
+
+/* ---------- FINAL 2 SCREEN ---------- */
+
+.final2-screen { gap: 16px; }
+
+.final-prompt {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  margin: 4px 0 6px;
+}
+
+.final-cards { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+.final-card {
+  position: relative;
+  width: 100%;
+  height: 230px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--bg-dim);
+  box-shadow: var(--shadow-md);
+  transition: transform 200ms var(--ease-out), box-shadow 200ms ease;
+  animation: card-enter 460ms var(--ease-out) both;
+}
+
+.final-card.idx-2 { animation-delay: 100ms; }
+
+.final-card:active { transform: scale(0.99); box-shadow: var(--shadow-lg); }
+
+.final-card .card-photo { transition: transform 600ms var(--ease-out); }
+.final-card:active .card-photo { transform: scale(1.03); }
+
+.final-card .card-content { padding: 18px 18px 18px; }
+
+.final-card .card-name {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+
+.final-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.95);
+  color: var(--ink);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* ---------- WINNER SCREEN ---------- */
+
+.winner-screen { gap: 0; }
+
+.winner-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin: 8px 0 10px 0;
+  animation: winner-text-in 600ms var(--ease-out) 200ms both;
+}
+
+.winner-photo {
+  width: 100%;
+  aspect-ratio: 1/1;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: var(--shadow-lg);
+  animation: winner-photo-in 800ms var(--ease-out) both;
+}
+
+@keyframes winner-photo-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.winner-name {
+  font-weight: 800;
+  font-size: 44px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin: 18px 0 2px;
+  animation: winner-text-in 600ms var(--ease-out) 320ms both;
+}
+
+.winner-cuisine {
+  font-size: 16px;
+  color: var(--ink-2);
+  font-weight: 500;
+  margin: 0 0 14px 0;
+  animation: winner-text-in 600ms var(--ease-out) 400ms both;
+}
+
+@keyframes winner-text-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.winner-meta {
+  display: flex;
+  gap: 18px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+  margin: 0 0 24px 0;
+  animation: winner-text-in 600ms var(--ease-out) 480ms both;
+}
+
+.winner-meta .item { display: flex; gap: 4px; align-items: baseline; }
+.winner-meta .item .num { font-weight: 600; color: var(--ink); }
+
+.winner-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: winner-text-in 600ms var(--ease-out) 560ms both;
+}
+
+.winner-actions a { text-decoration: none; }
+
+.winner-divider {
+  height: 2px;
+  width: 32px;
+  background: var(--accent);
+  border-radius: 1px;
+  margin: 18px 0;
+  animation: divider-grow 480ms var(--ease-out) 200ms both;
+}
+
+@keyframes divider-grow { from { width: 0; } to { width: 32px; } }
+
+/* ---------- Footer mark ---------- */
+
+.foot {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-4);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+
+/* ---------- Gallery overlay ---------- */
+
+.gallery {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 10, 0.96);
+  display: flex;
+  flex-direction: column;
+  animation: gallery-in 220ms var(--ease-out) both;
+}
+
+.gallery.hidden { display: none; }
+
+@keyframes gallery-in { from { opacity: 0; } to { opacity: 1; } }
+
+.gallery-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 18px 20px 8px;
+  color: white;
+  z-index: 2;
+}
+
+.gallery-name { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.gallery-cuisine { margin: 2px 0 0 0; font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.62); }
+
+.gallery-close {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  font-size: 22px;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-family: inherit;
+  transition: background 120ms ease, transform 100ms ease;
+}
+
+.gallery-close:active { transform: scale(0.92); background: rgba(255,255,255,0.24); }
+
+.gallery-stage-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  min-height: 200px;
+}
+
+.gallery-stage {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.gallery-stage::-webkit-scrollbar { display: none; }
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: background 150ms ease, transform 120ms var(--ease-out), opacity 200ms ease;
+  font-family: inherit;
+}
+
+.gallery-nav.prev { left: 14px; }
+.gallery-nav.next { right: 14px; }
+
+.gallery-nav svg { width: 20px; height: 20px; display: block; }
+
+.gallery-nav:hover { background: rgba(0, 0, 0, 0.78); }
+
+.gallery-nav:active {
+  transform: translateY(-50%) scale(0.9);
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.gallery-nav:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.gallery-photo {
+  flex: 0 0 100%;
+  scroll-snap-align: center;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #0a0a0a;
+}
+
+.gallery-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 16px 8px;
+}
+
+.gallery-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.28);
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.gallery-dot.active { background: white; transform: scale(1.25); }
+
+.gallery-reviews {
+  background: rgba(255,255,255,0.04);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 18px 24px 24px;
+  color: rgba(255,255,255,0.92);
+}
+
+.gallery-reviews-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.gallery-reviews-head .count {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.gallery-review {
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: rgba(255,255,255,0.92);
+  margin: 0 0 10px 0;
+  padding-left: 12px;
+  border-left: 2px solid rgba(255,255,255,0.18);
+}
+
+.gallery-review:last-child { margin-bottom: 0; }
+
+.gallery-review .author {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Larger viewports ---------- */
+
+@media (min-width: 600px) {
+  .final-cards { flex-direction: row; }
+  .final-card { height: 320px; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="gallery" class="gallery hidden" role="dialog" aria-modal="true">
+  <div class="gallery-head">
+    <div>
+      <h3 class="gallery-name" id="gallery-name"></h3>
+      <p class="gallery-cuisine" id="gallery-cuisine"></p>
+    </div>
+    <button class="gallery-close" aria-label="Close" data-close>&times;</button>
+  </div>
+  <div class="gallery-stage-wrap">
+    <button class="gallery-nav prev" id="gallery-prev" aria-label="Previous photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <div class="gallery-stage" id="gallery-stage"></div>
+    <button class="gallery-nav next" id="gallery-next" aria-label="Next photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+  <div class="gallery-dots" id="gallery-dots"></div>
+  <div class="gallery-reviews" id="gallery-reviews"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+"use strict";
+
+/* ---------- Places data (Carbon County, UT) ----------
+   Static dataset shaped to mirror a Google Places API response. When we
+   wire the live Places API in, replace PLACES with the API result and the
+   `toRestaurant` adapter below keeps the prototype unchanged.
+
+   Sourced from the Carbon County official dining directory
+   (carbon.utah.gov/dining), cross-referenced against Restaurantji, Yelp,
+   and Tripadvisor for ratings and review counts.                              */
+
+const MAP_CENTER = { lat: 39.5994, lng: -110.8107 }; // Main St × Carbon Ave, Price
+
+const PLACES = [
+  // ---- Price: Main Street corridor (downtown) ------------------------------
+  { place_id: "ccu_001", name: "Tangerine Eatery",            formatted_address: "695 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.8013, rating: 4.3, user_ratings_total: 357, price_level: 1, types: ["cafe","salad_shop","restaurant","food"] },
+  { place_id: "ccu_002", name: "Farlaino's Café",             formatted_address: "87 W Main St, Price, UT 84501",    lat: 39.5994, lng: -110.8119, rating: 4.1, user_ratings_total: 261, price_level: 1, types: ["italian_restaurant","cafe","restaurant"] },
+  { place_id: "ccu_003", name: "Sherald's Frosty Freeze",     formatted_address: "434 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.8048, rating: 4.2, user_ratings_total: 328, price_level: 1, types: ["hamburger_restaurant","ice_cream_shop","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_004", name: "Club Mecca",                  formatted_address: "75 W Main St, Price, UT 84501",    lat: 39.5994, lng: -110.8117, rating: 4.3, user_ratings_total: 173, price_level: 2, types: ["bar","american_restaurant","restaurant"] },
+  { place_id: "ccu_005", name: "Silver Dollar Sports Club",   formatted_address: "36 W Main St, Price, UT 84501",    lat: 39.5994, lng: -110.8112, rating: 4.7, user_ratings_total: 47,  price_level: 2, types: ["sports_bar","bar","restaurant"] },
+  { place_id: "ccu_006", name: "Ruben's BBQ",                 formatted_address: "40 W Main St, Price, UT 84501",    lat: 39.5994, lng: -110.8113, rating: 4.5, user_ratings_total: 45,  price_level: 2, types: ["barbecue_restaurant","restaurant"] },
+  { place_id: "ccu_007", name: "Sakura Japanese Steakhouse",  formatted_address: "801 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.7999, rating: 4.3, user_ratings_total: 111, price_level: 3, types: ["japanese_restaurant","steak_house","restaurant"] },
+  { place_id: "ccu_008", name: "The Coffee Shop",             formatted_address: "17 E Main St, Price, UT 84501",    lat: 39.5994, lng: -110.8105, rating: 4.3, user_ratings_total: 82,  price_level: 1, types: ["coffee_shop","cafe"] },
+  { place_id: "ccu_009", name: "McDonald's",                  formatted_address: "409 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.8052, rating: 3.5, user_ratings_total: 612, price_level: 1, types: ["fast_food_restaurant","hamburger_restaurant","restaurant"] },
+  { place_id: "ccu_010", name: "Arby's",                      formatted_address: "755 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.8005, rating: 3.6, user_ratings_total: 480, price_level: 1, types: ["fast_food_restaurant","sandwich_shop","restaurant"] },
+  { place_id: "ccu_011", name: "Subway (E Main)",             formatted_address: "382 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.8055, rating: 3.4, user_ratings_total: 95,  price_level: 1, types: ["sandwich_shop","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_012", name: "Domino's Pizza",              formatted_address: "640 E Main St, Price, UT 84501",   lat: 39.5994, lng: -110.8019, rating: 3.4, user_ratings_total: 240, price_level: 1, types: ["pizza_restaurant","meal_takeaway","restaurant"] },
+  { place_id: "ccu_013", name: "Little Caesars Pizza",        formatted_address: "1169 E Main St, Price, UT 84501",  lat: 39.5994, lng: -110.7950, rating: 3.7, user_ratings_total: 220, price_level: 1, types: ["pizza_restaurant","meal_takeaway","restaurant"] },
+  { place_id: "ccu_014", name: "Bakesters",                   formatted_address: "1181 E Main St, Price, UT 84501",  lat: 39.5994, lng: -110.7948, rating: 5.0, user_ratings_total: 38,  price_level: 1, types: ["bakery","donut_shop","cafe"] },
+  { place_id: "ccu_015", name: "Cold Stone Creamery",         formatted_address: "1191 E Main St, Price, UT 84501",  lat: 39.5994, lng: -110.7947, rating: 4.5, user_ratings_total: 54,  price_level: 1, types: ["ice_cream_shop","dessert_shop"] },
+
+  // ---- Price: Carbon Ave / 100 N corridor ----------------------------------
+  { place_id: "ccu_016", name: "Greek Streak & Pastry",       formatted_address: "84 S Carbon Ave, Price, UT 84501", lat: 39.5982, lng: -110.8108, rating: 4.3, user_ratings_total: 196, price_level: 1, types: ["greek_restaurant","mediterranean_restaurant","restaurant"] },
+  { place_id: "ccu_017", name: "Big Don's Pizza & Pasta",     formatted_address: "170 W 100 N, Price, UT 84501",     lat: 39.6006, lng: -110.8130, rating: 4.2, user_ratings_total: 221, price_level: 2, types: ["pizza_restaurant","italian_restaurant","restaurant"] },
+  { place_id: "ccu_018", name: "Sodalicious",                 formatted_address: "97 E 100 N, Price, UT 84501",      lat: 39.6006, lng: -110.8093, rating: 4.4, user_ratings_total: 64,  price_level: 1, types: ["dessert_shop","drink_shop"] },
+  { place_id: "ccu_019", name: "Chugg Drive Thru",            formatted_address: "430 S Carbon Ave, Price, UT 84501",lat: 39.5940, lng: -110.8108, rating: 4.0, user_ratings_total: 69,  price_level: 1, types: ["hot_dog_stand","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_020", name: "Market Express",              formatted_address: "850 S Carbon Ave, Price, UT 84501",lat: 39.5887, lng: -110.8108, rating: 4.0, user_ratings_total: 48,  price_level: 1, types: ["pizza_restaurant","convenience_store","meal_takeaway"] },
+
+  // ---- Price: 700 E / 500 N pocket -----------------------------------------
+  { place_id: "ccu_021", name: "Big Moe's Eatery & Bakery",   formatted_address: "61 S 700 E, Price, UT 84501",      lat: 39.5985, lng: -110.7992, rating: 4.6, user_ratings_total: 91,  price_level: 1, types: ["bakery","cafe","american_restaurant","restaurant"] },
+  { place_id: "ccu_022", name: "Oasis Café",                  formatted_address: "250 E 500 N, Price, UT 84501",     lat: 39.6058, lng: -110.8073, rating: 4.4, user_ratings_total: 66,  price_level: 1, types: ["cafe","american_restaurant","restaurant"] },
+
+  // ---- Price: Hospital Dr / Westwood Blvd / Price River Dr -----------------
+  { place_id: "ccu_023", name: "Juniper Pizza Café",          formatted_address: "150 N Hospital Dr, Price, UT 84501", lat: 39.6053, lng: -110.8170, rating: 4.3, user_ratings_total: 165, price_level: 2, types: ["pizza_restaurant","cafe","restaurant"] },
+  { place_id: "ccu_024", name: "WINGERS Restaurant",          formatted_address: "205 N Hospital Dr, Price, UT 84501", lat: 39.6062, lng: -110.8170, rating: 4.0, user_ratings_total: 412, price_level: 2, types: ["sports_bar","american_restaurant","restaurant"] },
+  { place_id: "ccu_025", name: "Uptown Steakhouse",           formatted_address: "838 Westwood Blvd, Price, UT 84501", lat: 39.6065, lng: -110.8290, rating: 4.6, user_ratings_total: 352, price_level: 3, types: ["steak_house","american_restaurant","restaurant"] },
+  { place_id: "ccu_026", name: "Sports Page Bar & Grill",     formatted_address: "838 Westwood Blvd, Price, UT 84501", lat: 39.6068, lng: -110.8290, rating: 3.8, user_ratings_total: 72,  price_level: 2, types: ["bar","american_restaurant","restaurant"] },
+  { place_id: "ccu_027", name: "Dairy Queen Grill & Chill",   formatted_address: "915 Westwood Blvd, Price, UT 84501", lat: 39.6072, lng: -110.8295, rating: 3.8, user_ratings_total: 182, price_level: 1, types: ["fast_food_restaurant","ice_cream_shop","restaurant"] },
+  { place_id: "ccu_028", name: "JB's Restaurant",             formatted_address: "111 N 800 W, Price, UT 84501",     lat: 39.6005, lng: -110.8221, rating: 3.9, user_ratings_total: 329, price_level: 2, types: ["diner","american_restaurant","restaurant"] },
+  { place_id: "ccu_029", name: "Wendy's",                     formatted_address: "687 W Price River Dr, Price, UT 84501", lat: 39.5965, lng: -110.8245, rating: 3.5, user_ratings_total: 540, price_level: 1, types: ["fast_food_restaurant","hamburger_restaurant","restaurant"] },
+  { place_id: "ccu_030", name: "Taco Time",                   formatted_address: "640 W Price River Dr, Price, UT 84501", lat: 39.5965, lng: -110.8240, rating: 3.6, user_ratings_total: 192, price_level: 1, types: ["mexican_restaurant","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_031", name: "Lin's Market & Starbucks",    formatted_address: "760 W Price River Dr, Price, UT 84501", lat: 39.5965, lng: -110.8255, rating: 4.2, user_ratings_total: 88,  price_level: 1, types: ["coffee_shop","cafe","supermarket"] },
+
+  // ---- Price: Hwy 55 / Carbonville Rd south --------------------------------
+  { place_id: "ccu_032", name: "Los 2 Amigos",                formatted_address: "353 S Highway 55, Price, UT 84501",lat: 39.5950, lng: -110.8108, rating: 3.8, user_ratings_total: 230, price_level: 2, types: ["mexican_restaurant","restaurant"] },
+  { place_id: "ccu_033", name: "Rolberto's Mexican",          formatted_address: "212 S Highway 55, Price, UT 84501",lat: 39.5965, lng: -110.8108, rating: 4.2, user_ratings_total: 110, price_level: 1, types: ["mexican_restaurant","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_034", name: "Subway (Walmart)",            formatted_address: "255 S Highway 55, Price, UT 84501",lat: 39.5963, lng: -110.8108, rating: 3.2, user_ratings_total: 24,  price_level: 1, types: ["sandwich_shop","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_035", name: "Taco Bell",                   formatted_address: "120 N Carbonville Rd, Price, UT 84501", lat: 39.6017, lng: -110.8295, rating: 3.6, user_ratings_total: 220, price_level: 1, types: ["mexican_restaurant","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_036", name: "Burger King",                 formatted_address: "124 N Carbonville Rd, Price, UT 84501", lat: 39.6018, lng: -110.8295, rating: 3.3, user_ratings_total: 320, price_level: 1, types: ["fast_food_restaurant","hamburger_restaurant","restaurant"] },
+  { place_id: "ccu_037", name: "KFC / A&W",                   formatted_address: "130 N Carbonville Rd, Price, UT 84501", lat: 39.6019, lng: -110.8295, rating: 3.6, user_ratings_total: 195, price_level: 1, types: ["fast_food_restaurant","chicken_restaurant","restaurant"] },
+  { place_id: "ccu_038", name: "The Tipsy Tavern",            formatted_address: "199 N Carbonville Rd, Price, UT 84501", lat: 39.6027, lng: -110.8295, rating: 5.0, user_ratings_total: 34,  price_level: 2, types: ["bar","restaurant"] },
+  { place_id: "ccu_039", name: "El Jinete #2 Mexican Grill",  formatted_address: "1267 N Carbonville Rd, Price, UT 84501", lat: 39.6147, lng: -110.8295, rating: 4.4, user_ratings_total: 114, price_level: 2, types: ["mexican_restaurant","restaurant"] },
+
+  // ---- Helper / Carbonville (US-6 north) -----------------------------------
+  { place_id: "ccu_040", name: "Grogg's Pinnacle Brewing",    formatted_address: "1653 N Carbonville Rd, Helper, UT 84526", lat: 39.6520, lng: -110.8350, rating: 4.2, user_ratings_total: 245, price_level: 2, types: ["brewery","american_restaurant","restaurant"] },
+  { place_id: "ccu_041", name: "Balance Rock Eatery & Pub",   formatted_address: "148 S Main St, Helper, UT 84526", lat: 39.6822, lng: -110.8568, rating: 4.5, user_ratings_total: 208, price_level: 2, types: ["american_restaurant","bar","restaurant"] },
+  { place_id: "ccu_042", name: "The Filling Station",         formatted_address: "54 S Main St, Helper, UT 84526",  lat: 39.6833, lng: -110.8568, rating: 4.0, user_ratings_total: 28,  price_level: 1, types: ["diner","hamburger_restaurant","restaurant"] },
+  { place_id: "ccu_043", name: "Gateway Lanes Food Counter",  formatted_address: "94 S Main St, Helper, UT 84526",  lat: 39.6829, lng: -110.8568, rating: 3.8, user_ratings_total: 22,  price_level: 1, types: ["bowling_alley","american_restaurant"] },
+  { place_id: "ccu_044", name: "Helper Beer",                 formatted_address: "159 N Main St, Helper, UT 84526", lat: 39.6856, lng: -110.8568, rating: 4.8, user_ratings_total: 62,  price_level: 2, types: ["brewery","pizza_restaurant","bar","restaurant"] },
+  { place_id: "ccu_045", name: "Happiness Within",            formatted_address: "153 N Main St, Helper, UT 84526", lat: 39.6855, lng: -110.8568, rating: 4.4, user_ratings_total: 17,  price_level: 2, types: ["restaurant","american_restaurant"] },
+  { place_id: "ccu_046", name: "Swift's Stop & Shop",         formatted_address: "156 N Main St, Helper, UT 84526", lat: 39.6855, lng: -110.8570, rating: 4.0, user_ratings_total: 19,  price_level: 1, types: ["convenience_store","sandwich_shop","food"] },
+  { place_id: "ccu_047", name: "Angel's Cravings Food Truck", formatted_address: "99 N Main St, Helper, UT 84526",  lat: 39.6850, lng: -110.8568, rating: 4.6, user_ratings_total: 24,  price_level: 1, types: ["food_truck","mexican_restaurant","restaurant"] },
+  { place_id: "ccu_048", name: "Carbon Country Club",         formatted_address: "3055 US-6, Helper, UT 84526",     lat: 39.7050, lng: -110.8200, rating: 4.5, user_ratings_total: 13,  price_level: 3, types: ["country_club","american_restaurant","restaurant"] },
+
+  // ---- Wellington (US-6 east of Price, ~5 mi) ------------------------------
+  { place_id: "ccu_049", name: "Cowboy Club & Cowboy's Kitchen", formatted_address: "31 E Main St, Wellington, UT 84542", lat: 39.5450, lng: -110.7350, rating: 3.9, user_ratings_total: 86,  price_level: 2, types: ["american_restaurant","bar","restaurant"] },
+  { place_id: "ccu_050", name: "Outlaw Café",                 formatted_address: "50 S 700 E, Wellington, UT 84542", lat: 39.5443, lng: -110.7270, rating: 3.8, user_ratings_total: 41,  price_level: 1, types: ["cafe","american_restaurant","restaurant"] },
+  { place_id: "ccu_051", name: "Mama DeLuca's Pizza",         formatted_address: "2195 E Main St, Wellington, UT 84542", lat: 39.5450, lng: -110.7140, rating: 4.0, user_ratings_total: 26,  price_level: 1, types: ["pizza_restaurant","fast_food_restaurant","restaurant"] },
+  { place_id: "ccu_052", name: "Subway (Wellington)",         formatted_address: "2195 E Main St, Wellington, UT 84542", lat: 39.5450, lng: -110.7142, rating: 2.9, user_ratings_total: 7,   price_level: 1, types: ["sandwich_shop","fast_food_restaurant","restaurant"] },
+];
+
+// ---- Adapter: Places result → prototype's restaurant shape -----------------
+
+const PHOTO_BY_CUISINE = {
+  Pizza:      "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&q=80&auto=format&fit=crop",
+  Italian:    "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=800&q=80&auto=format&fit=crop",
+  Mexican:    "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80&auto=format&fit=crop",
+  Greek:      "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&q=80&auto=format&fit=crop",
+  Japanese:   "https://images.unsplash.com/photo-1553621042-f6e147245754?w=800&q=80&auto=format&fit=crop",
+  Steakhouse: "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&q=80&auto=format&fit=crop",
+  BBQ:        "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800&q=80&auto=format&fit=crop",
+  Burgers:    "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&q=80&auto=format&fit=crop",
+  Brewpub:    "https://images.unsplash.com/photo-1535958636474-b021ee887b13?w=800&q=80&auto=format&fit=crop",
+  Bakery:     "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80&auto=format&fit=crop",
+  Coffee:     "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80&auto=format&fit=crop",
+  "Ice Cream":"https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=800&q=80&auto=format&fit=crop",
+  Sandwich:   "https://images.unsplash.com/photo-1567234669003-dce7a7a88821?w=800&q=80&auto=format&fit=crop",
+  "Fast Food":"https://images.unsplash.com/photo-1571091655789-405eb7a3a3a8?w=800&q=80&auto=format&fit=crop",
+  Bar:        "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=80&auto=format&fit=crop",
+  Cafe:       "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80&auto=format&fit=crop",
+  Diner:      "https://images.unsplash.com/photo-1592861956120-e524fc739696?w=800&q=80&auto=format&fit=crop",
+  American:   "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80&auto=format&fit=crop",
+  Drinks:     "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&q=80&auto=format&fit=crop",
+  Restaurant: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80&auto=format&fit=crop",
+};
+
+const TAGS_BY_CUISINE = {
+  Pizza:      ['vegetarian'],
+  Italian:    ['vegetarian'],
+  Mexican:    ['vegetarian','glutenFree'],
+  Greek:      ['vegetarian','vegan'],
+  Japanese:   ['vegetarian','glutenFree'],
+  Steakhouse: ['glutenFree'],
+  BBQ:        ['glutenFree'],
+  Burgers:    [],
+  Brewpub:    [],
+  Bakery:     ['vegetarian'],
+  Coffee:     ['vegetarian'],
+  "Ice Cream":['vegetarian','glutenFree'],
+  Sandwich:   ['vegetarian'],
+  "Fast Food":[],
+  Bar:        [],
+  Cafe:       ['vegetarian','glutenFree'],
+  Diner:      [],
+  American:   [],
+  Drinks:     ['vegetarian','glutenFree'],
+  Restaurant: [],
+};
+
+// Map Places API `types[]` to a single human-readable cuisine label.
+// Order matters — most specific first.
+function inferCuisine(types = []) {
+  const t = ' ' + types.join(' ') + ' ';
+  if (/japanese|sushi/.test(t))               return 'Japanese';
+  if (/pizza/.test(t))                        return 'Pizza';
+  if (/mexican/.test(t))                      return 'Mexican';
+  if (/italian/.test(t))                      return 'Italian';
+  if (/greek|mediterranean/.test(t))          return 'Greek';
+  if (/steak_house/.test(t))                  return 'Steakhouse';
+  if (/barbecue|bbq/.test(t))                 return 'BBQ';
+  if (/brewery|brew_pub/.test(t))             return 'Brewpub';
+  if (/donut|bakery/.test(t))                 return 'Bakery';
+  if (/coffee_shop/.test(t))                  return 'Coffee';
+  if (/ice_cream|frozen/.test(t))             return 'Ice Cream';
+  if (/dessert|drink_shop/.test(t))           return 'Drinks';
+  if (/sandwich|deli/.test(t))                return 'Sandwich';
+  if (/hamburger|burger|hot_dog/.test(t))     return 'Burgers';
+  if (/diner/.test(t))                        return 'Diner';
+  if (/sports_bar|bar(?!becue)|pub/.test(t))  return 'Bar';
+  if (/fast_food/.test(t))                    return 'Fast Food';
+  if (/cafe/.test(t))                         return 'Cafe';
+  if (/american|country_club/.test(t))        return 'American';
+  return 'Restaurant';
+}
+
+function distMiles(lat1, lng1, lat2, lng2) {
+  const R = 3958.756;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Heuristic drive time from distance — slow in town, faster on the highway run.
+function estDriveMin(d) {
+  if (d < 2)  return Math.max(1, Math.ceil(d * 3));   // ~20 mph in town
+  if (d < 5)  return Math.ceil(d * 2);                 // ~30 mph mixed
+  return Math.ceil(d * 1.7);                           // ~35 mph US-6 / US-191
+}
+
+// Per-place real photo URLs and operating hours, gathered from the Carbon
+// County official dining directory + each business's own site. When the
+// live Places API is wired in, these come from `place.photos[0]` and
+// `place.opening_hours` instead and PLACE_DATA goes away.
+const PLACE_DATA = {
+  // ---- Price downtown (Main St / Carbon Ave / 100 N / 700 E) -------------
+  ccu_001: { // Tangerine Eatery
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/cropped-tangerine-outside-sign.jpg",
+    hours: { mon:{open:"07:00",close:"20:00"}, tue:{open:"07:00",close:"20:00"}, wed:{open:"07:00",close:"20:00"}, thu:{open:"07:00",close:"20:00"}, fri:{open:"07:00",close:"21:00"}, sat:{open:"07:00",close:"21:00"}, sun:{open:"07:00",close:"19:00"} },
+    reviews: [
+      { text: "Found this cute little restaurant. The girl that helped us was very friendly.", author: "Carrie T." },
+      { text: "Our go-to spot in Price on our way to Moab. The food is healthy and delicious.", author: "Melissa L." },
+    ],
+  },
+  ccu_002: { // Farlaino's Café
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAEPYNJg5iSb2DfFNr8KV7M_Aqm3tsY6oIy14l7AaFL9K8EvLJBEL10P5jU7psrXxM7mzs-DSY2yPSN6CixfySY3Lha_WRpMDmM2TI4ObFfqByJR5IpTXv5SVxppGHGvIPV46QGp=w426-h240-k-no",
+    hours: { mon:{open:"07:00",close:"19:00"}, tue:{open:"07:00",close:"19:00"}, wed:{open:"07:00",close:"19:00"}, thu:{open:"07:00",close:"19:00"}, fri:{open:"07:00",close:"19:00"}, sat:{open:"07:00",close:"19:00"}, sun:"closed" },
+    reviews: [
+      { text: "Incredible food and service! Absolutely stopping in every time we pass through Price.", author: "greg james" },
+    ],
+  },
+  ccu_003: { // Sherald's Frosty Freeze
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/28336099_996295627199999_5507016222292159074_o-1.jpg",
+    hours: { mon:{open:"11:00",close:"20:00"}, tue:{open:"11:00",close:"20:00"}, wed:{open:"11:00",close:"20:00"}, thu:{open:"11:00",close:"20:00"}, fri:{open:"11:00",close:"20:00"}, sat:{open:"11:00",close:"20:00"}, sun:{open:"11:00",close:"20:00"} },
+    reviews: [
+      { text: "A great old school outdoor diner with great food and great service. The shakes are excellent.", author: "Vertisce" },
+      { text: "Such a nice place. Good fresh hot food, yummy ice cream, and nice girls running the front.", author: "W. Taylor F." },
+    ],
+  },
+  ccu_004: { // Club Mecca
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/AllieRussell-Helper-Price-02-225x300-1.jpeg",
+    hours: { mon:{open:"11:00",close:"20:00"}, tue:{open:"11:00",close:"20:00"}, wed:{open:"11:00",close:"20:00"}, thu:{open:"11:00",close:"20:00"}, fri:{open:"11:00",close:"21:00"}, sat:{open:"11:00",close:"21:00"}, sun:"closed" },
+    reviews: [
+      { text: "I love the food at Club Mecca. Their burgers and fries are great. The calzones changed my life.", author: "James P." },
+      { text: "Haven't been disappointed. The food and the vibe are good. Definitely worth checking out.", author: "Sherry V." },
+    ],
+  },
+  ccu_005: { // Silver Dollar Sports Club
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHaNuVu7ZY0N6n3GTMdtLEzfL0sxfDVabxlf5TZ8toXoSsL8e8B00gNkZUASAsxZjkmqlpkPrAAHYEmd9rrOoB1DW5zn8ZCVGMW4Av_7x_jZBXDh3s8qefKa9U0t5Rglaok-gs=w408-h544-k-no",
+    hours: { mon:{open:"14:00",close:"01:00"}, tue:{open:"14:00",close:"01:00"}, wed:{open:"14:00",close:"01:00"}, thu:{open:"14:00",close:"01:00"}, fri:{open:"14:00",close:"01:00"}, sat:{open:"14:00",close:"01:00"}, sun:{open:"14:00",close:"01:00"} },
+    reviews: [
+      { text: "Very laid back atmosphere and lovely bartenders and customers.", author: "Jeremy Sumrall" },
+      { text: "Two pool tables, dart boards, amazing bartenders.", author: "Debra Hubbard" },
+    ],
+  },
+  ccu_006: { // Ruben's BBQ
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/2023/02/rubens-pulled-pork.jpeg",
+    hours: { mon:"closed", tue:{open:"11:00",close:"21:00"}, wed:{open:"11:00",close:"21:00"}, thu:{open:"11:00",close:"21:00"}, fri:{open:"11:00",close:"21:00"}, sat:{open:"11:00",close:"21:00"}, sun:"closed" },
+    reviews: [
+      { text: "Arrived hot and everything was separated so it wasn't soggy. Pulled BBQ sandwich, slaw, chips.", author: "Jessica O." },
+      { text: "Saw them at Miller's travel station with their trailer. The two girls working were swamped.", author: "Brook M." },
+    ],
+  },
+  ccu_007: { // Sakura Japanese Steakhouse
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAFzmd8H2J2RpgozsV8H8oB4NQBlDcUCi_ASTi0kzmZKrZgAfBcOk5waTB8yL1yRxCUjlFK4GeJGla6Wdo7gFf4uk52E4sbFpcet_km8AZ15egL_a0ZLIGA0mMftE9YHJ9p6A3Icalmj6Jpi=w408-h303-k-no",
+    hours: { mon:{open:"11:00",close:"21:00"}, tue:{open:"11:00",close:"21:00"}, wed:{open:"11:00",close:"21:00"}, thu:{open:"11:00",close:"21:00"}, fri:{open:"11:00",close:"21:00"}, sat:{open:"11:00",close:"21:00"}, sun:"closed" },
+    reviews: [
+      { text: "We had a delightful lunch here. I had the shrimp tempura bento box and my cousin had teriyaki salmon.", author: "Linda Cowan" },
+      { text: "Wait time was 40m+ but worth it. For 1 child and 3 adults with drinks and appetizers it came to $96.", author: "Sawsh" },
+    ],
+  },
+  ccu_008: { // The Coffee Shop
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/The-Coffee-Shop-800x520.png",
+    hours: { mon:{open:"07:00",close:"17:00"}, tue:{open:"07:00",close:"17:00"}, wed:{open:"07:00",close:"17:00"}, thu:{open:"07:00",close:"17:00"}, fri:{open:"07:00",close:"17:00"}, sat:{open:"07:00",close:"14:00"}, sun:"closed" },
+    reviews: [
+      { text: "The coffee shop is super cute and the matcha is super good.", author: "Jerica S." },
+      { text: "Cute little local coffee shop. Very quiet. Plenty of seating. Decent prices.", author: "Raelynn A." },
+    ],
+  },
+  ccu_009: { // McDonald's
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHtPfxlcTpwhZ5AOJJKXFdYKS7SMi-wyTkM9rWlOBhMju6-45vqNUS2hJgGYgzz6cWuvS8pq4t8pLizwxKTQ9U0F2rGNUOoh8UmOg48Fm-IeOvx4zMawJ91XPKzC6oWNEZmigBu=w408-h544-k-no",
+    hours: { mon:{open:"00:00",close:"23:59"}, tue:{open:"00:00",close:"23:59"}, wed:{open:"00:00",close:"23:59"}, thu:{open:"00:00",close:"23:59"}, fri:{open:"00:00",close:"23:59"}, sat:{open:"00:00",close:"23:59"}, sun:{open:"00:00",close:"23:59"} },
+    reviews: [
+      { text: "Food's cold, time management is poor. Never ready when they say it's going to be.", author: "Anastasiya" },
+      { text: "Hopefully Mark Parrish can train these employees better.", author: "Kaytlynn" },
+    ],
+  },
+  ccu_010: { // Arby's
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHT9KCvbJSWOrsUsGBKGwEXmcEnE1oqB1myPoobHA6W1wzpCET0EBFgjpkpmynWJUNs9aNryXhtb8hKBIVQiRrxVEenAGpckK4BU8H65vc7Qd_Hk2r2W8aN_epP4h9eEY6nybN7-cfu2COR=w408-h306-k-no",
+    hours: { mon:{open:"10:00",close:"00:00"}, tue:{open:"10:00",close:"00:00"}, wed:{open:"10:00",close:"00:00"}, thu:{open:"10:00",close:"00:00"}, fri:{open:"10:00",close:"00:00"}, sat:{open:"10:00",close:"00:00"}, sun:{open:"10:00",close:"23:00"} },
+    reviews: [
+      { text: "A very positive experience. Staff was very friendly and helpful. Great place to eat!", author: "Walter Rothe" },
+      { text: "I ordered a number five and it was raw, uncooked.", author: "Roy junior." },
+    ],
+  },
+  ccu_011: { // Subway (E Main)
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/1440x710.jpg",
+    hours: { mon:{open:"08:00",close:"22:00"}, tue:{open:"08:00",close:"22:00"}, wed:{open:"08:00",close:"22:00"}, thu:{open:"08:00",close:"22:00"}, fri:{open:"08:00",close:"22:00"}, sat:{open:"08:00",close:"22:00"}, sun:{open:"11:00",close:"19:00"} },
+    reviews: [
+      { text: "Never tire of the veggie sandwich with honey mustard dressing. Try it.", author: "Marilyn C." },
+      { text: "Tried the nachos for the first time. A small bag of chips with hardly any toppings.", author: "Grant H." },
+    ],
+  },
+  ccu_012: { // Domino's Pizza
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAEDKSwqx453hamXvjS_Qtb4KgE_tOXwdDlMTSk2DAw4tW8jgMJJk5MixHMlgPb_EDV8-963BqPvyGqWiz7UShNkMaCKB-anWHYCrs4Mkje-w08ckMcYMlUxkqgB4lcmNUvYBv4A=w408-h272-k-no",
+    hours: { mon:{open:"10:30",close:"00:00"}, tue:{open:"10:30",close:"00:00"}, wed:{open:"10:30",close:"00:00"}, thu:{open:"10:30",close:"00:00"}, fri:{open:"10:30",close:"01:00"}, sat:{open:"10:30",close:"01:00"}, sun:{open:"10:30",close:"00:00"} },
+    reviews: [
+      { text: "Stayed in a motel and ordered Domino's delivery — excellent call! Food came fast and hot.", author: "Jerry D. Beck" },
+      { text: "Everyone is always so nice. Sometimes they even give us extra dipping sauces.", author: "Brook McCarty" },
+    ],
+  },
+  ccu_013: { // Little Caesars Pizza
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/little-caesars-logo.jpeg",
+    hours: { mon:{open:"10:30",close:"22:00"}, tue:{open:"10:30",close:"22:00"}, wed:{open:"10:30",close:"22:00"}, thu:{open:"10:30",close:"22:00"}, fri:{open:"10:30",close:"22:00"}, sat:{open:"10:30",close:"22:00"}, sun:{open:"11:00",close:"22:00"} },
+    reviews: [
+      { text: "Easy going atmosphere. Food was hot and ready upon arrival. In and out in 1-2 minutes.", author: "Marina T." },
+      { text: "Both times the pizzas were cooked to perfection. The cheese-to-sauce ratio was perfect.", author: "Russell T." },
+    ],
+  },
+  ccu_014: { // Bakesters
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/2024/05/bakesters-outdoors-1024x771.jpg",
+    hours: { mon:{open:"06:00",close:"18:00"}, tue:{open:"06:00",close:"18:00"}, wed:{open:"06:00",close:"18:00"}, thu:{open:"06:00",close:"18:00"}, fri:{open:"06:00",close:"18:00"}, sat:{open:"06:00",close:"18:00"}, sun:"closed" },
+    reviews: [
+      { text: "BEST Bakery in the state of Utah!", author: "Yelp" },
+      { text: "I had never tasted such a delicious cake. My family & friends raved about it.", author: "Yelp" },
+    ],
+  },
+  ccu_015: { // Cold Stone Creamery
+    photo: null,
+    hours: { mon:{open:"11:00",close:"21:00"}, tue:{open:"11:00",close:"21:00"}, wed:{open:"11:00",close:"21:00"}, thu:{open:"11:00",close:"21:00"}, fri:{open:"11:00",close:"22:00"}, sat:{open:"11:00",close:"22:00"}, sun:"closed" },
+    reviews: [
+      { text: "The pleasant staff made for the perfect end to a fun day with the grandkids.", author: "Fly_Bob" },
+      { text: "The ice cream is barely to the top of the cup in most cases.", author: "Lane A." },
+    ],
+  },
+  ccu_016: { // Greek Streak & Pastry
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAF_SfBUWgxQZihWShbG7GbqCeGcCFXwGzx9MEbkygOjyXzzS-FbScKQ178rSwcI99De_0PD-COmXCCiRMDzvSwcJxzxnyrEFDRUxS_7TLjrZrxOqb-_K0oX9_HP0Icc5fhgIbKGzw=w408-h544-k-no",
+    hours: { mon:{open:"11:00",close:"19:00"}, tue:{open:"11:00",close:"19:00"}, wed:{open:"11:00",close:"19:00"}, thu:{open:"11:00",close:"19:00"}, fri:{open:"11:00",close:"19:00"}, sat:{open:"12:00",close:"19:00"}, sun:"closed" },
+    reviews: [
+      { text: "Had Greek salad, lentil soup, gyro pita, dolmas and rice and it was all delicious.", author: "Peggy S." },
+      { text: "A small friendly no-frills place with good Greek food and very reasonable prices.", author: "ILoveBourbon" },
+    ],
+  },
+  ccu_017: { // Big Don's Pizza & Pasta
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAGR26TjViro8_QqxgGuQwfEVO5cdOU_1P6_8UNgq2tnN2VHNKPu42qwDsrVx8ZyNmDVnAVy4TWCmIwMFgReUSNzaPFU8WfWrden3uaSPzNfkQ41JHx7zo-SFf6cZcvMec_WYLqn=w426-h240-k-no",
+    hours: { mon:{open:"11:00",close:"20:00"}, tue:{open:"11:00",close:"20:00"}, wed:{open:"11:00",close:"20:00"}, thu:{open:"11:00",close:"20:00"}, fri:{open:"11:00",close:"20:00"}, sat:{open:"11:00",close:"20:00"}, sun:"closed" },
+    reviews: [
+      { text: "Fabulous pizza, chewy tasty crust, flavorful toppings, baked exactly as it should be.", author: "NM Dreamer" },
+      { text: "Prices were reasonable for what they offered. My husband and I split a 9-inch pizza.", author: "Jalene B." },
+    ],
+  },
+  ccu_018: { // Sodalicious
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAEnV10YPcZuLDHhxdI0mxZBBbessWEjZYbB4Om39s2epjA013RnLtRu8JEj83ff2b3Phl3dpSJaySVvJhLUm-DSXoyLGn9-7EKkeKJI2Ss7ehIcdHJzgakusGMu_2Gqjfu9_zR1=w408-h272-k-no",
+    hours: { mon:{open:"09:00",close:"19:00"}, tue:{open:"09:00",close:"19:00"}, wed:{open:"09:00",close:"19:00"}, thu:{open:"09:00",close:"19:00"}, fri:{open:"09:00",close:"19:00"}, sat:{open:"09:00",close:"19:00"}, sun:"closed" },
+    reviews: [
+      { text: "The best customer service I've seen in a long time. The owner bent over backwards.", author: "Restaurantji" },
+      { text: "They make the best drinks, with yummy popcorn and awesome cookies.", author: "Yelp" },
+    ],
+  },
+  ccu_019: { // Chugg Drive Thru
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHTPdFS3EOPZYlvi6BT4oAqlVfdWO2lTn1ClosM2uXk1MMYrHq6MGT51Bx532kccuJJY3i9cP1d6ZhpLh-LjUF4aI1ro9du1dkm5Zf5C8ib-PAP7MiPebTmO0ff5UR-3ecR_-Qa=w408-h544-k-no",
+    hours: { mon:{open:"08:00",close:"21:00"}, tue:{open:"08:00",close:"21:00"}, wed:{open:"08:00",close:"21:00"}, thu:{open:"08:00",close:"21:00"}, fri:{open:"08:00",close:"21:00"}, sat:{open:"08:00",close:"21:00"}, sun:{open:"08:00",close:"21:00"} },
+    reviews: [
+      { text: "Best drinks hands down — they make it exactly my way, 44 oz extra ice with a cherry shot.", author: "Restaurantji" },
+      { text: "I usually get the long wall, but the hearts gravel may be my new favorite.", author: "kimberlys57chevy" },
+    ],
+  },
+  ccu_020: { // Market Express
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/160994499_2525592121068424_6185154256349646127_n.jpg",
+    hours: { mon:{open:"00:00",close:"23:59"}, tue:{open:"00:00",close:"23:59"}, wed:{open:"00:00",close:"23:59"}, thu:{open:"00:00",close:"23:59"}, fri:{open:"00:00",close:"23:59"}, sat:{open:"00:00",close:"23:59"}, sun:{open:"00:00",close:"23:59"} },
+    reviews: [
+      { text: "A full menu to satisfy any trip cravings, plus a drive-up window.", author: "Chris A." },
+      { text: "One of the best burgers in town. Love their fries too.", author: "Mandy S." },
+    ],
+  },
+  ccu_021: { // Big Moe's Eatery & Bakery
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHZRQQevqL15Eiif96Cm-VlV2Ge8aNf2K2EkZL78LNWSzM0QR7Yqif5OuADqpIP5etDyTD290S_zYl4-rwBCEh5GL07tB2GKqL8iFRfpB0dthGZpom_9-Lzz3rUBI0w0ww4QY3m=w408-h306-k-no",
+    hours: { mon:{open:"08:00",close:"14:00"}, tue:{open:"08:00",close:"14:00"}, wed:{open:"08:00",close:"14:00"}, thu:{open:"08:00",close:"14:00"}, fri:{open:"08:00",close:"14:00"}, sat:"closed", sun:"closed" },
+    reviews: [
+      { text: "Great burgers, friendly wait staff, and the pumpkin spice cookies were incredible.", author: "Yelp" },
+      { text: "4 meats, 3 eggs, cheese-covered hashbrowns, and 2 big pancakes for $8.", author: "Yelp" },
+    ],
+  },
+  ccu_022: { // Oasis Café
+    photo: null,
+    hours: { mon:{open:"08:00",close:"20:00"}, tue:{open:"08:00",close:"20:00"}, wed:{open:"08:00",close:"20:00"}, thu:{open:"08:00",close:"20:00"}, fri:{open:"08:00",close:"20:00"}, sat:{open:"09:00",close:"21:00"}, sun:{open:"11:00",close:"16:00"} },
+    reviews: [
+      { text: "The food was absolutely delicious and we got a free dessert for her birthday.", author: "Restaurantji" },
+      { text: "Fried. Pickle. Chips. Nuff said.", author: "Steve Richardson" },
+    ],
+  },
+
+  // ---- Price west / Hospital / Westwood / Hwy 55 / Carbonville Rd --------
+  ccu_023: { // Juniper Pizza Café
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAERXDqrD-YLVvVaThX7TnVVNFrgKqlRwNsflye--S1EDmymWO4r-bIbEr6TaUHO2WC4DmhP3wQQ5iaM5TCXcBn22WGAyS6phSj1gT8xsTIsSC7izaTPc47D-GB2N0X-bEHd0NSKKQ=w408-h306-k-no",
+    hours: { mon:"closed", tue:{open:"11:00",close:"20:00"}, wed:{open:"11:00",close:"20:00"}, thu:{open:"11:00",close:"20:00"}, fri:{open:"11:00",close:"20:00"}, sat:{open:"11:00",close:"20:00"}, sun:"closed" },
+    reviews: [
+      { text: "Best place in Price, maybe in all of Utah. Get the meatballs.", author: "Restaurantji" },
+      { text: "The bread pudding and tiramisu are off the hook.", author: "Restaurantji" },
+    ],
+  },
+  ccu_024: { // WINGERS Restaurant
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/WINGERS-subpage-header-background-10-02-2020.png",
+    hours: { mon:{open:"11:00",close:"20:00"}, tue:{open:"11:00",close:"20:00"}, wed:{open:"11:00",close:"20:00"}, thu:{open:"11:00",close:"20:00"}, fri:{open:"11:00",close:"22:00"}, sat:{open:"11:00",close:"22:00"}, sun:{open:"12:00",close:"20:00"} },
+    reviews: [
+      { text: "Our server Shy was fantastic and the food was very good. She made us feel like VIPs.", author: "Restaurantji" },
+      { text: "Long wait times, poor service and even worse management. We won't be going back.", author: "Restaurantji" },
+    ],
+  },
+  ccu_025: { // Uptown Steakhouse
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/uptown_4-428x520.jpg",
+    hours: { mon:{open:"15:00",close:"22:00"}, tue:{open:"15:00",close:"22:00"}, wed:{open:"15:00",close:"22:00"}, thu:{open:"15:00",close:"22:00"}, fri:{open:"15:00",close:"22:00"}, sat:{open:"15:00",close:"22:00"}, sun:"closed" },
+    reviews: [
+      { text: "I came to eat here with some friends and loved the experience.", author: "Edwin A." },
+      { text: "So unique. You can cook your own steak on a hot stone right at your table.", author: "B. Horrocks" },
+    ],
+  },
+  ccu_026: { // Sports Page Bar & Grill
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAH46p8ujjI7knM0BFcehC6FlRYq5aH7sFVmDkw5qr_aDSv0GJNW8N-vXJKc0sdTMzN0l92DV3a5tpbn0AwI-QirXV_sgLm2yNlV2ve6tt9G2y11LP3lHc6u84TX_M9E5euQumDxIg=w408-h272-k-no",
+    hours: { mon:{open:"17:00",close:"02:00"}, tue:{open:"17:00",close:"02:00"}, wed:{open:"17:00",close:"02:00"}, thu:{open:"17:00",close:"02:00"}, fri:{open:"17:00",close:"02:00"}, sat:{open:"17:00",close:"02:00"}, sun:{open:"17:00",close:"00:00"} },
+    reviews: [
+      { text: "Great food, friendly staff and a fun atmosphere where you can cheer on your team.", author: "Yelp" },
+      { text: "The bartender was super attentive — busy, but customers never felt neglected.", author: "Yelp" },
+    ],
+  },
+  ccu_027: { // Dairy Queen Grill & Chill
+    photo: "https://cdn6.localdatacdn.com/images/3686568/d_dairy_queen_grill_chill_photo.jpg?q=69ef47bc4705e",
+    hours: { mon:{open:"10:30",close:"21:00"}, tue:{open:"10:30",close:"21:00"}, wed:{open:"10:30",close:"21:00"}, thu:{open:"10:30",close:"21:00"}, fri:{open:"10:30",close:"22:00"}, sat:{open:"10:30",close:"22:00"}, sun:{open:"10:30",close:"21:00"} },
+    reviews: [
+      { text: "I went to DQ and ordered 2 blizzards through the drive through.", author: "Apr 2024" },
+      { text: "Read our order not once but twice. No sauces, and still managed to screw up the order.", author: "Aug 2021" },
+    ],
+  },
+  ccu_028: { // JB's Restaurant
+    photo: "https://cdn6.localdatacdn.com/images/3667166/d_jb_s_photo.jpg?q=69ef0769bb422",
+    hours: { mon:{open:"06:30",close:"00:00"}, tue:{open:"06:30",close:"00:00"}, wed:{open:"06:30",close:"00:00"}, thu:{open:"06:30",close:"00:00"}, fri:{open:"06:30",close:"00:00"}, sat:{open:"06:30",close:"00:00"}, sun:{open:"06:30",close:"00:00"} },
+    reviews: [
+      { text: "Stumbled on J.B.'s while traveling from SLC to Moab. Fantastic lunch and great service.", author: "Jul 2025" },
+      { text: "Clean, friendly staff, and great food.", author: "Mar 2024" },
+    ],
+  },
+  ccu_029: { // Wendy's
+    photo: "https://cdn6.localdatacdn.com/images/3667165/d_wendy_s_photo.jpg?q=69ef076736e8e",
+    hours: { mon:{open:"06:30",close:"22:00"}, tue:{open:"06:30",close:"22:00"}, wed:{open:"06:30",close:"22:00"}, thu:{open:"06:30",close:"22:00"}, fri:{open:"06:30",close:"22:00"}, sat:{open:"06:30",close:"22:00"}, sun:{open:"06:30",close:"22:00"} },
+    reviews: [
+      { text: "Brandon at the drive-up window at the Price location is top notch at customer service.", author: "Jan 2024" },
+      { text: "We were number 6 in the drive thru and still waited 30 minutes. Our food was cold.", author: "Aug 2020" },
+    ],
+  },
+  ccu_030: { // Taco Time
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/taco-time-526x520.jpg",
+    hours: { mon:{open:"08:00",close:"21:30"}, tue:{open:"08:00",close:"21:30"}, wed:{open:"08:00",close:"21:30"}, thu:{open:"08:00",close:"21:30"}, fri:{open:"08:00",close:"22:00"}, sat:{open:"08:00",close:"22:00"}, sun:"closed" },
+  },
+  ccu_031: { // Lin's Market & Starbucks
+    photo: "https://cdn6.localdatacdn.com/images/3686570/d_starbucks_photo.jpg?q=69ef47f9e6e45",
+    hours: { mon:{open:"06:00",close:"23:00"}, tue:{open:"06:00",close:"23:00"}, wed:{open:"06:00",close:"23:00"}, thu:{open:"06:00",close:"23:00"}, fri:{open:"06:00",close:"23:00"}, sat:{open:"06:00",close:"23:00"}, sun:{open:"06:00",close:"22:00"} },
+    reviews: [
+      { text: "The slowest Starbucks I've ever seen. Ordered an Americano that took 20 min.", author: "Jarek Waldron" },
+      { text: "Online orders would take 30+ minutes to be done for one drink.", author: "KJ Fox" },
+    ],
+  },
+  ccu_032: { // Los 2 Amigos
+    photo: "https://cdn6.localdatacdn.com/images/5807309/d_los_2_amigos_photo.jpg?q=69eb201267577",
+    hours: { mon:{open:"11:00",close:"21:00"}, tue:{open:"11:00",close:"21:00"}, wed:{open:"11:00",close:"21:00"}, thu:{open:"11:00",close:"21:00"}, fri:{open:"11:00",close:"21:00"}, sat:{open:"11:00",close:"21:00"}, sun:{open:"11:00",close:"21:00"} },
+    reviews: [
+      { text: "Over-charged me from ordering takeout: $11.75 to $16.75 once I got there.", author: "Nov 2023" },
+    ],
+  },
+  ccu_033: { // Rolberto's Mexican
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAFbg6ieJdD3UqFwvm9OtJTVq3hTYczHlXO8PI3ZFCMPi2JSoLEhTVhZx9Re18RO1N-XK38G4b7LnzLq9CB1KYeZ1z4XhD8US78CPg-Et40NaEIAtW2EyCrTlIRcTWVzuXVYO6ervcdygGw=w408-h306-k-no",
+    hours: { mon:{open:"05:00",close:"23:30"}, tue:{open:"05:00",close:"23:30"}, wed:{open:"05:00",close:"23:30"}, thu:{open:"05:00",close:"23:30"}, fri:{open:"05:00",close:"23:30"}, sat:{open:"05:00",close:"23:30"}, sun:{open:"05:00",close:"23:30"} },
+    reviews: [
+      { text: "5/5! Easily the best Mexican food in Price. Pricing is very well set for the portions and flavor.", author: "Joshua Conder" },
+      { text: "I had the beef fajitas with chips, salsa, and guacamole. All delicious!", author: "Melissa Pero" },
+    ],
+  },
+  ccu_034: { // Subway (Walmart)
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/1440x710.jpg",
+    hours: { mon:{open:"08:00",close:"22:00"}, tue:{open:"08:00",close:"22:00"}, wed:{open:"08:00",close:"22:00"}, thu:{open:"08:00",close:"22:00"}, fri:{open:"08:00",close:"22:00"}, sat:{open:"08:00",close:"22:00"}, sun:{open:"11:00",close:"19:00"} },
+  },
+  ccu_035: { // Taco Bell
+    photo: "https://cdn6.localdatacdn.com/images/3667168/d_taco_bell_photo.jpg?q=69ef076e1914b",
+    hours: { mon:{open:"08:00",close:"22:00"}, tue:{open:"08:00",close:"22:00"}, wed:{open:"08:00",close:"23:00"}, thu:{open:"08:00",close:"23:00"}, fri:{open:"08:00",close:"23:00"}, sat:{open:"08:00",close:"23:00"}, sun:{open:"08:00",close:"22:00"} },
+    reviews: [
+      { text: "Our food was absolutely delicious. Lettuce was crispy, the meat was hot and cooked well.", author: "Ali H" },
+      { text: "Most amazing experience at the Price Taco Bell — my server Niko was the best ever!", author: "SharkGirl" },
+    ],
+  },
+  ccu_036: { // Burger King
+    photo: "https://cdn6.localdatacdn.com/images/3667167/d_burger_king_photo.jpg?q=69ef076ac72e4",
+    hours: { mon:{open:"06:00",close:"22:00"}, tue:{open:"06:00",close:"22:00"}, wed:{open:"06:00",close:"22:00"}, thu:{open:"06:00",close:"22:00"}, fri:{open:"06:00",close:"22:00"}, sat:{open:"06:00",close:"22:00"}, sun:{open:"07:00",close:"22:00"} },
+    reviews: [
+      { text: "I eat at burger king up north (Provo, Orem, Spanish Fork) and always have good food.", author: "Jul 2021" },
+      { text: "Very poor customer service. She messed my order up and got ornry when I corrected her.", author: "Jan 2016" },
+    ],
+  },
+  ccu_037: { // KFC / A&W
+    photo: "https://cdn6.localdatacdn.com/images/3667169/d_a_w_restaurant_photo.jpg?q=69ef076c1a6bf",
+    hours: { mon:{open:"10:30",close:"22:00"}, tue:{open:"10:30",close:"22:00"}, wed:{open:"10:30",close:"22:00"}, thu:{open:"10:30",close:"22:00"}, fri:{open:"10:30",close:"22:00"}, sat:{open:"10:30",close:"22:00"}, sun:{open:"10:30",close:"22:00"} },
+    reviews: [
+      { text: "Not one person in front of me and still no chicken unless I waited 30 min.", author: "Apr 2021" },
+      { text: "There was a lady trying to get her order corrected for the third time.", author: "Dec 2019" },
+    ],
+  },
+  ccu_038: { // The Tipsy Tavern
+    photo: "https://cdn6.localdatacdn.com/images/3869515/d_the_tipsy_tavern_photo.jpg?q=69f0801e11982",
+    hours: { mon:{open:"17:30",close:"00:00"}, tue:{open:"17:30",close:"00:00"}, wed:{open:"17:30",close:"00:00"}, thu:{open:"17:30",close:"00:00"}, fri:{open:"17:30",close:"00:00"}, sat:{open:"12:00",close:"20:00"}, sun:{open:"12:00",close:"20:00"} },
+    reviews: [
+      { text: "Awesome dart boards, great pool tables, good selection of beer. Bartenders are friendly.", author: "Tyler Fairbanks" },
+      { text: "Nice quiet place to go earlier in the day. Great people work there every time I've been in.", author: "Kathrine H." },
+    ],
+  },
+  ccu_039: { // El Jinete #2 Mexican Grill
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/El-jinete-foodie-post-800x520.jpg",
+    hours: { mon:{open:"10:00",close:"23:00"}, tue:{open:"10:00",close:"23:00"}, wed:{open:"10:00",close:"23:00"}, thu:{open:"10:00",close:"23:00"}, fri:{open:"10:00",close:"23:00"}, sat:{open:"10:00",close:"23:00"}, sun:{open:"10:00",close:"23:00"} },
+    reviews: [
+      { text: "Their food was excellent. I had a beef chimichanga loaded with shredded beef.", author: "May 2025" },
+      { text: "La mejor y autentica comida mexicana.", author: "Feb 2023" },
+    ],
+  },
+
+  // ---- Helper / Wellington (US-6 north + east of Price) ------------------
+  ccu_040: { // Grogg's Pinnacle Brewing
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/groggs_IMG_1875-2-800x520.jpg",
+    hours: { mon:{open:"11:00",close:"21:00"}, tue:{open:"11:00",close:"21:00"}, wed:{open:"11:00",close:"21:00"}, thu:{open:"11:00",close:"21:00"}, fri:{open:"11:00",close:"22:00"}, sat:{open:"11:00",close:"22:00"}, sun:{open:"11:00",close:"20:00"} },
+    reviews: [
+      { text: "Excellent! Very tasty burger.", author: "Restaurantji" },
+      { text: "Exceptional blue cheese and bacon Swiss burgers with a hearty home-cooking vibe.", author: "Restaurantji" },
+    ],
+  },
+  ccu_041: { // Balance Rock Eatery & Pub
+    photo: "https://img02.restaurantguru.com/c2d1-facade-Balance-Rock-Eatery-and-Pub.jpg",
+    hours: { mon:{open:"08:00",close:"20:00"}, tue:{open:"08:00",close:"20:00"}, wed:{open:"08:00",close:"20:00"}, thu:{open:"08:00",close:"20:00"}, fri:{open:"08:00",close:"21:00"}, sat:{open:"08:00",close:"21:00"}, sun:{open:"08:00",close:"15:00"} },
+    reviews: [
+      { text: "Good food, quick service, and friendly staff. Breakfast served all day.", author: "Restaurantji" },
+      { text: "The pancakes are HUGE and the Balance Rock chicken sandwich is great.", author: "Restaurantji" },
+    ],
+  },
+  ccu_042: { // The Filling Station
+    photo: "https://img02.restaurantguru.com/c984-Filling-Station-Helper-view.jpg",
+    hours: { mon:{open:"17:00",close:"20:00"}, tue:{open:"17:00",close:"20:00"}, wed:{open:"17:00",close:"20:00"}, thu:{open:"17:00",close:"20:00"}, fri:{open:"17:00",close:"20:00"}, sat:{open:"17:00",close:"20:00"}, sun:"closed" },
+    reviews: [
+      { text: "An awesome retro-themed restaurant, ideal for fans of the 50s/60s era.", author: "Restaurantji" },
+      { text: "Good music, old-style food, and an aesthetic that fits the theme well.", author: "Restaurantji" },
+    ],
+  },
+  ccu_043: { // Gateway Lanes Food Counter
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/DSC_0880-13-1.jpg",
+    hours: { mon:{open:"12:00",close:"17:00"}, tue:{open:"12:00",close:"23:00"}, wed:{open:"12:00",close:"17:00"}, thu:{open:"12:00",close:"17:00"}, fri:{open:"12:00",close:"23:00"}, sat:{open:"12:00",close:"23:00"}, sun:"closed" },
+    reviews: [
+      { text: "Lanes were nice and well kept. Management was friendly and the price was reasonable.", author: "Evan Meidell" },
+      { text: "My daughter had a blast for her first time bowling — good place for a birthday party.", author: "Clifton Callor" },
+    ],
+  },
+  ccu_044: { // Helper Beer
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/IMG_8258-800x520.png",
+    hours: { mon:{open:"11:00",close:"21:00"}, tue:"closed", wed:{open:"11:00",close:"21:00"}, thu:{open:"11:00",close:"21:00"}, fri:{open:"11:00",close:"21:00"}, sat:{open:"11:00",close:"21:00"}, sun:{open:"12:00",close:"18:00"} },
+    reviews: [
+      { text: "Their beer rivals any spot in Utah, and their pizza is a fan favorite.", author: "Restaurantji" },
+      { text: "Big city feel without being in the city. Staff are friendly, helpful, and positive.", author: "Restaurantji" },
+    ],
+  },
+  ccu_045: { // Happiness Within
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/happiness__within_fb-800x520.jpg",
+    hours: { mon:{open:"07:00",close:"18:00"}, tue:{open:"07:00",close:"18:00"}, wed:{open:"07:00",close:"18:00"}, thu:{open:"07:00",close:"18:00"}, fri:{open:"07:00",close:"18:00"}, sat:{open:"08:00",close:"18:00"}, sun:{open:"08:00",close:"15:00"} },
+    reviews: [
+      { text: "Such a great little cafe with a wonderful name. The barista was so friendly.", author: "Restaurantji" },
+      { text: "My husband got a Regular coffee and I got the Van Halen, both are YUMMY.", author: "Restaurantji" },
+    ],
+  },
+  ccu_046: { // Swift's Stop & Shop
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAGOOuUe3w-xj9cs4xU_vN8jq0dAHu73Lw68SHid7Y2-KwV4Bw0_Xu4UQeOfISNu48aufWObO73UyiLVZjjYud4r4zY2M5DFRku3Bpw-ElwTZDsiVyb7RsWstiUBskt31cUImJQ=w408-h725-k-no",
+    hours: { mon:{open:"05:00",close:"23:00"}, tue:{open:"05:00",close:"23:00"}, wed:{open:"05:00",close:"23:00"}, thu:{open:"05:00",close:"23:00"}, fri:{open:"05:00",close:"23:00"}, sat:{open:"06:00",close:"23:00"}, sun:{open:"06:00",close:"22:00"} },
+    reviews: [
+      { text: "Absolutely loved this gas station! The atmosphere is amazing — more than just a pit stop.", author: "ILYA Y" },
+      { text: "Best gas station ever. The two ladies behind the counter are so sweet and nice.", author: "Nicolas Torres" },
+    ],
+  },
+  ccu_047: { // Angel's Cravings Food Truck
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/Images/angels_craving_web-800x520.jpg",
+    hours: { mon:"closed", tue:{open:"11:00",close:"19:00"}, wed:{open:"11:00",close:"19:00"}, thu:{open:"11:00",close:"19:00"}, fri:{open:"11:00",close:"19:00"}, sat:{open:"11:00",close:"19:00"}, sun:{open:"11:00",close:"15:00"} },
+    reviews: [
+      { text: "This is what burrito dreams are made of. Massive size with massive flavor.", author: "Brady Tucker" },
+      { text: "The vegetarian mushroom tacos were amazing, very flavorful. Highly recommend.", author: "Lexi" },
+    ],
+  },
+  ccu_048: { // Carbon Country Club
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHDz06cR65HGwesn-joScb4LYc-VzevWY3bIDn1JZdGUexamjkJFEJEjyRvanG4t0WIU0dOn1mFFsuNW7nsiBq4YKaAzcsD0DIAfNqNfhE6tPV7ZhYUz9NLW92wAhPYtF-65BR5=w408-h306-k-no",
+    hours: { mon:"closed", tue:"closed", wed:{open:"17:00",close:"21:00"}, thu:{open:"17:00",close:"21:00"}, fri:{open:"17:00",close:"21:00"}, sat:{open:"17:00",close:"21:00"}, sun:"closed" },
+    reviews: [
+      { text: "Seriously delicious food. Always excellent service and a great view.", author: "Restaurantji" },
+      { text: "Hands down the best restaurant in Carbon County. High-quality 5-course meal.", author: "Restaurantji" },
+    ],
+  },
+  ccu_049: { // Cowboy Club & Cowboy's Kitchen
+    photo: "https://www.cowboyclubut.com/img/banner.jpg",
+    hours: { mon:{open:"07:00",close:"22:00"}, tue:{open:"07:00",close:"22:00"}, wed:{open:"07:00",close:"22:00"}, thu:{open:"07:00",close:"22:00"}, fri:{open:"07:00",close:"23:00"}, sat:{open:"07:00",close:"23:00"}, sun:{open:"07:00",close:"22:00"} },
+    reviews: [
+      { text: "Love their food. Don't miss out on a great breakfast, lunch or dinner.", author: "Restaurantji" },
+      { text: "We were 2nd in line of 5 and the last to be served — 50 minutes later.", author: "Restaurantji" },
+    ],
+  },
+  ccu_050: { // Outlaw Café
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/outlaw_20221101_104501-800x520.jpg",
+    hours: { mon:{open:"08:00",close:"20:00"}, tue:{open:"08:00",close:"20:00"}, wed:{open:"08:00",close:"20:00"}, thu:{open:"08:00",close:"20:00"}, fri:{open:"08:00",close:"21:00"}, sat:{open:"08:00",close:"21:00"}, sun:{open:"08:00",close:"20:00"} },
+    reviews: [
+      { text: "Been going here off and on for years. Good food for a good price.", author: "Restaurantji" },
+      { text: "The food was good comfort food and the portion sizes were worth the price.", author: "Restaurantji" },
+    ],
+  },
+  ccu_051: { // Mama DeLuca's Pizza
+    photo: "https://www.carbon.utah.gov/wp-content/uploads/2025/06/mama-delucas-pizza-making.jpg",
+    hours: null,
+    reviews: [
+      { text: "Stopped here a few years ago and tried the pizza. I really really liked it.", author: "Restaurantji" },
+      { text: "The crust is praised for its quality, and the chicken bacon ranch is amazing.", author: "Restaurantji" },
+    ],
+  },
+  ccu_052: { // Subway (Wellington)
+    photo: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAHZTlh_EiiNz6O_MMLy4FxCP6lb7222edoenu2WHH8ZSqhjQ9TzunCDabS1VF2VlPp2qLo77ouTs7KBGI68xxJb9kuKSVM3-W_A08YItcdZBQjhLlUT_9E-y5iSUKqb7c7OXw8opw=w408-h307-k-no",
+    hours: { mon:{open:"08:00",close:"21:00"}, tue:{open:"08:00",close:"21:00"}, wed:{open:"08:00",close:"21:00"}, thu:{open:"08:00",close:"21:00"}, fri:{open:"08:00",close:"21:00"}, sat:{open:"08:00",close:"21:00"}, sun:{open:"08:00",close:"21:00"} },
+    reviews: [
+      { text: "The Supreme pizza with jalapeños is cooked to perfection within minutes.", author: "Restaurantji" },
+      { text: "Staff praised for friendliness and creativity in crafting amazing subs.", author: "Restaurantji" },
+    ],
+  },
+  // Price entries appended once batches return.
+};
+
+function toRestaurant(p, idx) {
+  const cuisine = inferCuisine(p.types);
+  const dist = distMiles(MAP_CENTER.lat, MAP_CENTER.lng, p.lat, p.lng);
+  const overlay = PLACE_DATA[p.place_id] || {};
+  return {
+    id: idx + 1,
+    placeId: p.place_id,
+    name: p.name,
+    address: p.formatted_address,
+    cuisine,
+    rating: p.rating,
+    reviews: p.user_ratings_total,         // total review COUNT
+    price: Math.max(1, p.price_level || 1),
+    distance: Math.round(dist * 10) / 10,
+    drive: estDriveMin(dist),
+    tags: TAGS_BY_CUISINE[cuisine] || [],
+    lat: p.lat,
+    lng: p.lng,
+    photo: overlay.photo || PHOTO_BY_CUISINE[cuisine] || PHOTO_BY_CUISINE.Restaurant,
+    hours: overlay.hours || null,
+    realReviews: overlay.reviews || null,  // sample EXCERPTS for the card UI
+    website: true,
+  };
+}
+
+const RESTAURANTS = PLACES.map(toRestaurant);
+
+const SUPPLEMENTAL_PHOTOS = [
+  "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=900&q=80&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1493770348161-369560ae357d?w=900&q=80&auto=format&fit=crop",
+];
+
+// Mock review snippets — pool of believable short excerpts. Indexed deterministically per restaurant.
+const REVIEW_POOL = [
+  { text: "Honestly the best spot in the neighborhood. Worth every penny.", author: "M. Chen" },
+  { text: "Service was warm, portions were generous. Will be back.", author: "J. Patel" },
+  { text: "The flavors here are next level — better than any chain.", author: "Sam R." },
+  { text: "Cozy spot, great for a quiet weeknight. Try the special.", author: "A. Larsson" },
+  { text: "Wait was a bit long but the food made up for it.", author: "T. Williams" },
+  { text: "Took my date here. She wants to come back. Says it all.", author: "D. Park" },
+  { text: "Reliably excellent. I've been five times and never disappointed.", author: "R. Okafor" },
+  { text: "Don't sleep on the appetizers — the small plates are the move.", author: "Jess K." },
+  { text: "Friendly staff, fair prices, generous portions. What more do you want?", author: "M. Alvarez" },
+  { text: "The atmosphere alone is worth the trip. Food is the bonus.", author: "P. Nakamura" },
+  { text: "Underrated. Should have way more reviews than it does.", author: "K. O'Brien" },
+  { text: "Better than the place across the street, hands down.", author: "L. Thompson" },
+];
+
+function getReviewsFor(r) {
+  // Prefer real review excerpts pulled from the place's listing pages. Fall
+  // back to the generic pool only for places we couldn't source.
+  if (r.realReviews && r.realReviews.length > 0) return r.realReviews;
+  const start = (r.id * 5) % REVIEW_POOL.length;
+  return [
+    REVIEW_POOL[start],
+    REVIEW_POOL[(start + 4) % REVIEW_POOL.length],
+    REVIEW_POOL[(start + 7) % REVIEW_POOL.length],
+  ];
+}
+
+function getPhotosFor(r) {
+  return [
+    r.photo,
+    SUPPLEMENTAL_PHOTOS[(r.id * 3 + 1) % SUPPLEMENTAL_PHOTOS.length],
+    SUPPLEMENTAL_PHOTOS[(r.id * 3 + 4) % SUPPLEMENTAL_PHOTOS.length],
+    SUPPLEMENTAL_PHOTOS[(r.id * 3 + 7) % SUPPLEMENTAL_PHOTOS.length],
+  ];
+}
+
+function getWebsiteUrl(r) {
+  // Search Google for the actual listing (address ensures the right local result).
+  return `https://www.google.com/search?q=${encodeURIComponent(r.name + ' ' + (r.address || '') + ' Utah')}`;
+}
+
+// MAP_CENTER is declared at the top of the data block (Main St × Carbon Ave, Price).
+// User pin starts there; Helper sits ~6 mi north on US-6/191, Wellington ~5 mi east.
+
+function getMockCoords(r) {
+  return [r.lat, r.lng];
+}
+
+const DIETARY_OPTIONS = [
+  { key: 'vegetarian', label: 'Vegetarian' },
+  { key: 'vegan',      label: 'Vegan' },
+  { key: 'glutenFree', label: 'Gluten-free' },
+  { key: 'halal',      label: 'Halal' },
+  { key: 'kosher',     label: 'Kosher' },
+];
+
+// Day + time — together they filter to "places open at this moment" and
+// provide enough context for the copy to feel natural ("Tomorrow at 7pm…").
+function getDayOptions() {
+  const days = [];
+  const today = new Date();
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    let label;
+    if (i === 0)      label = 'Today';
+    else if (i === 1) label = 'Tomorrow';
+    else              label = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    days.push({ key: String(i), label, offset: i });
+  }
+  return days;
+}
+
+function getHourOptions() {
+  const hours = [];
+  for (let h = 0; h < 24; h++) {
+    let label;
+    if (h === 0)       label = '12 AM';
+    else if (h < 12)   label = `${h} AM`;
+    else if (h === 12) label = '12 PM';
+    else               label = `${h - 12} PM`;
+    hours.push({ key: String(h), label, hour: h });
+  }
+  return hours;
+}
+
+// Build the eyebrow / final-prompt / CTA / calendar label from the current
+// day + time selection. Time-of-day infers the meal context for the calendar
+// event (Lunch / Dinner / etc.) without making the user classify it.
+function getMealCopy() {
+  const f = state.filters;
+  const isNow = f.whenMode === 'now';
+  const dayOffset = parseInt(f.day, 10) || 0;
+  const hour = isNow ? new Date().getHours() : (parseInt(f.hour, 10) || 19);
+
+  // Format the hour back to a label like "6 PM" for use in copy
+  let hourLabel;
+  if (hour === 0)      hourLabel = '12 AM';
+  else if (hour < 12)  hourLabel = `${hour} AM`;
+  else if (hour === 12)hourLabel = '12 PM';
+  else                 hourLabel = `${hour - 12} PM`;
+
+  let winnerEyebrow;
+  if (isNow) {
+    winnerEyebrow = "Right now you're going to";
+  } else if (dayOffset === 0) {
+    winnerEyebrow = (hour >= 17 || hour < 5)
+      ? `Tonight at ${hourLabel}, you're going to`
+      : `Today at ${hourLabel}, you're going to`;
+  } else if (dayOffset === 1) {
+    winnerEyebrow = `Tomorrow at ${hourLabel}, you're going to`;
+  } else {
+    const d = new Date();
+    d.setDate(d.getDate() + dayOffset);
+    const dayLabel = d.toLocaleDateString('en-US', { weekday: 'long' });
+    winnerEyebrow = `${dayLabel} at ${hourLabel}, you're going to`;
+  }
+
+  let calendarLabel;
+  if      (hour >= 6  && hour < 11) calendarLabel = 'Breakfast';
+  else if (hour >= 11 && hour < 15) calendarLabel = 'Lunch';
+  else if (hour >= 15 && hour < 17) calendarLabel = 'Outing';
+  else if (hour >= 17 && hour < 22) calendarLabel = 'Dinner';
+  else                              calendarLabel = 'Night out';
+
+  return {
+    findCta: 'Find food',
+    finalPrompt: 'Pick your spot.',
+    winnerEyebrow,
+    calendarLabel,
+  };
+}
+
+// Cuisine chips on the filters page reflect what's actually reachable given
+// the radius + time set on the map page. We also include any cuisines the
+// user has *already* excluded, so the chip stays visible and they can unflip
+// it (otherwise an exclusion would silently strand itself).
+function getAvailableCuisines() {
+  const f = state.filters;
+  const hour = f.whenMode === 'now'
+    ? new Date().getHours()
+    : (parseInt(f.hour, 10) || new Date().getHours());
+  const dKey = dayKeyForOffset(f.whenMode === 'now' ? 0 : f.day);
+  const set = new Set(
+    RESTAURANTS
+      .filter(r => r.distance <= f.radius && isOpenAt(r.hours, dKey, hour))
+      .map(r => r.cuisine)
+  );
+  for (const c of f.excludeCuisines) set.add(c);
+  return [...set].sort();
+}
+// No hard cap — the session pool IS the filtered set, so the count shown on
+// the filters page is what the user actually evaluates. (Was 7; that meant
+// "30 places" silently became 5 elimination taps and the user never saw the
+// other 23.)
+
+const $ = (s, r = document) => r.querySelector(s);
+const app = $('#app');
+
+const defaultFilters = () => ({
+  whenMode: 'now',  // 'now' | 'custom'
+  day: '0',         // offset days from today (string for data attr round-trip)
+  hour: String(new Date().getHours()),
+  radius: 3,
+  priceLevels: [1, 2, 3, 4],   // multi-select; empty array = no filter
+  minRating: 3.5,
+  dietary: [],
+  excludeCuisines: [],
+});
+
+let state = {
+  screen: 'start',
+  filters: defaultFilters(),
+  userPin: { ...MAP_CENTER },
+  pool: [],
+  trio: [],
+  eliminated: [],
+  finalists: [],
+  winner: null,
+  isAnimating: false,
+  justReplacedIdx: null,
+};
+
+let lastCount = null;
+let mapInstance = null;
+let mapMarkers = [];
+let mapRadiusCircle = null;
+let mapUserMarker = null;
+
+/* ---------- Helpers ---------- */
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function priceStr(p) { return '$'.repeat(p); }
+function vibrate(p) { if (navigator?.vibrate) navigator.vibrate(p); }
+
+// Day-of-week key for the user's selected day offset (0 = today).
+function dayKeyForOffset(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + (parseInt(offset, 10) || 0));
+  return ['sun','mon','tue','wed','thu','fri','sat'][d.getDay()];
+}
+
+// Is the place open at the given hour on the given day key?
+// Unknown hours → don't filter the place out (treat as open).
+function isOpenAt(hours, dayKey, hour) {
+  if (!hours) return true;
+  const today = hours[dayKey];
+  if (!today || today === 'closed') return false;
+  const [oh, om = 0] = today.open.split(':').map(Number);
+  const [ch, cm = 0] = today.close.split(':').map(Number);
+  const openMin  = oh * 60 + om;
+  const closeMin = ch * 60 + cm;
+  const queryMin = hour * 60;
+  if (closeMin === openMin) return true;                          // 24-hour
+  if (closeMin > openMin)   return queryMin >= openMin && queryMin < closeMin;
+  return queryMin >= openMin || queryMin < closeMin;              // wraps midnight
+}
+
+function applyFilters(rs, f) {
+  const hour = f.whenMode === 'now'
+    ? new Date().getHours()
+    : (parseInt(f.hour, 10) || new Date().getHours());
+  const dKey = dayKeyForOffset(f.whenMode === 'now' ? 0 : f.day);
+  return rs.filter(r => {
+    if (r.distance > f.radius) return false;
+    if (f.priceLevels.length > 0 && !f.priceLevels.includes(r.price)) return false;
+    if (r.rating < f.minRating) return false;
+    if (f.excludeCuisines.includes(r.cuisine)) return false;
+    if (f.dietary.length > 0) {
+      for (const d of f.dietary) if (!r.tags.includes(d)) return false;
+    }
+    if (!isOpenAt(r.hours, dKey, hour)) return false;
+    return true;
+  });
+}
+
+function getFilteredCount() { return applyFilters(RESTAURANTS, state.filters).length; }
+function getRadiusOnlyCount() {
+  return RESTAURANTS.filter(r => r.distance <= state.filters.radius).length;
+}
+
+// Radius slider uses a uniform 1..20 scale that maps to a non-uniform mile
+// scale: the first half (1..10) is 0.5-mile granularity up to 5 mi, and the
+// second half (11..20) is 1-mile granularity from 6 to 15 mi.
+//   raw  1..10  →  0.5 .. 5.0  (step 0.5)
+//   raw 11..20  →  6   .. 15   (step 1)
+function radiusFromSliderRaw(raw) {
+  const r = Math.round(raw);
+  return r <= 10 ? r * 0.5 : r - 5;
+}
+function sliderRawFromRadius(mi) {
+  return mi <= 5 ? Math.round(mi / 0.5) : Math.round(mi + 5);
+}
+function formatRadius(mi) {
+  return (Number.isInteger(mi) ? mi : mi.toFixed(1)) + ' mi';
+}
+
+// Reality-only count for the map screen: places in radius AND open at the
+// chosen day/hour. Other (preference) filters still apply on the next screen.
+function getMapCount() {
+  const f = state.filters;
+  const hour = f.whenMode === 'now'
+    ? new Date().getHours()
+    : (parseInt(f.hour, 10) || new Date().getHours());
+  const dKey = dayKeyForOffset(f.whenMode === 'now' ? 0 : f.day);
+  return RESTAURANTS.filter(r =>
+    r.distance <= f.radius && isOpenAt(r.hours, dKey, hour)
+  ).length;
+}
+
+function tweenNumber(el, from, to, duration = 380) {
+  if (from === to) { el.textContent = to; return; }
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = Math.round(from + (to - from) * ease);
+    el.textContent = val;
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function spawnRipple(target, event) {
+  const rect = target.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  const x = (event.clientX || rect.left + rect.width / 2) - rect.left - size / 2;
+  const y = (event.clientY || rect.top + rect.height / 2) - rect.top - size / 2;
+  const r = document.createElement('span');
+  r.className = 'chip-ripple';
+  r.style.width = r.style.height = size + 'px';
+  r.style.left = x + 'px';
+  r.style.top = y + 'px';
+  target.appendChild(r);
+  setTimeout(() => r.remove(), 480);
+}
+
+function triggerStripPulse(strip) {
+  strip.classList.remove('pulsing');
+  void strip.offsetWidth;
+  strip.classList.add('pulsing');
+  setTimeout(() => strip.classList.remove('pulsing'), 540);
+}
+
+/* ---------- Game flow ---------- */
+
+function goToMap() { state.screen = 'map'; render(); }
+function goToFilters() { state.screen = 'filters'; render(); lastCount = getFilteredCount(); }
+
+function startSession() {
+  const filtered = applyFilters(RESTAURANTS, state.filters);
+  if (filtered.length < 3) return;
+  const session = shuffle(filtered);
+  state.trio = session.slice(0, 3);
+  state.pool = session.slice(3);
+  state.eliminated = [];
+  state.finalists = [];
+  state.winner = null;
+  state.isAnimating = false;
+  state.justReplacedIdx = null;
+  state.screen = 'eliminate';
+  render();
+}
+
+function eliminate(idx) {
+  if (state.isAnimating) return;
+  state.isAnimating = true;
+
+  const cardEls = document.querySelectorAll('.card');
+  const card = cardEls[idx];
+  if (card) {
+    if (!card.querySelector('.card-flash')) {
+      const f = document.createElement('div');
+      f.className = 'card-flash';
+      card.appendChild(f);
+    }
+    card.classList.add('eliminating');
+  }
+  vibrate(20);
+  updateProgress(state.eliminated.length + 1);
+
+  setTimeout(() => {
+    const removed = state.trio[idx];
+    state.eliminated.push(removed);
+    const survivors = state.trio.filter((_, i) => i !== idx);
+
+    // Full deck reshuffle: survivors go back into the deck with the rest of
+    // the pool, the whole remaining set is shuffled, and a fresh 3 are dealt.
+    // This breaks position bias AND the "survivor identity" effect — every
+    // round reads as a genuinely new draw from the pool.
+    const remaining = [...survivors, ...state.pool];
+
+    if (remaining.length >= 3) {
+      const shuffled = shuffle(remaining);
+      state.trio = shuffled.slice(0, 3);
+      state.pool = shuffled.slice(3);
+      state.justReplacedIdx = null;
+      state.isAnimating = false;
+      render();
+    } else {
+      // 2 left → Final 2. (Can't have <2 since start is always ≥3 and we eliminate one at a time.)
+      state.trio = remaining;
+      state.pool = [];
+      state.isAnimating = false;
+      setTimeout(() => goToFinal2(), 120);
+    }
+  }, 420);
+}
+
+function goToFinal2() {
+  state.finalists = [...state.trio].sort((a, b) => b.rating - a.rating || b.reviews - a.reviews);
+  state.screen = 'final2';
+  vibrate([15, 40, 15]);
+  render();
+}
+
+function pickWinner(idx) {
+  state.winner = state.finalists[idx];
+  state.screen = 'winner';
+  vibrate([30, 60, 30]);
+  render();
+}
+
+function backToFilters() { state.screen = 'filters'; render(); }
+function resetFilters() { state.filters = defaultFilters(); render(); }
+
+function calculateBadges(a, b) {
+  const aBadges = [], bBadges = [];
+  if (a.distance < b.distance)      aBadges.push('Closer');
+  else if (b.distance < a.distance) bBadges.push('Closer');
+  if (a.price < b.price)            aBadges.push('Cheaper');
+  else if (b.price < a.price)       bBadges.push('Cheaper');
+  if (a.rating > b.rating)          aBadges.push('Higher rated');
+  else if (b.rating > a.rating)     bBadges.push('Higher rated');
+  if (a.reviews > b.reviews)        aBadges.push('More popular');
+  else if (b.reviews > a.reviews)   bBadges.push('More popular');
+  return { aBadges, bBadges };
+}
+
+function updateProgress(eliminatedCount) {
+  const initialTotal = state.pool.length + state.trio.length + state.eliminated.length;
+  const totalToEliminate = Math.max(1, initialTotal - 2);
+  const pct = Math.min(100, (eliminatedCount / totalToEliminate) * 100);
+  const fill = document.querySelector('.progress-fill');
+  if (fill) fill.style.width = pct + '%';
+}
+
+/* ---------- SVG icons ---------- */
+
+const ICON_PHOTOS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+  <rect x="6" y="5" width="14" height="11" rx="1.5"/>
+  <rect x="3" y="8" width="14" height="11" rx="1.5" fill="rgba(0,0,0,0.45)"/>
+</svg>`;
+
+const ICON_GLOBE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M3 12h18"/>
+  <path d="M12 3a13 13 0 0 1 0 18 13 13 0 0 1 0-18z"/>
+</svg>`;
+
+const ICON_RECENTER = `<svg viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+  <circle cx="12" cy="12" r="3"/>
+  <path d="M12 2v3"/>
+  <path d="M12 19v3"/>
+  <path d="M2 12h3"/>
+  <path d="M19 12h3"/>
+</svg>`;
+
+/* ---------- Renderers ---------- */
+
+function renderHead() {
+  return `
+    <div class="app-head">
+      <h1 class="wordmark"><span>idkyp</span><span class="dot"></span></h1>
+    </div>
+  `;
+}
+
+function renderStart() {
+  return `
+    <div class="screen start-screen">
+      <div class="start-hero">
+        <h1 class="wordmark" style="font-size: 18px;"><span>idkyp</span><span class="dot"></span></h1>
+        <h2 class="start-display">I don't<br>know,<br><span class="accent">you pick.</span></h2>
+        <p class="start-tagline">Three places. Tap the one you'd <em>least</em> like. Repeat until the choice picks itself.</p>
+      </div>
+      <div class="start-actions">
+        <button class="cta" id="start-btn">Find food <span class="arrow">→</span></button>
+        <p class="start-meta">Prototype · Carbon County, UT · ${RESTAURANTS.length} places loaded</p>
+      </div>
+    </div>
+  `;
+}
+
+function renderMap() {
+  const f = state.filters;
+  const mapCount = getMapCount();
+  const lowCount  = mapCount > 0 && mapCount < 6;
+  const highCount = mapCount > 20;
+
+  const dayOptions = getDayOptions();
+  const hourOptions = getHourOptions();
+  const isNow = f.whenMode === 'now';
+
+  const dayItems = dayOptions.map(d => `
+    <div class="picker-item" data-value="${d.key}">${d.label}</div>
+  `).join('');
+  const hourItems = hourOptions.map(h => `
+    <div class="picker-item" data-value="${h.key}">${h.label}</div>
+  `).join('');
+
+  return `
+    <div class="screen map-screen">
+      <div class="map-head">
+        <h1 class="wordmark"><span>idkyp</span><span class="dot"></span></h1>
+        <button class="map-recenter" id="map-recenter" aria-label="Reset to my location">${ICON_RECENTER}</button>
+      </div>
+      <div class="map-count-overlay" id="map-count-overlay">
+        <span class="num ${lowCount || highCount ? 'warn' : ''}" id="map-count">${mapCount}</span>
+        <span class="label">${mapCount === 1 ? 'place' : 'places'}</span>
+      </div>
+      <div id="map-container"></div>
+      <div class="map-bottom-sheet">
+        <div class="map-radius-row">
+          <span class="label">within</span>
+          <input type="range" id="map-radius" min="1" max="20" step="1" value="${sliderRawFromRadius(f.radius)}">
+          <span class="value" id="map-radius-value">${formatRadius(f.radius)}</span>
+        </div>
+
+        <div class="time-chip-row">
+          <button class="time-chip" id="time-toggle" type="button" aria-expanded="false">
+            <span class="time-chip-left">
+              <span class="time-chip-dot ${isNow ? '' : 'inactive'}" id="time-chip-dot"></span>
+              <span>
+                <span class="time-chip-eyebrow">When</span>
+                <span class="time-chip-label" id="time-chip-label">${formatTimeChipLabel()}</span>
+              </span>
+            </span>
+            <svg class="time-chip-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="time-panel" id="time-panel">
+            <div class="time-panel-inner">
+              <div class="when-section">
+                <button class="now-btn ${isNow ? '' : 'inactive'}" id="now-btn">
+                  <span class="now-dot"></span>
+                  <span>Right now</span>
+                </button>
+                <div class="picker-strip" id="day-picker">
+                  <div class="picker-mask left"></div>
+                  <div class="picker-cursor"></div>
+                  <div class="picker-track">${dayItems}</div>
+                  <div class="picker-mask right"></div>
+                </div>
+                <div class="picker-strip" id="hour-picker">
+                  <div class="picker-mask left"></div>
+                  <div class="picker-cursor"></div>
+                  <div class="picker-track">${hourItems}</div>
+                  <div class="picker-mask right"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="cta" id="map-continue">Continue <span class="arrow">→</span></button>
+      </div>
+    </div>
+  `;
+}
+
+// Compact label shown on the collapsed time chip ("Right now" / "Today, 5 PM" / "Tue Apr 15, 7 PM")
+function formatTimeChipLabel() {
+  const f = state.filters;
+  if (f.whenMode === 'now') return 'Right now';
+  const dayOffset = parseInt(f.day, 10) || 0;
+  const hour = parseInt(f.hour, 10) || 0;
+  let hourLabel;
+  if (hour === 0)       hourLabel = '12 AM';
+  else if (hour < 12)   hourLabel = `${hour} AM`;
+  else if (hour === 12) hourLabel = '12 PM';
+  else                  hourLabel = `${hour - 12} PM`;
+  if (dayOffset === 0) return `Today, ${hourLabel}`;
+  if (dayOffset === 1) return `Tomorrow, ${hourLabel}`;
+  const d = new Date();
+  d.setDate(d.getDate() + dayOffset);
+  return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}, ${hourLabel}`;
+}
+
+function renderFilters() {
+  const f = state.filters;
+  const count = getFilteredCount();
+  const canStart = count >= 3;
+  const lowCount  = count > 0 && count < 6;
+  const highCount = count > 20;
+  const mc = getMealCopy();
+
+  const dietaryChips = DIETARY_OPTIONS.map(d => `
+    <button class="chip ${f.dietary.includes(d.key) ? 'selected' : ''}" data-dietary="${d.key}">${d.label}</button>
+  `).join('');
+
+  const cuisineChips = getAvailableCuisines().map(c => `
+    <button class="chip exclude ${f.excludeCuisines.includes(c) ? 'selected' : ''}" data-cuisine="${c}">${c}</button>
+  `).join('');
+
+  const priceChips = [1, 2, 3, 4].map(p => `
+    <button class="chip ${f.priceLevels.includes(p) ? 'selected' : ''}" data-price="${p}">${'$'.repeat(p)}</button>
+  `).join('');
+
+  const findCtaText = canStart ? `<span>${mc.findCta}</span><span class="arrow">→</span>` : (count === 0 ? '<span>No matches</span>' : `<span>Need 3, have ${count}</span>`);
+
+  return `
+    <div class="screen filters-screen">
+      <div class="app-head">
+        <button class="back-btn" id="back-to-map" aria-label="Back to map">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+          <span>Map</span>
+        </button>
+        <h1 class="wordmark"><span>idkyp</span><span class="dot"></span></h1>
+      </div>
+
+      <div class="filters-fields">
+        <div class="count-block">
+          <div class="count-num ${lowCount || highCount ? 'warn' : ''}" id="count-num">${count}</div>
+          <div class="count-meta">
+            <div class="count-label" id="count-label">${count === 1 ? 'place' : 'places'}</div>
+            <div class="count-hint ${lowCount || highCount ? 'warn' : ''}" id="count-hint">${count === 0 ? 'no matches — loosen a filter' : count < 3 ? 'need at least 3' : count < 6 ? 'try loosening' : highCount ? 'this could take a while' : ''}</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-head"><span class="label">Dietary needs</span></div>
+          <div class="chips" id="dietary-chips">${dietaryChips}</div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <span class="label">Price</span>
+          </div>
+          <div class="chips" id="price-chips">${priceChips}</div>
+        </div>
+
+        <div class="field">
+          <div class="field-head"><span class="label">Not right now</span></div>
+          <div class="chips" id="cuisine-chips">${cuisineChips}</div>
+        </div>
+
+        <div class="field">
+          <div class="field-head">
+            <span class="label">Rated at least</span>
+            <span class="value" id="val-rating">★ ${f.minRating.toFixed(1)}</span>
+          </div>
+          <input type="range" id="f-rating" min="0" max="5" step="0.1" value="${f.minRating}">
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="cta" id="find-btn" ${!canStart ? 'disabled' : ''}>${findCtaText}</button>
+        <button class="ghost" id="reset-link" style="white-space: nowrap;">Reset</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderEliminate() {
+  const initialTotal = state.pool.length + state.trio.length + state.eliminated.length;
+  const eliminatedSoFar = state.eliminated.length;
+  const totalToEliminate = Math.max(1, initialTotal - 2);
+  const pct = Math.min(100, (eliminatedSoFar / totalToEliminate) * 100);
+
+  return `
+    <div class="screen eliminate-screen">
+      ${renderHead()}
+
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: ${pct}%;"></div>
+      </div>
+
+      <p class="elim-prompt">Which one are you <em>least</em> in the mood for?</p>
+
+      <div class="cards">
+        ${state.trio.map((r, i) => renderCard(r, i)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderCard(r, idx) {
+  const entryClass = state.justReplacedIdx === idx ? ' replacing' : ` entering-${idx + 1}`;
+  const photoCount = getPhotosFor(r).length;
+  const hasWebsite = r.website;
+  return `
+    <div class="card${entryClass}" data-idx="${idx}" role="button" tabindex="0" aria-label="Eliminate ${r.name}">
+      <div class="card-photo" style="background-image: url('${r.photo}')"></div>
+      <div class="card-overlay"></div>
+      <div class="card-corner">${r.cuisine}</div>
+      <div class="card-content">
+        <h3 class="card-name">${r.name}</h3>
+        <p class="card-meta">
+          <span>★ ${r.rating}</span>
+          <span class="sep">·</span>
+          <span>${priceStr(r.price)}</span>
+          <span class="sep">·</span>
+          <span>${r.distance} mi</span>
+          <span class="sep">·</span>
+          <span>${r.drive} min</span>
+        </p>
+      </div>
+      <div class="card-strip">
+        <button class="strip-half" data-action="photos" data-idx="${idx}" aria-label="View ${photoCount} photos of ${r.name}">
+          ${ICON_PHOTOS}
+          <span class="strip-count">${photoCount}</span>
+          <span class="strip-label">photos</span>
+        </button>
+        ${hasWebsite ? `
+        <button class="strip-half" data-action="website" data-idx="${idx}" aria-label="Open website for ${r.name}">
+          ${ICON_GLOBE}
+          <span class="strip-label">website</span>
+        </button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderFinal2() {
+  const [a, b] = state.finalists;
+  const { aBadges, bBadges } = calculateBadges(a, b);
+  const card = (r, badges, idx) => {
+    const photoCount = getPhotosFor(r).length;
+    const hasWebsite = r.website;
+    return `
+    <div class="final-card idx-${idx + 1}" data-idx="${idx}" role="button" tabindex="0" aria-label="Pick ${r.name}">
+      <div class="card-photo" style="background-image: url('${r.photo}')"></div>
+      <div class="card-overlay"></div>
+      <div class="card-corner">${r.cuisine}</div>
+      <div class="card-content">
+        <h3 class="card-name">${r.name}</h3>
+        <p class="card-meta">
+          <span>★ ${r.rating} (${r.reviews})</span>
+          <span class="sep">·</span>
+          <span>${priceStr(r.price)}</span>
+          <span class="sep">·</span>
+          <span>${r.distance} mi</span>
+        </p>
+        <div class="final-badges">
+          ${badges.map(b => `<span class="badge">${b}</span>`).join('')}
+        </div>
+      </div>
+      <div class="card-strip">
+        <button class="strip-half" data-action="final-photos" data-idx="${idx}" aria-label="View ${photoCount} photos of ${r.name}">
+          ${ICON_PHOTOS}
+          <span class="strip-count">${photoCount}</span>
+          <span class="strip-label">photos</span>
+        </button>
+        ${hasWebsite ? `
+        <button class="strip-half" data-action="final-website" data-idx="${idx}" aria-label="Open website for ${r.name}">
+          ${ICON_GLOBE}
+          <span class="strip-label">website</span>
+        </button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+  };
+  const mc = getMealCopy();
+  return `
+    <div class="screen final2-screen">
+      ${renderHead()}
+      <p class="eyebrow">Final two</p>
+      <h2 class="final-prompt">${mc.finalPrompt}</h2>
+      <div class="final-cards">
+        ${card(a, aBadges, 0)}
+        ${card(b, bBadges, 1)}
+      </div>
+    </div>
+  `;
+}
+
+function renderWinner() {
+  const w = state.winner;
+  const mc = getMealCopy();
+  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(w.name)}`;
+  return `
+    <div class="screen winner-screen">
+      ${renderHead()}
+      <p class="winner-eyebrow">${mc.winnerEyebrow}</p>
+      <div class="winner-photo" style="background-image: url('${w.photo}')"></div>
+      <h1 class="winner-name">${w.name}</h1>
+      <p class="winner-cuisine">${w.cuisine}</p>
+      <div class="winner-meta">
+        <span class="item"><span class="num">★ ${w.rating}</span><span class="caption">(${w.reviews})</span></span>
+        <span class="item"><span class="num">${priceStr(w.price)}</span></span>
+        <span class="item"><span class="num">${w.distance} mi</span><span class="caption">${w.drive} min</span></span>
+      </div>
+      <div class="winner-divider"></div>
+      <div class="winner-actions">
+        <a href="${mapsHref}" target="_blank" rel="noopener"><button class="cta">Directions <span class="arrow">→</span></button></a>
+        ${w.website ? `<a href="${getWebsiteUrl(w)}" target="_blank" rel="noopener"><button class="cta-secondary">Website</button></a>` : ''}
+        <button class="cta-secondary" id="add-cal">Add to calendar</button>
+        <button class="ghost" id="restart-btn" style="margin-top: 4px;">Try again</button>
+      </div>
+      <p class="foot">idkyp</p>
+    </div>
+  `;
+}
+
+/* ---------- Render dispatcher ---------- */
+
+function render() {
+  let html = '';
+  if      (state.screen === 'start')     html = renderStart();
+  else if (state.screen === 'map')       html = renderMap();
+  else if (state.screen === 'filters')   html = renderFilters();
+  else if (state.screen === 'eliminate') html = renderEliminate();
+  else if (state.screen === 'final2')    html = renderFinal2();
+  else if (state.screen === 'winner')    html = renderWinner();
+
+  // App container styling: full-bleed for map, padded for everything else
+  app.innerHTML = html;
+  app.style.padding = state.screen === 'map' ? '0' : '20px 20px 32px';
+  app.style.maxWidth = state.screen === 'map' ? '480px' : '480px';
+
+  state.justReplacedIdx = null;
+  attachHandlers();
+
+  if (state.screen === 'map') {
+    // Initialize map after the container is in the DOM
+    requestAnimationFrame(() => initMap());
+  } else {
+    // Tear down map if leaving
+    if (mapInstance) {
+      mapInstance.remove();
+      mapInstance = null;
+      mapMarkers = [];
+      mapRadiusCircle = null;
+      mapUserMarker = null;
+    }
+  }
+}
+
+/* ---------- Map ---------- */
+
+function initMap() {
+  const container = document.getElementById('map-container');
+  if (!container || mapInstance) return;
+
+  mapInstance = L.map(container, {
+    center: [state.userPin.lat, state.userPin.lng],
+    zoom: 14,
+    zoomControl: false,
+    attributionControl: false,
+  });
+
+  // Helper: pad-and-zoom so the whole radius circle is visible. maxZoom keeps
+  // tiny radii (0.5 mi) from zooming into a single building view.
+  const fitToRadius = (circle, animate = false) => {
+    if (!circle) return;
+    const opts = { padding: [40, 40], maxZoom: 14, animate };
+    if (animate) mapInstance.flyToBounds(circle.getBounds(), { ...opts, duration: 0.6 });
+    else         mapInstance.fitBounds(circle.getBounds(), opts);
+  };
+  mapInstance._fitToRadius = fitToRadius;
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    subdomains: 'abcd',
+    maxZoom: 19,
+    attribution: '© OSM · CARTO',
+  }).addTo(mapInstance);
+
+  L.control.attribution({ position: 'bottomright', prefix: '' }).addTo(mapInstance);
+
+  // Restaurant markers
+  RESTAURANTS.forEach(r => {
+    const coords = getMockCoords(r);
+    const marker = L.marker(coords, {
+      icon: L.divIcon({
+        className: '',
+        html: `<div class="restaurant-pin" data-id="${r.id}"></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+      }),
+      keyboard: false,
+      interactive: false,
+    }).addTo(mapInstance);
+    mapMarkers.push({ marker, restaurant: r });
+  });
+
+  // Radius circle (in meters; radius is in miles)
+  mapRadiusCircle = L.circle([state.userPin.lat, state.userPin.lng], {
+    radius: state.filters.radius * 1609.34,
+    color: '#0A0A0A',
+    weight: 1.5,
+    opacity: 0.6,
+    fillColor: '#0A0A0A',
+    fillOpacity: 0.05,
+    interactive: false,
+  }).addTo(mapInstance);
+
+  // Draggable user pin
+  mapUserMarker = L.marker([state.userPin.lat, state.userPin.lng], {
+    icon: L.divIcon({
+      className: '',
+      html: `<div class="user-pin"></div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
+    }),
+    draggable: true,
+  }).addTo(mapInstance);
+
+  mapUserMarker.on('drag', (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    state.userPin = { lat, lng };
+    mapRadiusCircle.setLatLng([lat, lng]);
+    updateMapPinsAndCount();
+  });
+
+  mapUserMarker.on('dragend', () => vibrate(15));
+
+  // Initial zoom so the whole radius circle is visible — defer one frame to
+  // let the map container measure its actual size.
+  requestAnimationFrame(() => fitToRadius(mapRadiusCircle, false));
+
+  updateMapPinsAndCount();
+}
+
+function updateMapPinsAndCount() {
+  // Recompute distances based on user pin position (haversine, miles)
+  function distMiles(lat1, lng1, lat2, lng2) {
+    const R = 3958.756;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng/2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  const f = state.filters;
+  const hour = f.whenMode === 'now'
+    ? new Date().getHours()
+    : (parseInt(f.hour, 10) || new Date().getHours());
+  const dKey = dayKeyForOffset(f.whenMode === 'now' ? 0 : f.day);
+
+  let inRange = 0;
+  mapMarkers.forEach(({ marker, restaurant }) => {
+    const [lat, lng] = getMockCoords(restaurant);
+    const d = distMiles(state.userPin.lat, state.userPin.lng, lat, lng);
+    const within = d <= state.filters.radius;
+    const open = isOpenAt(restaurant.hours, dKey, hour);
+    const reachable = within && open;
+    if (reachable) inRange++;
+    const el = marker.getElement()?.querySelector('.restaurant-pin');
+    if (el) el.classList.toggle('outside-radius', !reachable);
+  });
+
+  const num = document.getElementById('map-count');
+  const labelEl = document.getElementById('map-count-overlay')?.querySelector('.label');
+  if (num) {
+    const lowCount  = inRange > 0 && inRange < 6;
+    const highCount = inRange > 20;
+    num.classList.toggle('warn', lowCount || highCount);
+    tweenNumber(num, parseInt(num.textContent, 10) || inRange, inRange, 300);
+  }
+  if (labelEl) labelEl.textContent = inRange === 1 ? 'place' : 'places';
+}
+
+/* ---------- Horizontal scroll-snap picker ---------- */
+
+// Picker controllers — held at module scope so the Now button can drive them
+let dayPickerCtrl = null;
+let hourPickerCtrl = null;
+
+function setupPicker(selector, initialValue, onChange) {
+  const wrap = document.querySelector(selector);
+  if (!wrap) return null;
+  const track = wrap.querySelector('.picker-track');
+  const items = Array.from(wrap.querySelectorAll('.picker-item'));
+  if (!items.length) return null;
+
+  let isProgrammaticScroll = false;
+  let programmaticTimer = null;
+
+  function updateCenter() {
+    const trackRect = track.getBoundingClientRect();
+    const centerX = trackRect.left + trackRect.width / 2;
+    let centerIdx = 0;
+    let closestDist = Infinity;
+    items.forEach((item, i) => {
+      const r = item.getBoundingClientRect();
+      const itemCenterX = r.left + r.width / 2;
+      const dist = Math.abs(centerX - itemCenterX);
+      if (dist < closestDist) { closestDist = dist; centerIdx = i; }
+    });
+    items.forEach((item, i) => {
+      item.classList.remove('center', 'adjacent', 'far');
+      const d = Math.abs(i - centerIdx);
+      if (d === 0)      item.classList.add('center');
+      else if (d === 1) item.classList.add('adjacent');
+      else if (d >= 2)  item.classList.add('far');
+    });
+    return items[centerIdx];
+  }
+
+  function scrollToItem(item, smooth) {
+    isProgrammaticScroll = true;
+    if (programmaticTimer) clearTimeout(programmaticTimer);
+    const targetX = item.offsetLeft + item.offsetWidth / 2 - track.offsetWidth / 2;
+    track.scrollTo({ left: targetX, behavior: smooth ? 'smooth' : 'auto' });
+    // Smooth scrolls take ~300-500ms; give a buffer before reopening the gate
+    programmaticTimer = setTimeout(() => { isProgrammaticScroll = false; }, smooth ? 700 : 80);
+  }
+
+  let lastReportedValue = null;
+  let scrollFrame = null;
+
+  track.addEventListener('scroll', () => {
+    if (scrollFrame) cancelAnimationFrame(scrollFrame);
+    scrollFrame = requestAnimationFrame(() => {
+      const centered = updateCenter();
+      if (centered && centered.dataset.value !== lastReportedValue) {
+        lastReportedValue = centered.dataset.value;
+        // Skip user-side effects entirely while a JS-driven scroll is in progress
+        if (!isProgrammaticScroll) {
+          if (onChange) onChange(lastReportedValue);
+          vibrate(4);
+        }
+      }
+    });
+  });
+
+  // Click any item to scroll-snap it to center
+  items.forEach((item) => {
+    item.addEventListener('click', () => {
+      // User-driven: don't suppress onChange (it'll fire as the picker passes through)
+      const targetX = item.offsetLeft + item.offsetWidth / 2 - track.offsetWidth / 2;
+      track.scrollTo({ left: targetX, behavior: 'smooth' });
+    });
+  });
+
+  // Set initial position — wait for layout before scrolling
+  const initialItem = items.find(it => it.dataset.value === initialValue) || items[0];
+  lastReportedValue = initialItem.dataset.value;
+  requestAnimationFrame(() => {
+    scrollToItem(initialItem, false);
+    requestAnimationFrame(() => updateCenter());
+  });
+
+  return {
+    scrollToValue(value, smooth = true) {
+      const item = items.find(it => it.dataset.value === value);
+      if (item) scrollToItem(item, smooth);
+    }
+  };
+}
+
+/* ---------- Photo button pulse ---------- */
+
+function openGallery(restaurant) {
+  const photos = getPhotosFor(restaurant);
+  const reviews = getReviewsFor(restaurant);
+  const stage = document.getElementById('gallery-stage');
+  const dots = document.getElementById('gallery-dots');
+  const reviewsEl = document.getElementById('gallery-reviews');
+  document.getElementById('gallery-name').textContent = restaurant.name;
+  document.getElementById('gallery-cuisine').textContent = `${restaurant.cuisine} · ★ ${restaurant.rating} (${restaurant.reviews})`;
+  stage.innerHTML = photos.map((url, i) => `<div class="gallery-photo" data-i="${i}" style="background-image: url('${url}')"></div>`).join('');
+  dots.innerHTML = photos.map((_, i) => `<span class="gallery-dot ${i === 0 ? 'active' : ''}"></span>`).join('');
+  reviewsEl.innerHTML = `
+    <div class="gallery-reviews-head"><span>Recent reviews</span><span class="count">★ ${restaurant.rating} · ${restaurant.reviews} total</span></div>
+    ${reviews.map(rv => `<p class="gallery-review">${rv.text}<span class="author">— ${rv.author}</span></p>`).join('')}
+  `;
+  stage.scrollLeft = 0;
+  document.getElementById('gallery').classList.remove('hidden');
+  vibrate(10);
+
+  let scrollTimer = null;
+  function updateGalleryUi() {
+    const idx = Math.round(stage.scrollLeft / stage.offsetWidth);
+    dots.querySelectorAll('.gallery-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx);
+    });
+    const prevBtn = document.getElementById('gallery-prev');
+    const nextBtn = document.getElementById('gallery-next');
+    if (prevBtn) prevBtn.disabled = idx <= 0;
+    if (nextBtn) nextBtn.disabled = idx >= photos.length - 1;
+  }
+  stage.onscroll = () => {
+    if (scrollTimer) cancelAnimationFrame(scrollTimer);
+    scrollTimer = requestAnimationFrame(updateGalleryUi);
+  };
+  // Initial state
+  updateGalleryUi();
+}
+
+function galleryStep(delta) {
+  const stage = document.getElementById('gallery-stage');
+  if (!stage) return;
+  stage.scrollBy({ left: delta * stage.offsetWidth, behavior: 'smooth' });
+}
+
+function closeGallery() {
+  document.getElementById('gallery').classList.add('hidden');
+}
+
+document.getElementById('gallery').addEventListener('click', (e) => {
+  if (e.target.hasAttribute('data-close') || e.target.id === 'gallery') {
+    closeGallery();
+  }
+});
+document.getElementById('gallery-prev')?.addEventListener('click', () => galleryStep(-1));
+document.getElementById('gallery-next')?.addEventListener('click', () => galleryStep(1));
+document.addEventListener('keydown', (e) => {
+  const galleryOpen = !document.getElementById('gallery').classList.contains('hidden');
+  if (!galleryOpen) return;
+  if (e.key === 'Escape')      closeGallery();
+  if (e.key === 'ArrowLeft')   { e.preventDefault(); galleryStep(-1); }
+  if (e.key === 'ArrowRight')  { e.preventDefault(); galleryStep(1); }
+});
+
+function downloadIcs() {
+  const w = state.winner;
+  const mc = getMealCopy();
+  const dt = new Date(Date.now() + 4 * 60 * 60 * 1000);
+  const fmt = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const ics = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//idkyp//prototype//EN','BEGIN:VEVENT',
+    `UID:idkyp-${Date.now()}@local`,`DTSTAMP:${fmt(new Date())}`,
+    `DTSTART:${fmt(dt)}`,`DTEND:${fmt(new Date(dt.getTime() + 90 * 60 * 1000))}`,
+    `SUMMARY:${mc.calendarLabel} at ${w.name}`,`LOCATION:${w.name}`,`DESCRIPTION:Picked via idkyp.`,
+    'END:VEVENT','END:VCALENDAR',
+  ].join('\r\n');
+  const blob = new Blob([ics], { type: 'text/calendar' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `dinner-${w.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.ics`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function updateCount() {
+  const newCount = getFilteredCount();
+  const lowCount  = newCount > 0 && newCount < 6;
+  const highCount = newCount > 20;
+  const warn = lowCount || highCount;
+  const numEl = document.getElementById('count-num');
+  const labelEl = document.getElementById('count-label');
+  const hintEl = document.getElementById('count-hint');
+  const cta = document.getElementById('find-btn');
+
+  if (numEl) {
+    numEl.classList.toggle('warn', warn);
+    tweenNumber(numEl, lastCount ?? newCount, newCount, 320);
+    lastCount = newCount;
+  }
+  if (labelEl) labelEl.textContent = newCount === 1 ? 'place' : 'places';
+  if (hintEl) {
+    hintEl.classList.toggle('warn', warn);
+    hintEl.textContent =
+        newCount === 0 ? 'no matches — loosen a filter'
+      : newCount < 3   ? 'need at least 3'
+      : newCount < 6   ? 'try loosening'
+      : highCount      ? 'this could take a while'
+      : '';
+  }
+  if (cta) {
+    const canStart = newCount >= 3;
+    cta.disabled = !canStart;
+    cta.innerHTML = canStart ? `<span>${getMealCopy().findCta}</span><span class="arrow">→</span>` : (newCount === 0 ? '<span>No matches</span>' : `<span>Need 3, have ${newCount}</span>`);
+  }
+}
+
+function attachHandlers() {
+  if (state.screen === 'start') {
+    $('#start-btn')?.addEventListener('click', goToMap);
+  }
+
+  if (state.screen === 'map') {
+    $('#map-recenter')?.addEventListener('click', () => {
+      state.userPin = { ...MAP_CENTER };
+      if (mapInstance && mapUserMarker && mapRadiusCircle) {
+        mapUserMarker.setLatLng([MAP_CENTER.lat, MAP_CENTER.lng]);
+        mapRadiusCircle.setLatLng([MAP_CENTER.lat, MAP_CENTER.lng]);
+        mapInstance._fitToRadius?.(mapRadiusCircle, true);
+        updateMapPinsAndCount();
+      }
+      vibrate(15);
+    });
+    $('#map-radius')?.addEventListener('input', (e) => {
+      state.filters.radius = radiusFromSliderRaw(parseInt(e.target.value, 10));
+      const valEl = document.getElementById('map-radius-value');
+      if (valEl) valEl.textContent = formatRadius(state.filters.radius);
+      if (mapRadiusCircle) mapRadiusCircle.setRadius(state.filters.radius * 1609.34);
+      updateMapPinsAndCount();
+    });
+
+    // Time chip — collapsed by default; tap to expand pickers below.
+    $('#time-toggle')?.addEventListener('click', () => {
+      const chip  = document.getElementById('time-toggle');
+      const panel = document.getElementById('time-panel');
+      const isOpen = chip?.classList.toggle('expanded');
+      panel?.classList.toggle('expanded', isOpen);
+      chip?.setAttribute('aria-expanded', String(!!isOpen));
+      vibrate(8);
+    });
+
+    function refreshTimeChipLabel() {
+      const labelEl = document.getElementById('time-chip-label');
+      const dotEl   = document.getElementById('time-chip-dot');
+      if (labelEl) labelEl.textContent = formatTimeChipLabel();
+      if (dotEl)   dotEl.classList.toggle('inactive', state.filters.whenMode !== 'now');
+    }
+
+    dayPickerCtrl = setupPicker('#day-picker', state.filters.day, (val) => {
+      state.filters.day = val;
+      if (state.filters.whenMode === 'now') {
+        state.filters.whenMode = 'custom';
+        document.getElementById('now-btn')?.classList.add('inactive');
+      }
+      refreshTimeChipLabel();
+      updateMapPinsAndCount();
+    });
+
+    hourPickerCtrl = setupPicker('#hour-picker', state.filters.hour, (val) => {
+      state.filters.hour = val;
+      if (state.filters.whenMode === 'now') {
+        state.filters.whenMode = 'custom';
+        document.getElementById('now-btn')?.classList.add('inactive');
+      }
+      refreshTimeChipLabel();
+      updateMapPinsAndCount();
+    });
+
+    $('#now-btn')?.addEventListener('click', () => {
+      const wasNow = state.filters.whenMode === 'now';
+      state.filters.whenMode = 'now';
+      const now = new Date();
+      state.filters.day = '0';
+      state.filters.hour = String(now.getHours());
+      // Snap pickers back via the controllers — these scrolls are flagged as
+      // programmatic so they don't trigger the onChange that flips whenMode.
+      dayPickerCtrl?.scrollToValue('0', true);
+      hourPickerCtrl?.scrollToValue(String(now.getHours()), true);
+      document.getElementById('now-btn')?.classList.remove('inactive');
+      refreshTimeChipLabel();
+      updateMapPinsAndCount();
+      vibrate(wasNow ? 8 : 16);
+    });
+
+    $('#map-continue')?.addEventListener('click', goToFilters);
+  }
+
+  if (state.screen === 'filters') {
+    $('#back-to-map')?.addEventListener('click', goToMap);
+
+    $('#f-rating')?.addEventListener('input', (e) => {
+      state.filters.minRating = parseFloat(e.target.value);
+      const valEl = document.getElementById('val-rating');
+      if (valEl) valEl.textContent = `★ ${state.filters.minRating.toFixed(1)}`;
+      updateCount();
+    });
+
+    document.querySelectorAll('#price-chips .chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        spawnRipple(chip, e);
+        const p = parseInt(chip.dataset.price, 10);
+        const idx = state.filters.priceLevels.indexOf(p);
+        if (idx >= 0) state.filters.priceLevels.splice(idx, 1);
+        else          state.filters.priceLevels.push(p);
+        chip.classList.toggle('selected');
+        updateCount();
+        vibrate(8);
+      });
+    });
+
+    document.querySelectorAll('#dietary-chips .chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        spawnRipple(chip, e);
+        const key = chip.dataset.dietary;
+        const idx = state.filters.dietary.indexOf(key);
+        if (idx >= 0) state.filters.dietary.splice(idx, 1);
+        else state.filters.dietary.push(key);
+        chip.classList.toggle('selected');
+        updateCount();
+        vibrate(8);
+      });
+    });
+
+    document.querySelectorAll('#cuisine-chips .chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        spawnRipple(chip, e);
+        const c = chip.dataset.cuisine;
+        const idx = state.filters.excludeCuisines.indexOf(c);
+        if (idx >= 0) state.filters.excludeCuisines.splice(idx, 1);
+        else state.filters.excludeCuisines.push(c);
+        chip.classList.toggle('selected');
+        updateCount();
+        vibrate(8);
+      });
+    });
+
+    $('#find-btn')?.addEventListener('click', () => {
+      if (getFilteredCount() >= 3) startSession();
+    });
+    $('#reset-link')?.addEventListener('click', () => { resetFilters(); lastCount = null; });
+  }
+
+  if (state.screen === 'eliminate') {
+    document.querySelectorAll('.card').forEach((card, idx) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.card-strip')) return; // strip handled separately
+        eliminate(idx);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); eliminate(idx); }
+      });
+    });
+    document.querySelectorAll('.card-strip .strip-half').forEach((half) => {
+      half.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerStripPulse(half);
+        const idx = parseInt(half.dataset.idx, 10);
+        const action = half.dataset.action;
+        vibrate(12);
+        if (action === 'photos') {
+          setTimeout(() => openGallery(state.trio[idx]), 120);
+        } else if (action === 'website') {
+          setTimeout(() => window.open(getWebsiteUrl(state.trio[idx]), '_blank', 'noopener'), 120);
+        }
+      });
+    });
+  }
+
+  if (state.screen === 'final2') {
+    document.querySelectorAll('.final-card').forEach((card, idx) => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.card-strip')) return;
+        pickWinner(idx);
+      });
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickWinner(idx); }
+      });
+    });
+    document.querySelectorAll('.card-strip .strip-half').forEach((half) => {
+      half.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerStripPulse(half);
+        const idx = parseInt(half.dataset.idx, 10);
+        const action = half.dataset.action;
+        vibrate(12);
+        if (action === 'final-photos') {
+          setTimeout(() => openGallery(state.finalists[idx]), 120);
+        } else if (action === 'final-website') {
+          setTimeout(() => window.open(getWebsiteUrl(state.finalists[idx]), '_blank', 'noopener'), 120);
+        }
+      });
+    });
+  }
+
+  if (state.screen === 'winner') {
+    $('#restart-btn')?.addEventListener('click', backToFilters);
+    $('#add-cal')?.addEventListener('click', downloadIcs);
+  }
+}
+
+render();
+</script>
+</body>
+</html>

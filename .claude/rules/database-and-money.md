@@ -30,6 +30,15 @@ User → InAppNotification
 Tab  → TabReminderSetting → TabReminderLog
 ```
 
+## IDKYP Models (feature/idkyp)
+
+```
+User → IdkypUsage      (monthly decision quota — 4 free, unlimited Pro; @@unique[userId, month])
+     → IdkypDecision   (log of completed decisions: winner restaurant + filters snapshot)
+```
+
+Both tables use snake_case `@@map` (`idkyp_usage`, `idkyp_decision`) and have RLS deny-all on `anon`/`authenticated` (migration `20260522000000_add_idkyp`).
+
 ## Enums
 
 `TabStatus` (ACTIVE/CLOSED), `AuthProvider` (GUEST/EMAIL/GOOGLE), `SubscriptionTier` (GUEST/BASIC/PRO), `NotificationType` (PAYMENT_RECEIVED/PAYMENT_CONFIRMED/PAYMENT_REMINDER), `SettlementAcknowledgementStatus`, `PaymentMethodType` (VENMO/ZELLE/PAYPAL/CASHAPP/CUSTOM)

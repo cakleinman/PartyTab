@@ -62,6 +62,23 @@ export function Header() {
           {isSignedIn && <NotificationBell />}
           {isSignedIn && (
             <Link
+              href="/idkyp"
+              className="text-ink-400 hover:text-ink-700 transition"
+              aria-label="IDKYP"
+              title="IDKYP — decide where to eat"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6"
+                />
+              </svg>
+            </Link>
+          )}
+          {isSignedIn && (
+            <Link
               href="/settings"
               className="text-ink-400 hover:text-ink-700 transition"
               aria-label="Settings"
