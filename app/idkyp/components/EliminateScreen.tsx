@@ -33,7 +33,7 @@ export function EliminateScreen({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="animate-fade-in-up space-y-5">
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -43,7 +43,7 @@ export function EliminateScreen({
           ← Filters
         </button>
         <p className="text-xs uppercase tracking-[0.2em] text-ink-400">
-          eliminate · {eliminatedCount}/{total - 2}
+          eliminate · {eliminatedCount}/{Math.max(0, total - 2)}
         </p>
         <span className="w-12" />
       </div>
@@ -52,6 +52,11 @@ export function EliminateScreen({
         <div
           className="h-full bg-teal-600 transition-[width] duration-500 ease-out"
           style={{ width: `${progress}%` }}
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Elimination progress"
         />
       </div>
 
@@ -60,11 +65,12 @@ export function EliminateScreen({
         for?
       </h2>
 
-      <div className="space-y-3">
+      <div className="space-y-3" aria-live="polite">
         {trio.map((r, idx) => (
           <EliminateCard
-            key={`${r.placeId}-${idx}`}
+            key={`${r.placeId}-${eliminatedCount}-${idx}`}
             restaurant={r}
+            staggerMs={idx * 70}
             eliminating={eliminatingIdx === idx}
             onClick={() => handleClick(idx)}
           />
@@ -76,10 +82,12 @@ export function EliminateScreen({
 
 function EliminateCard({
   restaurant,
+  staggerMs,
   eliminating,
   onClick,
 }: {
   restaurant: Restaurant;
+  staggerMs: number;
   eliminating: boolean;
   onClick: () => void;
 }) {
@@ -87,12 +95,11 @@ function EliminateCard({
     <button
       type="button"
       onClick={onClick}
-      className={`group relative block w-full overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition ${
-        eliminating
-          ? "translate-x-12 rotate-1 scale-95 opacity-0"
-          : "hover:-translate-y-0.5 hover:shadow-md"
+      aria-label={`Eliminate ${restaurant.name}`}
+      className={`group relative block w-full overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+        eliminating ? "animate-idkyp-card-eliminate" : "animate-idkyp-card-enter"
       }`}
-      style={{ transitionDuration: eliminating ? "380ms" : "200ms" }}
+      style={{ animationDelay: eliminating ? "0ms" : `${staggerMs}ms`, opacity: 0 }}
     >
       <div className="flex h-32 items-stretch">
         <div
@@ -118,6 +125,12 @@ function EliminateCard({
           </p>
         </div>
       </div>
+      {eliminating && (
+        <span
+          className="pointer-events-none absolute inset-0 animate-idkyp-flash bg-teal-500"
+          aria-hidden="true"
+        />
+      )}
     </button>
   );
 }

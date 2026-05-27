@@ -2,7 +2,7 @@
 
 export function StartScreen({ onBegin }: { onBegin: () => void }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-[2rem] border border-sand-200 bg-white p-10 text-center">
+    <div className="animate-fade-in-up flex min-h-[60vh] flex-col items-center justify-center rounded-[2rem] border border-sand-200 bg-white p-10 text-center">
       <p className="text-xs uppercase tracking-[0.2em] text-ink-400">idkyp</p>
       <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-tight text-ink-900 sm:text-5xl">
         I don&apos;t know,

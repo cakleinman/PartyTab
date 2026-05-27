@@ -17,7 +17,7 @@ export function Final2Screen({ finalists, onPick }: Props) {
   const badges = computeBadges(a, b);
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in-up space-y-6">
       <div className="text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-ink-400">final two</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink-900">
@@ -47,6 +47,7 @@ function FinalCard({
     <button
       type="button"
       onClick={onClick}
+      aria-label={`Pick ${restaurant.name}`}
       className="group block overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
       <div

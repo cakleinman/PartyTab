@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { LatLng, Restaurant } from "@/lib/idkyp/types";
 import { distanceMiles } from "@/lib/idkyp/geo";
 
@@ -39,6 +39,8 @@ export function MapScreen({
   onSearchHere,
   onContinue,
 }: Props) {
+  const [geoState, setGeoState] = useState<"idle" | "locating" | "denied" | "unavailable">("idle");
+
   const inRangeCount = useMemo(
     () =>
       restaurants.filter((r) => distanceMiles(userPin, { lat: r.lat, lng: r.lng }) <= radius).length,
@@ -48,10 +50,40 @@ export function MapScreen({
   const tooFew = inRangeCount < 3 && !loading;
   const canContinue = inRangeCount >= 3;
 
+  const useMyLocation = () => {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoState("unavailable");
+      return;
+    }
+    setGeoState("locating");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoState("idle");
+        onPinChange({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        // User taps "Search this area" next — avoids stale-closure race
+      },
+      (err) => {
+        setGeoState(err.code === err.PERMISSION_DENIED ? "denied" : "unavailable");
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 60_000 },
+    );
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-[0.2em] text-ink-400">map</p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs uppercase tracking-[0.2em] text-ink-400">map</p>
+          <button
+            type="button"
+            onClick={useMyLocation}
+            disabled={geoState === "locating"}
+            className="rounded-full border border-sand-200 bg-white px-2.5 py-1 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50 disabled:opacity-50"
+            aria-label="Use my current location"
+          >
+            {geoState === "locating" ? "Locating…" : "📍 Use my location"}
+          </button>
+        </div>
         <div className="flex items-center gap-2">
           {mode === "demo" && (
             <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[11px] font-medium text-orange-700">
@@ -68,12 +100,40 @@ export function MapScreen({
         </div>
       </div>
 
+      {geoState === "denied" && (
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
+          Location access denied — drag the pin manually instead.
+        </div>
+      )}
+      {geoState === "unavailable" && (
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
+          Location unavailable — drag the pin manually instead.
+        </div>
+      )}
+
       {errorMessage && (
         <div className="rounded-2xl border border-orange-200 bg-orange-50 p-3 text-sm text-orange-700">
           Restaurant search failed: {errorMessage}.{" "}
-          <button type="button" onClick={onSearchHere} className="underline">
+          <button type="button" onClick={onSearchHere} className="font-medium underline">
             Retry
           </button>
+        </div>
+      )}
+
+      {!loading && !errorMessage && restaurants.length === 0 && (
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
+          No restaurants found here. Try moving the pin or widening the radius, then{" "}
+          <button type="button" onClick={onSearchHere} className="font-medium text-teal-700 underline">
+            Search this area
+          </button>
+          .
+        </div>
+      )}
+
+      {!loading && !errorMessage && restaurants.length > 0 && tooFew && (
+        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
+          Only {inRangeCount} {inRangeCount === 1 ? "place" : "places"} in this radius —
+          IDKYP needs at least 3 to start eliminating. Widen the radius or move the pin.
         </div>
       )}
 
@@ -98,6 +158,8 @@ export function MapScreen({
           step={0.5}
           value={radius}
           onChange={(e) => onRadiusChange(Number(e.target.value))}
+          aria-label="Search radius"
+          aria-valuetext={`${radius.toFixed(1)} miles`}
           className="w-full accent-teal-600"
         />
       </div>

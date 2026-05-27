@@ -16,7 +16,7 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
   )}`;
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in-up space-y-6">
       <div className="text-center">
         <p className="text-xs uppercase tracking-[0.2em] text-ink-400">winner</p>
         <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink-900">

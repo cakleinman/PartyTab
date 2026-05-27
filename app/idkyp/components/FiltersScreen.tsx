@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import type { Filters, Restaurant } from "@/lib/idkyp/types";
+import { defaultFilters } from "@/lib/idkyp/types";
 import type { Quota } from "../IdkypClient";
 
 const DIETARY = [
@@ -53,7 +54,7 @@ export function FiltersScreen({
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
   return (
-    <div className="space-y-6">
+    <div className="animate-fade-in-up space-y-6">
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -77,6 +78,15 @@ export function FiltersScreen({
         <p className="mt-1 text-sm text-ink-500">
           {matchCount === 1 ? "place" : "places"} match your filters
         </p>
+        {matchCount < 3 && (
+          <button
+            type="button"
+            onClick={() => onChange(defaultFilters())}
+            className="mt-3 text-xs font-medium text-teal-700 underline"
+          >
+            Reset filters
+          </button>
+        )}
       </div>
 
       {quota && !quota.unlimited && (
@@ -132,6 +142,8 @@ export function FiltersScreen({
                     excludeCuisines: toggle(filters.excludeCuisines, c),
                   })
                 }
+                aria-pressed={excluded}
+                aria-label={excluded ? `Re-include ${c}` : `Exclude ${c}`}
                 className={`rounded-full border px-3 py-1.5 text-sm transition ${
                   excluded
                     ? "border-sand-200 bg-sand-100 text-ink-400 line-through"
@@ -155,6 +167,8 @@ export function FiltersScreen({
           onChange={(e) =>
             onChange({ ...filters, minRating: Number(e.target.value) })
           }
+          aria-label="Minimum rating"
+          aria-valuetext={`${filters.minRating.toFixed(1)} stars`}
           className="w-full accent-teal-600"
         />
       </Section>
@@ -245,6 +259,7 @@ function Chip({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={`rounded-full border px-3 py-1.5 text-sm transition ${
         selected
           ? "border-teal-600 bg-teal-50 text-teal-700"
