@@ -15,11 +15,19 @@ import type { Filters, IdkypState, LatLng, Restaurant, Screen } from "@/lib/idky
 
 type AuthState = "loading" | "signed_out" | "signed_in";
 
+export type Quota = {
+  used: number;
+  limit: number | null;
+  remaining: number | null;
+  unlimited: boolean;
+};
+
 type ClientState = IdkypState & {
   searchResults: Restaurant[];
   searchMode: "live" | "demo" | null;
   searchLoading: boolean;
   searchError: string | null;
+  quota: Quota | null;
 };
 
 type Action =
@@ -33,6 +41,7 @@ type Action =
       mode: "live" | "demo";
     }
   | { type: "set_search_error"; message: string }
+  | { type: "set_quota"; quota: Quota }
   | { type: "start_session"; trio: Restaurant[]; pool: Restaurant[] }
   | { type: "eliminate_next"; trio: Restaurant[]; pool: Restaurant[]; eliminated: Restaurant }
   | { type: "eliminate_final"; finalists: Restaurant[]; eliminated: Restaurant }
@@ -56,6 +65,7 @@ function initialState(): ClientState {
     searchMode: null,
     searchLoading: false,
     searchError: null,
+    quota: null,
   };
 }
 
@@ -79,6 +89,8 @@ function reducer(state: ClientState, action: Action): ClientState {
       };
     case "set_search_error":
       return { ...state, searchLoading: false, searchError: action.message };
+    case "set_quota":
+      return { ...state, quota: action.quota };
     case "start_session":
       return {
         ...state,
@@ -110,7 +122,13 @@ function reducer(state: ClientState, action: Action): ClientState {
     case "reset_to_filters":
       return { ...state, screen: "filters", trio: [], pool: [], eliminated: [], finalists: [] };
     case "reset":
-      return { ...initialState(), screen: "map", searchResults: state.searchResults, searchMode: state.searchMode };
+      return {
+        ...initialState(),
+        screen: "map",
+        searchResults: state.searchResults,
+        searchMode: state.searchMode,
+        quota: state.quota,
+      };
     default:
       return state;
   }
@@ -126,6 +144,44 @@ export default function IdkypClient() {
       .then((data) => setAuth(data?.user?.id ? "signed_in" : "signed_out"))
       .catch(() => setAuth("signed_out"));
   }, []);
+
+  // Fetch usage quota once auth is known
+  useEffect(() => {
+    if (auth !== "signed_in") return;
+    fetch("/api/idkyp/usage")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: Quota | null) => {
+        if (data) dispatch({ type: "set_quota", quota: data });
+      })
+      .catch(() => {
+        // Non-blocking — if usage fetch fails, treat as unknown (no banner)
+      });
+  }, [auth]);
+
+  const recordDecision = useCallback(
+    async (winner: Restaurant, filters: Filters) => {
+      try {
+        const res = await fetch("/api/idkyp/decisions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            winnerPlaceId: winner.placeId,
+            winnerName: winner.name,
+            winnerLat: winner.lat,
+            winnerLng: winner.lng,
+            filtersSnapshot: filters,
+          }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as Quota;
+          dispatch({ type: "set_quota", quota: data });
+        }
+      } catch {
+        // Fire-and-forget; user already saw the winner
+      }
+    },
+    [],
+  );
 
   const searchHere = useCallback(
     async (pin: LatLng, radiusMiles: number) => {
@@ -214,6 +270,7 @@ export default function IdkypClient() {
           filters={state.filters}
           allRestaurants={state.searchResults}
           matchCount={filtered.length}
+          quota={state.quota}
           onChange={(filters) => dispatch({ type: "set_filters", filters })}
           onBack={() => dispatch({ type: "set_screen", screen: "map" })}
           onStart={() => {
@@ -253,7 +310,10 @@ export default function IdkypClient() {
       return (
         <Final2Screen
           finalists={state.finalists}
-          onPick={(winner) => dispatch({ type: "pick_winner", winner })}
+          onPick={(winner) => {
+            dispatch({ type: "pick_winner", winner });
+            void recordDecision(winner, state.filters);
+          }}
         />
       );
     case "winner":

@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import type { Filters, Restaurant } from "@/lib/idkyp/types";
+import type { Quota } from "../IdkypClient";
 
 const DIETARY = [
   { key: "vegetarian", label: "Vegetarian" },
@@ -21,6 +23,7 @@ type Props = {
   filters: Filters;
   allRestaurants: Restaurant[];
   matchCount: number;
+  quota: Quota | null;
   onChange: (filters: Filters) => void;
   onBack: () => void;
   onStart: () => void;
@@ -30,6 +33,7 @@ export function FiltersScreen({
   filters,
   allRestaurants,
   matchCount,
+  quota,
   onChange,
   onBack,
   onStart,
@@ -41,7 +45,9 @@ export function FiltersScreen({
   }, [allRestaurants]);
 
   const tooFew = matchCount < 6;
-  const canStart = matchCount >= 3;
+  const quotaExhausted =
+    quota !== null && !quota.unlimited && (quota.remaining ?? 0) <= 0;
+  const canStart = matchCount >= 3 && !quotaExhausted;
 
   const toggle = <T,>(arr: T[], v: T): T[] =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
@@ -72,6 +78,10 @@ export function FiltersScreen({
           {matchCount === 1 ? "place" : "places"} match your filters
         </p>
       </div>
+
+      {quota && !quota.unlimited && (
+        <QuotaBanner quota={quota} />
+      )}
 
       <Section title="Dietary">
         <ChipRow>
@@ -150,19 +160,61 @@ export function FiltersScreen({
       </Section>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="button"
-          disabled={!canStart}
-          onClick={onStart}
-          className={`flex-1 rounded-full px-5 py-3 text-sm font-medium transition ${
-            canStart
-              ? "bg-teal-600 text-white hover:bg-teal-700"
-              : "cursor-not-allowed bg-sand-100 text-ink-400"
-          }`}
-        >
-          Start eliminating →
-        </button>
+        {quotaExhausted ? (
+          <Link
+            href="/upgrade"
+            className="flex-1 rounded-full bg-teal-600 px-5 py-3 text-center text-sm font-medium text-white transition hover:bg-teal-700"
+          >
+            Upgrade to Pro for unlimited →
+          </Link>
+        ) : (
+          <button
+            type="button"
+            disabled={!canStart}
+            onClick={onStart}
+            className={`flex-1 rounded-full px-5 py-3 text-sm font-medium transition ${
+              canStart
+                ? "bg-teal-600 text-white hover:bg-teal-700"
+                : "cursor-not-allowed bg-sand-100 text-ink-400"
+            }`}
+          >
+            Start eliminating →
+          </button>
+        )}
       </div>
+    </div>
+  );
+}
+
+function QuotaBanner({ quota }: { quota: Quota }) {
+  const remaining = quota.remaining ?? 0;
+  const limit = quota.limit ?? 0;
+  const exhausted = remaining <= 0;
+  return (
+    <div
+      className={`rounded-2xl border p-3 text-sm ${
+        exhausted
+          ? "border-orange-200 bg-orange-50 text-orange-700"
+          : "border-sand-200 bg-sand-50 text-ink-500"
+      }`}
+    >
+      {exhausted ? (
+        <>
+          You&apos;ve used all {limit} free decisions this month.{" "}
+          <Link href="/upgrade" className="font-medium underline">
+            Upgrade to Pro
+          </Link>{" "}
+          for unlimited.
+        </>
+      ) : (
+        <>
+          {remaining} of {limit} free decisions left this month.{" "}
+          <Link href="/upgrade" className="font-medium text-teal-700 underline">
+            Go Pro
+          </Link>{" "}
+          for unlimited.
+        </>
+      )}
     </div>
   );
 }
