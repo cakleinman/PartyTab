@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import Link from "next/link";
 import { StartScreen } from "./components/StartScreen";
 import { FiltersScreen } from "./components/FiltersScreen";
@@ -258,22 +258,39 @@ export default function IdkypClient() {
     [],
   );
 
-  // Auto-fetch the first batch — but only after geolocation has resolved,
-  // so we don't waste a search call on the MAP_CENTER default and then
-  // immediately discard the results once the user pin moves.
+  // Auto-fetch on map entry AND on subsequent pin/radius changes.
+  // Waits for geolocation to resolve so we don't waste a call on MAP_CENTER.
+  // Initial fetch fires immediately; subsequent (pin drag, radius slider)
+  // are debounced 600 ms to coalesce rapid changes. The lastSearched ref
+  // skips redundant identical fetches.
+  const lastSearched = useRef<{ lat: number; lng: number; radius: number } | null>(null);
   useEffect(() => {
     if (auth !== "signed_in") return;
     if (state.screen !== "map") return;
     if (state.geoStatus === "unknown" || state.geoStatus === "requesting") return;
-    if (state.searchResults.length > 0 || state.searchLoading) return;
-    void searchHere(state.userPin, state.filters.radius);
+
+    const next = {
+      lat: state.userPin.lat,
+      lng: state.userPin.lng,
+      radius: state.filters.radius,
+    };
+    const prev = lastSearched.current;
+    if (prev && prev.lat === next.lat && prev.lng === next.lng && prev.radius === next.radius) {
+      return;
+    }
+
+    const delay = prev ? 600 : 0;
+    const handle = window.setTimeout(() => {
+      lastSearched.current = next;
+      void searchHere({ lat: next.lat, lng: next.lng }, next.radius);
+    }, delay);
+    return () => window.clearTimeout(handle);
   }, [
     auth,
     state.screen,
     state.geoStatus,
-    state.searchResults.length,
-    state.searchLoading,
-    state.userPin,
+    state.userPin.lat,
+    state.userPin.lng,
     state.filters.radius,
     searchHere,
   ]);
