@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { Restaurant } from "@/lib/idkyp/types";
+import { PhotoGallery } from "./PhotoGallery";
 
 type Props = {
   finalists: Restaurant[];
@@ -8,6 +10,8 @@ type Props = {
 };
 
 export function Final2Screen({ finalists, onPick }: Props) {
+  const [galleryFor, setGalleryFor] = useState<Restaurant | null>(null);
+
   if (finalists.length < 2) {
     if (finalists.length === 1) onPick(finalists[0]);
     return null;
@@ -27,9 +31,27 @@ export function Final2Screen({ finalists, onPick }: Props) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FinalCard restaurant={a} badges={badges.a} onClick={() => onPick(a)} />
-        <FinalCard restaurant={b} badges={badges.b} onClick={() => onPick(b)} />
+        <FinalCard
+          restaurant={a}
+          badges={badges.a}
+          onClick={() => onPick(a)}
+          onShowPhotos={() => setGalleryFor(a)}
+        />
+        <FinalCard
+          restaurant={b}
+          badges={badges.b}
+          onClick={() => onPick(b)}
+          onShowPhotos={() => setGalleryFor(b)}
+        />
       </div>
+
+      {galleryFor && (
+        <PhotoGallery
+          title={galleryFor.name}
+          photos={galleryFor.photos.length > 0 ? galleryFor.photos : [galleryFor.photo]}
+          onClose={() => setGalleryFor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -38,10 +60,12 @@ function FinalCard({
   restaurant,
   badges,
   onClick,
+  onShowPhotos,
 }: {
   restaurant: Restaurant;
   badges: string[];
   onClick: () => void;
+  onShowPhotos: () => void;
 }) {
   const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -81,19 +105,35 @@ function FinalCard({
             ))}
           </div>
         )}
-        {restaurant.websiteUrl && (
-          <a
-            href={restaurant.websiteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            className="inline-block rounded-full border border-sand-200 px-3 py-1 text-xs font-medium text-ink-700 transition hover:bg-sand-50"
-            aria-label={`Open ${restaurant.name} website`}
-          >
-            Visit website ↗
-          </a>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {restaurant.photos.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onShowPhotos();
+              }}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="inline-block rounded-full border border-sand-200 px-3 py-1 text-xs font-medium text-ink-700 transition hover:bg-sand-50"
+              aria-label={`View ${restaurant.photos.length} photos of ${restaurant.name}`}
+            >
+              {restaurant.photos.length} photos
+            </button>
+          )}
+          {restaurant.websiteUrl && (
+            <a
+              href={restaurant.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="inline-block rounded-full border border-sand-200 px-3 py-1 text-xs font-medium text-ink-700 transition hover:bg-sand-50"
+              aria-label={`Open ${restaurant.name} website`}
+            >
+              Visit website ↗
+            </a>
+          )}
+        </div>
       </div>
     </div>
   );

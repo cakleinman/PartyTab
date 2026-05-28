@@ -32,6 +32,8 @@ export type Restaurant = {
   lat: number;
   lng: number;
   photo: string;
+  /** Up to 3 resolved photo URLs (primary first, gallery uses this array). */
+  photos: string[];
   /** Per-weekday descriptions from Places API (e.g. "Monday: 9:00 AM – 10:00 PM") */
   hours: string[] | null;
   /** Live open/closed status from Places currentOpeningHours; null if unknown */

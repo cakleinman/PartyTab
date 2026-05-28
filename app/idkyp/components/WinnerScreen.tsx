@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Filters, Restaurant } from "@/lib/idkyp/types";
+import { PhotoGallery } from "./PhotoGallery";
 
 type Props = {
   winner: Restaurant;
@@ -11,6 +12,8 @@ type Props = {
 
 export function WinnerScreen({ winner, filters, onTryAgain }: Props) {
   const [hoursOpen, setHoursOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const hasGallery = winner.photos.length > 1;
   // Google Maps Universal URL — opens directly in the route-planning view
   // with destination pre-filled. Origin defaults to the user's current
   // location. Falls back to the Maps web app on desktop and the native
@@ -34,10 +37,22 @@ export function WinnerScreen({ winner, filters, onTryAgain }: Props) {
       </div>
 
       <div className="overflow-hidden rounded-[2rem] border border-sand-200 bg-white shadow-sm">
-        <div
-          className="aspect-[16/10] w-full bg-cover bg-center"
+        <button
+          type="button"
+          onClick={() => hasGallery && setGalleryOpen(true)}
+          disabled={!hasGallery}
+          aria-label={hasGallery ? `View ${winner.photos.length} photos` : undefined}
+          className={`relative block aspect-[16/10] w-full bg-cover bg-center ${
+            hasGallery ? "cursor-zoom-in" : "cursor-default"
+          }`}
           style={{ backgroundImage: `url('${winner.photo}')` }}
-        />
+        >
+          {hasGallery && (
+            <span className="absolute bottom-3 right-3 rounded-full bg-ink-900/70 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
+              {winner.photos.length} photos
+            </span>
+          )}
+        </button>
         <div className="space-y-3 p-6">
           <p className="text-xs uppercase tracking-wide text-ink-500">{winner.cuisine}</p>
           <h1 className="text-3xl font-semibold tracking-tight text-ink-900">{winner.name}</h1>
@@ -118,6 +133,14 @@ export function WinnerScreen({ winner, filters, onTryAgain }: Props) {
           Try again ↺
         </button>
       </div>
+
+      {galleryOpen && (
+        <PhotoGallery
+          title={winner.name}
+          photos={winner.photos}
+          onClose={() => setGalleryOpen(false)}
+        />
+      )}
     </div>
   );
 }

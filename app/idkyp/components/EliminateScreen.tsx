@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Restaurant } from "@/lib/idkyp/types";
+import { PhotoGallery } from "./PhotoGallery";
 
 type Props = {
   trio: Restaurant[];
@@ -19,6 +20,7 @@ export function EliminateScreen({
   onRestart,
 }: Props) {
   const [eliminatingIdx, setEliminatingIdx] = useState<number | null>(null);
+  const [galleryFor, setGalleryFor] = useState<Restaurant | null>(null);
 
   const total = trio.length + eliminatedCount + poolSize;
   const progress = total > 0 ? Math.min(100, ((eliminatedCount / total) * 100) | 0) : 0;
@@ -73,9 +75,18 @@ export function EliminateScreen({
             staggerMs={idx * 70}
             eliminating={eliminatingIdx === idx}
             onClick={() => handleClick(idx)}
+            onShowPhotos={() => setGalleryFor(r)}
           />
         ))}
       </div>
+
+      {galleryFor && (
+        <PhotoGallery
+          title={galleryFor.name}
+          photos={galleryFor.photos.length > 0 ? galleryFor.photos : [galleryFor.photo]}
+          onClose={() => setGalleryFor(null)}
+        />
+      )}
     </div>
   );
 }
@@ -85,11 +96,13 @@ function EliminateCard({
   staggerMs,
   eliminating,
   onClick,
+  onShowPhotos,
 }: {
   restaurant: Restaurant;
   staggerMs: number;
   eliminating: boolean;
   onClick: () => void;
+  onShowPhotos: () => void;
 }) {
   // We use role="button" on a div (rather than <button>) so the inline
   // Website link can be a real <a> without nested-interactive HTML.
@@ -144,19 +157,35 @@ function EliminateCard({
               {"$".repeat(restaurant.price)} · {restaurant.distance.toFixed(1)} mi ·{" "}
               {restaurant.drive} min
             </p>
-            {restaurant.websiteUrl && (
-              <a
-                href={restaurant.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => e.stopPropagation()}
-                className="shrink-0 rounded-full border border-sand-200 px-2 py-0.5 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50"
-                aria-label={`Open ${restaurant.name} website`}
-              >
-                Site ↗
-              </a>
-            )}
+            <div className="flex shrink-0 items-center gap-1">
+              {restaurant.photos.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowPhotos();
+                  }}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="rounded-full border border-sand-200 px-2 py-0.5 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50"
+                  aria-label={`View ${restaurant.photos.length} photos of ${restaurant.name}`}
+                >
+                  {restaurant.photos.length} photos
+                </button>
+              )}
+              {restaurant.websiteUrl && (
+                <a
+                  href={restaurant.websiteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                  className="rounded-full border border-sand-200 px-2 py-0.5 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50"
+                  aria-label={`Open ${restaurant.name} website`}
+                >
+                  Site ↗
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -21,6 +21,7 @@ export type PlacesResult = {
 const MILE_IN_METERS = 1609.344;
 const MAX_RESULTS = 20;
 const PHOTO_MAX_HEIGHT_PX = 800;
+const MAX_PHOTOS_PER_PLACE = 3;
 
 const PLACES_FIELD_MASK = [
   "places.id",
@@ -78,13 +79,21 @@ export async function fetchNearbyRestaurants(query: PlacesQuery): Promise<Places
   const data = (await res.json()) as { places?: PlaceResponse[] };
   const draft = (data.places ?? []).map((p, i) => adaptPlace(p, query.center, i + 1));
 
-  // Resolve all photo URLs in parallel (best-effort; falls back to cuisine photo on failure)
+  // Resolve up to MAX_PHOTOS_PER_PLACE photo URLs per place, in parallel.
+  // Best-effort: any failure falls through to the cuisine-keyed Unsplash
+  // placeholder already populated by adaptPlace().
   const restaurants = await Promise.all(
     draft.map(async (r, i) => {
-      const photoName = data.places?.[i]?.photos?.[0]?.name;
-      if (!photoName) return r;
-      const resolved = await resolvePhotoUrl(photoName).catch(() => null);
-      return resolved ? { ...r, photo: resolved } : r;
+      const photoNames = (data.places?.[i]?.photos ?? [])
+        .slice(0, MAX_PHOTOS_PER_PLACE)
+        .map((p) => p.name);
+      if (photoNames.length === 0) return r;
+      const resolved = await Promise.all(
+        photoNames.map((n) => resolvePhotoUrl(n).catch(() => null)),
+      );
+      const urls = resolved.filter((u): u is string => Boolean(u));
+      if (urls.length === 0) return r;
+      return { ...r, photo: urls[0], photos: urls };
     }),
   );
 
@@ -176,6 +185,7 @@ export function adaptPlace(p: PlaceResponse, center: LatLng, id: number): Restau
     lat,
     lng,
     photo: PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant,
+    photos: [PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant],
     hours: p.regularOpeningHours?.weekdayDescriptions ?? null,
     openNow: typeof p.currentOpeningHours?.openNow === "boolean" ? p.currentOpeningHours.openNow : null,
     realReviews: null,
