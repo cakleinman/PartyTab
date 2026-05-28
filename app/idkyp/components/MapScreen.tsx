@@ -2,9 +2,10 @@
 
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
-import type { LatLng, Restaurant } from "@/lib/idkyp/types";
-import { distanceMiles } from "@/lib/idkyp/geo";
+import type { Filters, LatLng, Restaurant } from "@/lib/idkyp/types";
+import { applyMapFilters } from "@/lib/idkyp/filters";
 import type { GeoStatus } from "../IdkypClient";
+import { WhenPicker, formatWhenLabel } from "./WhenPicker";
 
 const LeafletMap = dynamic(() => import("./LeafletMap").then((m) => m.LeafletMap), {
   ssr: false,
@@ -18,13 +19,13 @@ const LeafletMap = dynamic(() => import("./LeafletMap").then((m) => m.LeafletMap
 type Props = {
   userPin: LatLng;
   restaurants: Restaurant[];
-  radius: number;
+  filters: Filters;
   mode: "live" | "demo" | null;
   loading: boolean;
   errorMessage: string | null;
   geoStatus: GeoStatus;
   onPinChange: (pin: LatLng) => void;
-  onRadiusChange: (radius: number) => void;
+  onFiltersChange: (filters: Filters) => void;
   onSearchHere: () => void;
   onRequestLocation: () => void;
   onContinue: () => void;
@@ -33,26 +34,31 @@ type Props = {
 export function MapScreen({
   userPin,
   restaurants,
-  radius,
+  filters,
   mode,
   loading,
   errorMessage,
   geoStatus,
   onPinChange,
-  onRadiusChange,
+  onFiltersChange,
   onSearchHere,
   onRequestLocation,
   onContinue,
 }: Props) {
-  const inRangeCount = useMemo(
-    () =>
-      restaurants.filter((r) => distanceMiles(userPin, { lat: r.lat, lng: r.lng }) <= radius).length,
-    [restaurants, userPin, radius],
+  const radius = filters.radius;
+  // Reachable + open at the chosen time. Excludes preference filters; those
+  // apply on the next screen. Matches the prototype's map-count semantic.
+  const matchingCount = useMemo(
+    () => applyMapFilters(restaurants, filters).length,
+    [restaurants, filters],
   );
 
-  const tooFew = inRangeCount < 3 && !loading;
-  const canContinue = inRangeCount >= 3;
+  const tooFew = matchingCount < 3 && !loading;
+  const canContinue = matchingCount >= 3;
   const locating = geoStatus === "requesting";
+  const whenLabel = formatWhenLabel(filters);
+  const countLabelSuffix =
+    filters.whenMode === "now" ? "open now" : `open ${whenLabel.toLowerCase()}`;
 
   return (
     <div className="space-y-4">
@@ -90,12 +96,13 @@ export function MapScreen({
             className={`rounded-full px-3 py-1 text-xs font-medium ${
               tooFew ? "bg-orange-50 text-orange-700" : "bg-teal-50 text-teal-700"
             }`}
+            title={`${matchingCount} ${countLabelSuffix}`}
           >
             {loading
               ? "Searching…"
               : locating
                 ? "Locating…"
-                : `${inRangeCount} ${inRangeCount === 1 ? "place" : "places"} in range`}
+                : `${matchingCount} ${matchingCount === 1 ? "place" : "places"} ${countLabelSuffix}`}
           </p>
         </div>
       </div>
@@ -154,8 +161,9 @@ export function MapScreen({
 
       {!loading && !errorMessage && restaurants.length > 0 && tooFew && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
-          Only {inRangeCount} {inRangeCount === 1 ? "place" : "places"} in this radius —
-          IDKYP needs at least 3 to start eliminating. Widen the radius or move the pin.
+          Only {matchingCount} {matchingCount === 1 ? "place" : "places"} {countLabelSuffix}{" "}
+          in this radius — IDKYP needs at least 3 to start eliminating. Widen the radius,
+          change the time, or move the pin.
         </div>
       )}
 
@@ -168,6 +176,27 @@ export function MapScreen({
         />
       </div>
 
+      <details className="group rounded-2xl border border-sand-200 bg-white">
+        <summary className="flex cursor-pointer items-center justify-between px-4 py-3 text-sm font-medium text-ink-900 [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-2">
+            <span
+              className={`inline-block h-2 w-2 rounded-full ${
+                filters.whenMode === "now" ? "bg-teal-600" : "bg-ink-400"
+              }`}
+              aria-hidden="true"
+            />
+            <span className="text-xs uppercase tracking-wide text-ink-500">When</span>
+            <span>{whenLabel}</span>
+          </span>
+          <span className="text-ink-400 transition group-open:rotate-180" aria-hidden="true">
+            ▾
+          </span>
+        </summary>
+        <div className="border-t border-sand-200 p-4">
+          <WhenPicker filters={filters} onChange={onFiltersChange} />
+        </div>
+      </details>
+
       <div className="space-y-3 rounded-2xl border border-sand-200 bg-white p-4">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-ink-500">Radius</label>
@@ -179,7 +208,7 @@ export function MapScreen({
           max={20}
           step={0.5}
           value={radius}
-          onChange={(e) => onRadiusChange(Number(e.target.value))}
+          onChange={(e) => onFiltersChange({ ...filters, radius: Number(e.target.value) })}
           aria-label="Search radius"
           aria-valuetext={`${radius.toFixed(1)} miles`}
           className="w-full accent-teal-600"

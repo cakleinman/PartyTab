@@ -327,15 +327,13 @@ export default function IdkypClient() {
         <MapScreen
           userPin={state.userPin}
           restaurants={state.searchResults}
-          radius={state.filters.radius}
+          filters={state.filters}
           mode={state.searchMode}
           loading={state.searchLoading}
           errorMessage={state.searchError}
           geoStatus={state.geoStatus}
           onPinChange={(pin) => dispatch({ type: "set_user_pin", pin })}
-          onRadiusChange={(radius) =>
-            dispatch({ type: "set_filters", filters: { ...state.filters, radius } })
-          }
+          onFiltersChange={(filters) => dispatch({ type: "set_filters", filters })}
           onSearchHere={() => searchHere(state.userPin, state.filters.radius)}
           onRequestLocation={requestLocation}
           onContinue={() => dispatch({ type: "set_screen", screen: "filters" })}

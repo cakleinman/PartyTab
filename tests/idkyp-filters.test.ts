@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyFilters, matchesFilters } from "../lib/idkyp/filters";
+import { applyFilters, applyMapFilters, matchesFilters } from "../lib/idkyp/filters";
 import type { Filters, Restaurant } from "../lib/idkyp/types";
 
 const baseFilters: Filters = {
@@ -146,5 +146,44 @@ describe("applyFilters", () => {
     ];
     const result = applyFilters(list, baseFilters);
     expect(result.map((r) => r.placeId)).toEqual(["a"]);
+  });
+});
+
+describe("applyMapFilters (radius + when only, no preferences)", () => {
+  it("excludes places outside the radius", () => {
+    const list = [
+      restaurant({ placeId: "near", distance: 1 }),
+      restaurant({ placeId: "far", distance: 99 }),
+    ];
+    const result = applyMapFilters(list, baseFilters);
+    expect(result.map((r) => r.placeId)).toEqual(["near"]);
+  });
+
+  it("ignores preference filters (rating, price, cuisine, dietary)", () => {
+    // A restaurant that would FAIL matchesFilters because of preferences
+    // should still pass matchesMapFilters — preferences apply on next screen.
+    const r = restaurant({
+      rating: 1.0, // below baseFilters.minRating=3.5
+      price: 4,
+      cuisine: "Italian",
+      tags: [],
+    });
+    const preferenceHeavy = {
+      ...baseFilters,
+      priceLevels: [1],
+      excludeCuisines: ["Italian"],
+      dietary: ["vegan"],
+    };
+    expect(applyFilters([r], preferenceHeavy)).toEqual([]);
+    expect(applyMapFilters([r], preferenceHeavy)).toEqual([r]);
+  });
+
+  it("excludes openNow=false places in now mode", () => {
+    expect(applyMapFilters([restaurant({ openNow: false })], baseFilters)).toEqual([]);
+  });
+
+  it("keeps openNow=null + periods=null places (unknown passes through)", () => {
+    const r = restaurant({ openNow: null, periods: null });
+    expect(applyMapFilters([r], baseFilters)).toEqual([r]);
   });
 });
