@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import type { Filters, Restaurant } from "@/lib/idkyp/types";
 import { defaultFilters } from "@/lib/idkyp/types";
+import { applyMapFilters } from "@/lib/idkyp/filters";
 import type { Quota } from "../IdkypClient";
 import { WhenPicker } from "./WhenPicker";
 
@@ -40,11 +41,17 @@ export function FiltersScreen({
   onBack,
   onStart,
 }: Props) {
-  const allCuisines = useMemo(() => {
+  // Cuisine chips reflect what's reachable AND open at the picked time —
+  // anything currently filtered out by the map-level gates (radius + when)
+  // shouldn't pollute the chip list. Already-excluded cuisines stay visible
+  // so the user can un-exclude them without the chip vanishing.
+  const availableCuisines = useMemo(() => {
+    const reachableOpen = applyMapFilters(allRestaurants, filters);
     const set = new Set<string>();
-    for (const r of allRestaurants) set.add(r.cuisine);
+    for (const r of reachableOpen) set.add(r.cuisine);
+    for (const c of filters.excludeCuisines) set.add(c);
     return Array.from(set).sort();
-  }, [allRestaurants]);
+  }, [allRestaurants, filters]);
 
   const tooFew = matchCount < 6;
   const quotaExhausted =
@@ -135,7 +142,7 @@ export function FiltersScreen({
 
       <Section title="Not right now">
         <ChipRow>
-          {allCuisines.map((c) => {
+          {availableCuisines.map((c) => {
             const excluded = filters.excludeCuisines.includes(c);
             return (
               <button
