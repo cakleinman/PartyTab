@@ -95,6 +95,7 @@ function toRestaurant(p: RawPlace, idx: number): Restaurant {
     photo: PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant,
     photos: [PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant],
     hours: null,
+    periods: null,
     openNow: null,
     realReviews: null,
     website: true,

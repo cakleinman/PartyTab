@@ -200,13 +200,9 @@ type PlaceResponse = {
   websiteUri?: string;
 };
 
-function adaptPeriods(
-  raw: PlaceResponse["regularOpeningHours"] extends infer R
-    ? R extends { periods?: infer P }
-      ? P
-      : never
-    : never,
-): OpeningPeriod[] | null {
+type RawPeriod = NonNullable<NonNullable<PlaceResponse["regularOpeningHours"]>["periods"]>[number];
+
+function adaptPeriods(raw: RawPeriod[] | undefined): OpeningPeriod[] | null {
   if (!raw || raw.length === 0) return null;
   const out: OpeningPeriod[] = [];
   for (const p of raw) {
