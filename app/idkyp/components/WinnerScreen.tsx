@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Filters, Restaurant } from "@/lib/idkyp/types";
+import { getMealCopy } from "@/lib/idkyp/meal";
 import { PhotoGallery } from "./PhotoGallery";
 
 type Props = {
@@ -25,15 +26,13 @@ export function WinnerScreen({ winner, filters, onTryAgain }: Props) {
   const websiteUrl =
     winner.websiteUrl ??
     `https://www.google.com/search?q=${encodeURIComponent(`${winner.name} ${winner.address}`)}`;
-  const calendarUrl = buildCalendarUrl(winner, filters);
+  const mealCopy = getMealCopy(filters);
+  const calendarUrl = buildCalendarUrl(winner, filters, mealCopy.calendarLabel);
 
   return (
     <div className="animate-fade-in-up space-y-6">
       <div className="text-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-ink-400">winner</p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink-900">
-          You&apos;re going to:
-        </h2>
+        <p className="text-sm font-medium text-ink-500">{mealCopy.winnerEyebrow}</p>
       </div>
 
       <div className="overflow-hidden rounded-[2rem] border border-sand-200 bg-white shadow-sm">
@@ -152,7 +151,7 @@ export function WinnerScreen({ winner, filters, onTryAgain }: Props) {
  * day-offset + hour selected in the When picker for "custom" mode.
  * Duration is fixed at 90 min.
  */
-function buildCalendarUrl(winner: Restaurant, filters: Filters): string {
+function buildCalendarUrl(winner: Restaurant, filters: Filters, mealLabel: string): string {
   const start = new Date();
   if (filters.whenMode === "custom") {
     const dayOffset = Math.max(0, Math.min(30, Number(filters.day) || 0));
@@ -168,7 +167,7 @@ function buildCalendarUrl(winner: Restaurant, filters: Filters): string {
     d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const params = new URLSearchParams({
     action: "TEMPLATE",
-    text: `Dinner at ${winner.name}`,
+    text: `${mealLabel} at ${winner.name}`,
     details: "Decided via IDKYP — partytab.app",
     location: winner.address,
     dates: `${fmt(start)}/${fmt(end)}`,
