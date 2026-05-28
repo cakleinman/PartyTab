@@ -46,9 +46,9 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
 
       const userIcon = L.divIcon({
         className: "",
-        html: '<div class="idkyp-pin-user"></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        html: '<div class="idkyp-pin-user-wrap"><div class="idkyp-pin-user"></div></div>',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
       });
 
       const userMarker = L.marker([userPin.lat, userPin.lng], {
@@ -113,8 +113,8 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
         const icon = L.divIcon({
           className: "",
           html: `<div class="idkyp-pin-restaurant ${inRange ? "is-in-range" : "is-out-of-range"}"></div>`,
-          iconSize: [12, 12],
-          iconAnchor: [6, 6],
+          iconSize: [10, 10],
+          iconAnchor: [5, 5],
         });
         L.marker([r.lat, r.lng], { icon }).bindTooltip(r.name).addTo(restaurantLayerRef.current!);
       }

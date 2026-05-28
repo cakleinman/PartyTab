@@ -19,7 +19,8 @@ export type PlacesResult = {
 };
 
 const MILE_IN_METERS = 1609.344;
-const MAX_RESULTS = 20;
+const MAX_RESULTS_PER_PAGE = 20;
+const MAX_PAGES = 3; // Places Text Search caps at 60 results across 3 pages
 const PHOTO_MAX_HEIGHT_PX = 800;
 const MAX_PHOTOS_PER_PLACE = 3;
 
@@ -51,40 +52,68 @@ export async function fetchNearbyRestaurants(query: PlacesQuery): Promise<Places
   const cached = await readCache(query);
   if (cached) return { restaurants: cached, mode: "live" };
 
+  // Places API New: Nearby Search caps at 20 results with no pagination.
+  // Text Search supports pagination via pageToken up to 60 results across
+  // 3 pages, so we use Text Search with a textQuery + locationBias circle.
   const radiusMeters = Math.min(query.radiusMiles * MILE_IN_METERS, 50_000);
-  const res = await fetch("https://places.googleapis.com/v1/places:searchNearby", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY!,
-      "X-Goog-FieldMask": PLACES_FIELD_MASK,
-    },
-    body: JSON.stringify({
-      includedTypes: ["restaurant"],
-      maxResultCount: MAX_RESULTS,
-      locationRestriction: {
+  const allPlaces: PlaceResponse[] = [];
+  const seenIds = new Set<string>();
+  let pageToken: string | undefined;
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const requestBody: Record<string, unknown> = {
+      textQuery: "restaurants",
+      includedType: "restaurant",
+      maxResultCount: MAX_RESULTS_PER_PAGE,
+      locationBias: {
         circle: {
           center: { latitude: query.center.lat, longitude: query.center.lng },
           radius: radiusMeters,
         },
       },
-    }),
-  });
+    };
+    if (pageToken) requestBody.pageToken = pageToken;
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Places API ${res.status}: ${body.slice(0, 200)}`);
+    const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY!,
+        "X-Goog-FieldMask": `${PLACES_FIELD_MASK},nextPageToken`,
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      if (page === 0) {
+        throw new Error(`Places API ${res.status}: ${body.slice(0, 200)}`);
+      }
+      // Pagination failure on page 2/3 — keep what we have
+      break;
+    }
+
+    const data = (await res.json()) as {
+      places?: PlaceResponse[];
+      nextPageToken?: string;
+    };
+    for (const p of data.places ?? []) {
+      if (!seenIds.has(p.id)) {
+        seenIds.add(p.id);
+        allPlaces.push(p);
+      }
+    }
+    pageToken = data.nextPageToken;
+    if (!pageToken) break;
   }
 
-  const data = (await res.json()) as { places?: PlaceResponse[] };
-  const draft = (data.places ?? []).map((p, i) => adaptPlace(p, query.center, i + 1));
+  const draft = allPlaces.map((p, i) => adaptPlace(p, query.center, i + 1));
 
   // Resolve up to MAX_PHOTOS_PER_PLACE photo URLs per place, in parallel.
   // Best-effort: any failure falls through to the cuisine-keyed Unsplash
   // placeholder already populated by adaptPlace().
   const restaurants = await Promise.all(
     draft.map(async (r, i) => {
-      const photoNames = (data.places?.[i]?.photos ?? [])
+      const photoNames = (allPlaces[i]?.photos ?? [])
         .slice(0, MAX_PHOTOS_PER_PLACE)
         .map((p) => p.name);
       if (photoNames.length === 0) return r;

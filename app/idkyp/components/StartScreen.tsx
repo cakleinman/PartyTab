@@ -22,9 +22,6 @@ export function StartScreen({ onBegin }: { onBegin: () => void }) {
       >
         Find food →
       </button>
-      <p className="mt-6 text-xs text-ink-400">
-        Prototype data · Carbon County, UT · 52 places
-      </p>
     </div>
   );
 }

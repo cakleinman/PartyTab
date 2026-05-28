@@ -62,15 +62,22 @@ export function MapScreen({
           <button
             type="button"
             onClick={onRequestLocation}
-            disabled={locating}
-            className="rounded-full border border-sand-200 bg-white px-2.5 py-1 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50 disabled:opacity-50"
+            disabled={locating || geoStatus === "denied"}
+            className="rounded-full border border-sand-200 bg-white px-2.5 py-1 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="Use my current location"
+            title={
+              geoStatus === "denied"
+                ? "Location is blocked in this browser. Click the padlock icon next to the URL → Site settings → Location → Allow."
+                : undefined
+            }
           >
             {locating
               ? "Locating…"
-              : geoStatus === "granted"
-                ? "📍 Recenter on me"
-                : "📍 Use my location"}
+              : geoStatus === "denied"
+                ? "📍 Location blocked"
+                : geoStatus === "granted"
+                  ? "📍 Recenter on me"
+                  : "📍 Use my location"}
           </button>
         </div>
         <div className="flex items-center gap-2">

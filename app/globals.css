@@ -188,10 +188,10 @@ button,
 
 @keyframes idkypPinPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(10, 119, 106, 0.45);
+    box-shadow: 0 0 0 0 rgba(10, 119, 106, 0.55);
   }
   100% {
-    box-shadow: 0 0 0 18px rgba(10, 119, 106, 0);
+    box-shadow: 0 0 0 24px rgba(10, 119, 106, 0);
   }
 }
 
@@ -207,20 +207,45 @@ button,
   animation: idkypFlash 380ms ease-out forwards;
 }
 
-/* IDKYP map markers — used by Leaflet L.divIcon HTML */
+/* IDKYP map markers — used by Leaflet L.divIcon HTML.
+   User pin: dark ink-900 center to contrast against the teal restaurant
+   pins; pulse halo (::after) draws a slow teal ring outward so the pin
+   visually announces itself. The wrapper (.idkyp-pin-user-wrap) is the
+   actual touch target — bigger than the visible pin so it's easier to
+   drag on mobile and trackpad. */
+.idkyp-pin-user-wrap {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .idkyp-pin-user {
-  width: 16px;
-  height: 16px;
+  position: relative;
+  width: 22px;
+  height: 22px;
   border-radius: 9999px;
-  background: var(--teal-600);
+  background: var(--ink-900);
   border: 3px solid white;
-  box-shadow: 0 0 0 0 rgba(10, 119, 106, 0.45);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.idkyp-pin-user::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 0 rgba(10, 119, 106, 0.55);
   animation: idkypPinPulse 1.8s ease-out infinite;
+  pointer-events: none;
 }
 
 .idkyp-pin-restaurant {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 9999px;
   background: var(--ink-900);
   border: 2px solid white;
@@ -230,16 +255,15 @@ button,
 
 .idkyp-pin-restaurant.is-in-range {
   background: var(--teal-600);
-  transform: scale(1.15);
 }
 
 .idkyp-pin-restaurant.is-out-of-range {
   background: var(--ink-300);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .idkyp-pin-user {
+  .idkyp-pin-user::after {
     animation: none !important;
   }
   .animate-fade-in-up,
