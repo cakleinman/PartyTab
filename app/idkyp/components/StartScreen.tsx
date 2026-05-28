@@ -12,8 +12,9 @@ export function StartScreen({ onBegin }: { onBegin: () => void }) {
         </span>
       </h1>
       <p className="mt-4 max-w-md text-sm text-ink-500">
-        Drop a pin, set a radius, eliminate until one&apos;s left. The fastest way to settle the
-        &ldquo;where should we eat?&rdquo; debate.
+        Three places. Tap the one you&apos;d{" "}
+        <em className="font-medium text-teal-700">least</em> like. Repeat until the choice
+        picks itself.
       </p>
       <button
         type="button"
