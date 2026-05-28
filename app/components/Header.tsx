@@ -68,12 +68,16 @@ export function Header() {
               title="IDKYP — decide where to eat"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {/* Pizza slice: triangle with curved crust + three pepperoni dots */}
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={1.5}
-                  d="M3 11l18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6"
+                  d="M12 3 L4 19 C8 21.5 16 21.5 20 19 Z"
                 />
+                <circle cx="10" cy="12" r="0.9" fill="currentColor" stroke="none" />
+                <circle cx="14" cy="14.5" r="0.9" fill="currentColor" stroke="none" />
+                <circle cx="11" cy="17" r="0.8" fill="currentColor" stroke="none" />
               </svg>
             </Link>
           )}
