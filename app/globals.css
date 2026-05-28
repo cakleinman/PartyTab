@@ -207,7 +207,41 @@ button,
   animation: idkypFlash 380ms ease-out forwards;
 }
 
+/* IDKYP map markers — used by Leaflet L.divIcon HTML */
+.idkyp-pin-user {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--teal-600);
+  border: 3px solid white;
+  box-shadow: 0 0 0 0 rgba(10, 119, 106, 0.45);
+  animation: idkypPinPulse 1.8s ease-out infinite;
+}
+
+.idkyp-pin-restaurant {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  background: var(--ink-900);
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+.idkyp-pin-restaurant.is-in-range {
+  background: var(--teal-600);
+  transform: scale(1.15);
+}
+
+.idkyp-pin-restaurant.is-out-of-range {
+  background: var(--ink-300);
+  opacity: 0.7;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .idkyp-pin-user {
+    animation: none !important;
+  }
   .animate-fade-in-up,
   .animate-gentle-pulse,
   .animate-subtle-pulse,
