@@ -100,16 +100,36 @@ export function MapScreen({
         </div>
       </div>
 
-      {geoStatus === "denied" && (
+      {(geoStatus === "denied" || geoStatus === "unavailable") && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
-          Location access denied — drag the pin to your area, then tap{" "}
-          <em className="font-medium text-ink-900">Search this area</em>.
-        </div>
-      )}
-      {geoStatus === "unavailable" && (
-        <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
-          Couldn&apos;t get your location — drag the pin manually, then tap{" "}
-          <em className="font-medium text-ink-900">Search this area</em>.
+          <p>
+            {geoStatus === "denied"
+              ? "Location access denied"
+              : "Couldn’t get your location"}{" "}
+            — drag the pin to your area, then tap{" "}
+            <em className="font-medium text-ink-900">Search this area</em>.
+          </p>
+          <details className="mt-2 text-xs">
+            <summary className="cursor-pointer font-medium text-teal-700">
+              How to enable location
+            </summary>
+            <ol className="mt-2 list-decimal space-y-1.5 pl-5 text-ink-500">
+              <li>
+                <strong className="text-ink-900">Browser site setting:</strong> click the
+                padlock icon in the URL bar (left of partytab.app) → <em>Site settings</em>{" "}
+                → <em>Location</em> → choose <em>Allow</em>.
+              </li>
+              <li>
+                <strong className="text-ink-900">macOS system setting:</strong> Apple
+                menu → <em>System Settings</em> → <em>Privacy &amp; Security</em> →{" "}
+                <em>Location Services</em> → make sure your browser (Chrome/Safari/Firefox)
+                is toggled on. If you&apos;ve never been prompted, this is usually the cause.
+              </li>
+              <li>
+                Refresh this page. The browser will re-request permission.
+              </li>
+            </ol>
+          </details>
         </div>
       )}
 
