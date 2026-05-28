@@ -104,8 +104,9 @@ function EliminateCard({
   onClick: () => void;
   onShowPhotos: () => void;
 }) {
-  // We use role="button" on a div (rather than <button>) so the inline
-  // Website link can be a real <a> without nested-interactive HTML.
+  // role="button" on a div (rather than <button>) so the inline Website link
+  // and Photos button can be real interactive children without nested-
+  // interactive HTML.
   const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -119,76 +120,84 @@ function EliminateCard({
       onClick={onClick}
       onKeyDown={handleKey}
       aria-label={`Eliminate ${restaurant.name}`}
-      className={`group relative block w-full cursor-pointer overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
+      className={`group relative block aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-2xl border border-sand-200 bg-ink-900 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
         eliminating ? "animate-idkyp-card-eliminate" : "animate-idkyp-card-enter"
       }`}
       style={{ animationDelay: eliminating ? "0ms" : `${staggerMs}ms`, opacity: 0 }}
     >
-      <div className="flex h-32 items-stretch">
-        <div
-          className="relative w-2/5 bg-cover bg-center"
-          style={{ backgroundImage: `url('${restaurant.photo}')` }}
-        >
-          <span className="absolute left-2 top-2 rounded-full bg-white/80 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink-900 backdrop-blur">
-            {restaurant.cuisine}
-          </span>
-          {restaurant.openNow === false && (
-            <span className="absolute bottom-2 left-2 rounded-full bg-ink-900/80 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
-              Closed
-            </span>
-          )}
-          {restaurant.openNow === true && (
-            <span className="absolute bottom-2 left-2 rounded-full bg-green-600/90 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur">
-              Open now
-            </span>
-          )}
-        </div>
-        <div className="flex flex-1 flex-col justify-between p-3">
-          <div>
-            <p className="text-base font-semibold leading-tight text-ink-900">
-              {restaurant.name}
-            </p>
-            <p className="mt-0.5 text-xs text-ink-500">
-              ★ {restaurant.rating.toFixed(1)} · {restaurant.reviews} reviews
-            </p>
+      {/* Full-bleed photo */}
+      <div
+        className="absolute inset-0 bg-cover bg-center transition duration-500 group-hover:scale-[1.03]"
+        style={{ backgroundImage: `url('${restaurant.photo}')` }}
+        aria-hidden="true"
+      />
+      {/* Bottom-to-top gradient so the overlaid text stays legible regardless of photo */}
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent"
+        aria-hidden="true"
+      />
+
+      {/* Cuisine pill — top-right corner */}
+      <span className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-ink-900 shadow-sm backdrop-blur">
+        {restaurant.cuisine}
+      </span>
+
+      {/* Open / Closed badge — top-left */}
+      {restaurant.openNow === true && (
+        <span className="absolute left-3 top-3 rounded-full bg-green-600/95 px-2.5 py-0.5 text-[11px] font-medium text-white shadow-sm backdrop-blur">
+          Open now
+        </span>
+      )}
+      {restaurant.openNow === false && (
+        <span className="absolute left-3 top-3 rounded-full bg-ink-900/85 px-2.5 py-0.5 text-[11px] font-medium text-white shadow-sm backdrop-blur">
+          Closed
+        </span>
+      )}
+
+      {/* Content — overlaid at bottom over the gradient */}
+      <div className="absolute inset-x-0 bottom-0 space-y-2 p-4 text-white">
+        <h3 className="text-2xl font-semibold leading-tight drop-shadow-sm">
+          {restaurant.name}
+        </h3>
+        <p className="text-sm opacity-90 drop-shadow-sm">
+          ★ {restaurant.rating.toFixed(1)}{" "}
+          <span className="opacity-75">({restaurant.reviews})</span> ·{" "}
+          {"$".repeat(restaurant.price)} · {restaurant.distance.toFixed(1)} mi ·{" "}
+          {restaurant.drive} min
+        </p>
+        {(restaurant.photos.length > 1 || restaurant.websiteUrl) && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {restaurant.photos.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onShowPhotos();
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur transition hover:bg-white/25"
+                aria-label={`View ${restaurant.photos.length} photos of ${restaurant.name}`}
+              >
+                {restaurant.photos.length} photos
+              </button>
+            )}
+            {restaurant.websiteUrl && (
+              <a
+                href={restaurant.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur transition hover:bg-white/25"
+                aria-label={`Open ${restaurant.name} website`}
+              >
+                Site ↗
+              </a>
+            )}
           </div>
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-ink-500">
-              {"$".repeat(restaurant.price)} · {restaurant.distance.toFixed(1)} mi ·{" "}
-              {restaurant.drive} min
-            </p>
-            <div className="flex shrink-0 items-center gap-1">
-              {restaurant.photos.length > 1 && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowPhotos();
-                  }}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  className="rounded-full border border-sand-200 px-2 py-0.5 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50"
-                  aria-label={`View ${restaurant.photos.length} photos of ${restaurant.name}`}
-                >
-                  {restaurant.photos.length} photos
-                </button>
-              )}
-              {restaurant.websiteUrl && (
-                <a
-                  href={restaurant.websiteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => e.stopPropagation()}
-                  className="rounded-full border border-sand-200 px-2 py-0.5 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50"
-                  aria-label={`Open ${restaurant.name} website`}
-                >
-                  Site ↗
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
+
       {eliminating && (
         <span
           className="pointer-events-none absolute inset-0 animate-idkyp-flash bg-teal-500"
