@@ -5,7 +5,7 @@
 PartyTab is a group expense-splitting web app. Users create tabs, invite friends, track expenses with even or custom splits, and settle up with minimal transfers. Pro subscribers get AI-powered receipt scanning, item-level claiming, and automated payment reminders.
 
 **Production URL:** https://partytab.app
-**Current version:** 1.1.0-dev (feature/idkyp branch)
+**Current version:** 1.2.0 (IDKYP shipped — merged to main)
 
 ## Tech Stack
 
@@ -31,7 +31,7 @@ PartyTab is a group expense-splitting web app. Users create tabs, invite friends
 ```bash
 npm run dev              # Dev server (port 3000)
 npm run build            # Production build (runs prisma generate)
-npm run test             # Vitest unit tests (~170 cases across 21 files)
+npm run test             # Vitest unit tests (~183 cases across 22 files)
 npm run test:e2e         # Playwright E2E tests
 npm run lint             # ESLint
 npm run typecheck        # TypeScript type checking
@@ -61,8 +61,8 @@ lib/
   billing/               # usage.ts (receipt quota tracking)
   db/                    # prisma.ts (singleton client)
   email/                 # client.ts (Postmark + escapeHtml)
-  idkyp/                 # types.ts, places.ts (Google Places client),
-                         # usage.ts (freemium quota), filters.ts, elimination.ts
+  idkyp/                 # types.ts, places.ts (Google Places client), geo.ts (distance + isOpenAt),
+                         # usage.ts (freemium quota), filters.ts, elimination.ts, data.ts (demo)
   money/                 # cents.ts (parsing/formatting), allocation.ts (distribution)
   payment/               # venmo.ts (deep link utilities)
   notifications/         # create.ts (in-app notifications)
@@ -129,7 +129,8 @@ prisma/                  # schema.prisma + migrations (11 migration files)
 
 ### Changelog
 
-- **1.1.0-dev** *(in progress on feature/idkyp)* — IDKYP feature scaffolding: new `/idkyp` page, `lib/idkyp/` modules, three `/api/idkyp/*` stub routes (501 until Phase 2+3), `IdkypUsage` + `IdkypDecision` Prisma models with RLS deny-all migration, Header icon nav entry, `GOOGLE_PLACES_API_KEY` documented as optional. Counts refreshed to actual on-disk state (155 tests / 20 files, 11 migrations, ~59 routes); `lib/passkeys/` added to inventory. `not_implemented` + `service_unavailable` ErrorCodes added.
+- **1.2.0** — IDKYP shipped and iterated. Phases 4–8 layered onto v1: animations + a11y + auto-geolocation (Phase 4), real Places photos + openNow + hours (Phase 5), auto-route directions (Phase 6), auto-search on pin/radius + When picker + photo gallery + styled markers (Phase 7), Text Search pagination (60 results across 3 pages, Phase 8). Now-mode filter respects `openNow=false`; Custom mode + Now-mode `openNow=null` fallback compute from `regularOpeningHours.periods` via `isOpenAt(periods, date)` in `lib/idkyp/geo.ts`. Inline help banner when geolocation is denied. Photo-resolution telemetry warns when Places returns no photos. Counts: 183 tests / 22 files, 11 migrations, ~59 routes.
+- **1.1.0** — IDKYP feature scaffolding: new `/idkyp` page, `lib/idkyp/` modules, three `/api/idkyp/*` stub routes (501 until Phase 2+3), `IdkypUsage` + `IdkypDecision` Prisma models with RLS deny-all migration, Header icon nav entry, `GOOGLE_PLACES_API_KEY` documented as optional. `lib/passkeys/` added to inventory. `not_implemented` + `service_unavailable` ErrorCodes added.
 - **1.0.1** — Add ink-400 color token (#756e68) for WCAG AA contrast compliance (4.70:1 on sand-50). Set up changelog system.
 - **1.0.0** — Production baseline. Payment methods, estimated expenses, shareable cards, free receipt scanning, settlement acknowledgements, accessibility audit (score 100).
 
