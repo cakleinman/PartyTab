@@ -34,9 +34,17 @@ export function EliminateScreen({
     }, 380);
   };
 
+  // Snap-to-viewport: the elimination flow shouldn't scroll. The cards grid
+  // takes the remaining height after the small top chrome, splitting into
+  // three equal rows. Outer min-h keeps things readable on tall viewports;
+  // on very short viewports (landscape phones, etc.) the page can still
+  // scroll as a fallback rather than squeezing cards below legibility.
   return (
-    <div className="animate-fade-in-up space-y-5">
-      <div className="flex items-center justify-between">
+    <div
+      className="animate-fade-in-up flex flex-col gap-3"
+      style={{ height: "calc(100dvh - 180px)", minHeight: "560px" }}
+    >
+      <div className="flex shrink-0 items-center justify-between">
         <button
           type="button"
           onClick={onRestart}
@@ -50,7 +58,7 @@ export function EliminateScreen({
         <span className="w-12" />
       </div>
 
-      <div className="h-1 w-full overflow-hidden rounded-full bg-sand-100">
+      <div className="h-1 w-full shrink-0 overflow-hidden rounded-full bg-sand-100">
         <div
           className="h-full bg-teal-600 transition-[width] duration-500 ease-out"
           style={{ width: `${progress}%` }}
@@ -62,12 +70,12 @@ export function EliminateScreen({
         />
       </div>
 
-      <h2 className="text-lg font-medium text-ink-900">
+      <h2 className="shrink-0 text-base font-medium text-ink-900">
         Which one are you <em className="font-semibold text-teal-700">least</em> in the mood
         for?
       </h2>
 
-      <div className="space-y-3" aria-live="polite">
+      <div className="grid min-h-0 flex-1 grid-rows-3 gap-3" aria-live="polite">
         {trio.map((r, idx) => (
           <EliminateCard
             key={`${r.placeId}-${eliminatedCount}-${idx}`}
@@ -120,7 +128,7 @@ function EliminateCard({
       onClick={onClick}
       onKeyDown={handleKey}
       aria-label={`Eliminate ${restaurant.name}`}
-      className={`group relative block aspect-[4/3] w-full cursor-pointer overflow-hidden rounded-2xl border border-sand-200 bg-ink-900 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
+      className={`group relative block h-full min-h-0 w-full cursor-pointer overflow-hidden rounded-2xl border border-sand-200 bg-ink-900 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
         eliminating ? "animate-idkyp-card-eliminate" : "animate-idkyp-card-enter"
       }`}
       style={{ animationDelay: eliminating ? "0ms" : `${staggerMs}ms`, opacity: 0 }}
