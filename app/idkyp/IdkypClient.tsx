@@ -152,6 +152,51 @@ export default function IdkypClient() {
   const [auth, setAuth] = useState<AuthState>("loading");
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
 
+  // Browser-history sync. Each screen transition pushes a history entry so
+  // the back gesture rewinds one step inside IDKYP (start → map → filters
+  // → eliminate → final2 → winner) instead of leaving /idkyp entirely.
+  // The screenRef tracks the last screen we observed; suppressPushRef
+  // skips the next push when the change itself came from popstate (so a
+  // back gesture doesn't immediately re-push the screen we just left).
+  const screenRef = useRef<Screen>(state.screen);
+  const suppressPushRef = useRef(false);
+
+  useEffect(() => {
+    if (state.screen === screenRef.current) return;
+    if (suppressPushRef.current) {
+      suppressPushRef.current = false;
+    } else if (screenRef.current === "eliminate" && state.screen === "final2") {
+      // Auto-transition (last card eliminated). Replace rather than push so
+      // back from final2 lands on filters, not on eliminate with empty trio.
+      window.history.replaceState({ __idkypScreen: state.screen }, "");
+    } else {
+      window.history.pushState({ __idkypScreen: state.screen }, "");
+    }
+    screenRef.current = state.screen;
+  }, [state.screen]);
+
+  useEffect(() => {
+    const onPop = (e: PopStateEvent) => {
+      const next =
+        ((e.state as { __idkypScreen?: Screen } | null)?.__idkypScreen as Screen | undefined) ??
+        "start";
+      if (next === screenRef.current) return;
+      suppressPushRef.current = true;
+      dispatch({ type: "set_screen", screen: next });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  // Try-again resets game state and goes back to map. We REPLACE history
+  // here so a subsequent back gesture doesn't land on a stale winner entry
+  // with state.winner already cleared.
+  const tryAgain = useCallback(() => {
+    window.history.replaceState({ __idkypScreen: "map" }, "");
+    suppressPushRef.current = true;
+    dispatch({ type: "reset" });
+  }, []);
+
   useEffect(() => {
     fetch("/api/me")
       .then((res) => res.json())
@@ -347,7 +392,7 @@ export default function IdkypClient() {
           matchCount={filtered.length}
           quota={state.quota}
           onChange={(filters) => dispatch({ type: "set_filters", filters })}
-          onBack={() => dispatch({ type: "set_screen", screen: "map" })}
+          onBack={() => window.history.back()}
           onStart={() => {
             const session = startSession(filtered);
             if (!session) return;
@@ -378,7 +423,7 @@ export default function IdkypClient() {
               });
             }
           }}
-          onRestart={() => dispatch({ type: "reset_to_filters" })}
+          onRestart={() => window.history.back()}
         />
       );
     case "final2":
@@ -397,7 +442,7 @@ export default function IdkypClient() {
         <WinnerScreen
           winner={state.winner}
           filters={state.filters}
-          onTryAgain={() => dispatch({ type: "reset" })}
+          onTryAgain={tryAgain}
         />
       );
     default:
