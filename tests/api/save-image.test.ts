@@ -100,9 +100,12 @@ describe('/api/save-image', () => {
                 'flexible_splits',
             ];
 
-            for (const asset of validAssets) {
-                const req = createRequest({ filename: asset, image: validBase64 });
-                const res = await POST(req);
+            // Parallel: each POST takes ~700ms of Request/Response overhead in
+            // node, so serializing 6 of them races the default 5s timeout.
+            const responses = await Promise.all(
+                validAssets.map((asset) => POST(createRequest({ filename: asset, image: validBase64 }))),
+            );
+            for (const res of responses) {
                 expect(res.status).toBe(200);
             }
         });
