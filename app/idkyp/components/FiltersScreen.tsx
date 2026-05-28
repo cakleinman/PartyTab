@@ -93,6 +93,60 @@ export function FiltersScreen({
         <QuotaBanner quota={quota} />
       )}
 
+      <Section title="When?">
+        <ChipRow>
+          <Chip
+            selected={filters.whenMode === "now"}
+            onClick={() => onChange({ ...filters, whenMode: "now" })}
+          >
+            Now
+          </Chip>
+          <Chip
+            selected={filters.whenMode === "custom"}
+            onClick={() => onChange({ ...filters, whenMode: "custom" })}
+          >
+            Custom
+          </Chip>
+        </ChipRow>
+        {filters.whenMode === "custom" && (
+          <div className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50 p-4">
+            <div className="space-y-1">
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-400">Day</p>
+              <ChipRow>
+                {[0, 1, 2, 3, 4, 5, 6].map((offset) => (
+                  <Chip
+                    key={offset}
+                    selected={filters.day === String(offset)}
+                    onClick={() => onChange({ ...filters, day: String(offset) })}
+                  >
+                    {formatDayOffset(offset)}
+                  </Chip>
+                ))}
+              </ChipRow>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium uppercase tracking-wide text-ink-400">Time</p>
+                <span className="text-sm font-medium text-ink-900">
+                  {formatHour(Number(filters.hour))}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={23}
+                step={1}
+                value={Number(filters.hour)}
+                onChange={(e) => onChange({ ...filters, hour: e.target.value })}
+                aria-label="Hour of day"
+                aria-valuetext={formatHour(Number(filters.hour))}
+                className="w-full accent-teal-600"
+              />
+            </div>
+          </div>
+        )}
+      </Section>
+
       <Section title="Dietary">
         <ChipRow>
           {DIETARY.map((d) => (
@@ -244,6 +298,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function ChipRow({ children }: { children: React.ReactNode }) {
   return <div className="flex flex-wrap gap-2">{children}</div>;
+}
+
+function formatDayOffset(offset: number): string {
+  if (offset === 0) return "Today";
+  if (offset === 1) return "Tomorrow";
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+}
+
+function formatHour(h: number): string {
+  const safe = Number.isFinite(h) ? Math.max(0, Math.min(23, Math.round(h))) : 12;
+  if (safe === 0) return "12 AM";
+  if (safe === 12) return "12 PM";
+  if (safe < 12) return `${safe} AM`;
+  return `${safe - 12} PM`;
 }
 
 function Chip({

@@ -43,12 +43,20 @@ function FinalCard({
   badges: string[];
   onClick: () => void;
 }) {
+  const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick();
+    }
+  };
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKey}
       aria-label={`Pick ${restaurant.name}`}
-      className="group block overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group block cursor-pointer overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
     >
       <div
         className="aspect-[4/3] w-full bg-cover bg-center"
@@ -73,8 +81,21 @@ function FinalCard({
             ))}
           </div>
         )}
+        {restaurant.websiteUrl && (
+          <a
+            href={restaurant.websiteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="inline-block rounded-full border border-sand-200 px-3 py-1 text-xs font-medium text-ink-700 transition hover:bg-sand-50"
+            aria-label={`Open ${restaurant.name} website`}
+          >
+            Visit website ↗
+          </a>
+        )}
       </div>
-    </button>
+    </div>
   );
 }
 

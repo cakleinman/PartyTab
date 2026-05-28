@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { Restaurant } from "@/lib/idkyp/types";
+import type { Filters, Restaurant } from "@/lib/idkyp/types";
 
 type Props = {
   winner: Restaurant;
+  filters: Filters;
   onTryAgain: () => void;
 };
 
-export function WinnerScreen({ winner, onTryAgain }: Props) {
+export function WinnerScreen({ winner, filters, onTryAgain }: Props) {
   const [hoursOpen, setHoursOpen] = useState(false);
   // Google Maps Universal URL — opens directly in the route-planning view
   // with destination pre-filled. Origin defaults to the user's current
@@ -21,6 +22,7 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
   const websiteUrl =
     winner.websiteUrl ??
     `https://www.google.com/search?q=${encodeURIComponent(`${winner.name} ${winner.address}`)}`;
+  const calendarUrl = buildCalendarUrl(winner, filters);
 
   return (
     <div className="animate-fade-in-up space-y-6">
@@ -95,6 +97,14 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
             >
               Website
             </a>
+            <a
+              href={calendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full border border-sand-200 bg-white px-4 py-2.5 text-center text-sm font-medium text-ink-900 transition hover:bg-sand-50 sm:col-span-2"
+            >
+              Add to calendar
+            </a>
           </div>
         </div>
       </div>
@@ -110,4 +120,35 @@ export function WinnerScreen({ winner, onTryAgain }: Props) {
       </div>
     </div>
   );
+}
+
+/**
+ * Build a Google Calendar event URL. Universal — works in any browser,
+ * prompts the user to add the event to their primary calendar.
+ * Start time defaults to next-hour-rounded for "now" mode, or the
+ * day-offset + hour selected in the When picker for "custom" mode.
+ * Duration is fixed at 90 min.
+ */
+function buildCalendarUrl(winner: Restaurant, filters: Filters): string {
+  const start = new Date();
+  if (filters.whenMode === "custom") {
+    const dayOffset = Math.max(0, Math.min(30, Number(filters.day) || 0));
+    const hour = Math.max(0, Math.min(23, Number(filters.hour) || start.getHours()));
+    start.setDate(start.getDate() + dayOffset);
+    start.setHours(hour, 0, 0, 0);
+  } else {
+    start.setMinutes(0, 0, 0);
+    start.setHours(start.getHours() + 1);
+  }
+  const end = new Date(start.getTime() + 90 * 60 * 1000);
+  const fmt = (d: Date) =>
+    d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `Dinner at ${winner.name}`,
+    details: "Decided via IDKYP — partytab.app",
+    location: winner.address,
+    dates: `${fmt(start)}/${fmt(end)}`,
+  });
+  return `https://www.google.com/calendar/render?${params.toString()}`;
 }

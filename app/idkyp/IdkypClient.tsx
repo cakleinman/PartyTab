@@ -398,6 +398,7 @@ export default function IdkypClient() {
       return (
         <WinnerScreen
           winner={state.winner}
+          filters={state.filters}
           onTryAgain={() => dispatch({ type: "reset" })}
         />
       );

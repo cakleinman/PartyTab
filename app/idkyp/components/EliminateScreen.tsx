@@ -91,12 +91,22 @@ function EliminateCard({
   eliminating: boolean;
   onClick: () => void;
 }) {
+  // We use role="button" on a div (rather than <button>) so the inline
+  // Website link can be a real <a> without nested-interactive HTML.
+  const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick();
+    }
+  };
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKey}
       aria-label={`Eliminate ${restaurant.name}`}
-      className={`group relative block w-full overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+      className={`group relative block w-full cursor-pointer overflow-hidden rounded-2xl border border-sand-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 ${
         eliminating ? "animate-idkyp-card-eliminate" : "animate-idkyp-card-enter"
       }`}
       style={{ animationDelay: eliminating ? "0ms" : `${staggerMs}ms`, opacity: 0 }}
@@ -129,10 +139,25 @@ function EliminateCard({
               ★ {restaurant.rating.toFixed(1)} · {restaurant.reviews} reviews
             </p>
           </div>
-          <p className="text-xs text-ink-500">
-            {"$".repeat(restaurant.price)} · {restaurant.distance.toFixed(1)} mi ·{" "}
-            {restaurant.drive} min
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-ink-500">
+              {"$".repeat(restaurant.price)} · {restaurant.distance.toFixed(1)} mi ·{" "}
+              {restaurant.drive} min
+            </p>
+            {restaurant.websiteUrl && (
+              <a
+                href={restaurant.websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="shrink-0 rounded-full border border-sand-200 px-2 py-0.5 text-[11px] font-medium text-ink-500 transition hover:bg-sand-50"
+                aria-label={`Open ${restaurant.name} website`}
+              >
+                Site ↗
+              </a>
+            )}
+          </div>
         </div>
       </div>
       {eliminating && (
@@ -141,6 +166,6 @@ function EliminateCard({
           aria-hidden="true"
         />
       )}
-    </button>
+    </div>
   );
 }
