@@ -18,9 +18,17 @@ const MILE_IN_METERS = 1609.344;
 export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
-  const userMarkerRef = useRef<Leaflet.Marker | null>(null);
   const radiusCircleRef = useRef<Leaflet.Circle | null>(null);
   const restaurantLayerRef = useRef<Leaflet.LayerGroup | null>(null);
+  // Distinguishes "user dragged the map" from "we programmatically panned the
+  // map in response to userPin changing from outside (Recenter on me)". Without
+  // this guard, panTo → moveend → onPinChange → state update → effect re-fires
+  // → panTo again, causing a feedback loop.
+  const programmaticPanRef = useRef(false);
+  const onPinChangeRef = useRef(onPinChange);
+  useEffect(() => {
+    onPinChangeRef.current = onPinChange;
+  }, [onPinChange]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -44,23 +52,8 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
         },
       ).addTo(map);
 
-      const userIcon = L.divIcon({
-        className: "",
-        html: '<div class="idkyp-pin-user-wrap"><div class="idkyp-pin-user"></div></div>',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
-      });
-
-      const userMarker = L.marker([userPin.lat, userPin.lng], {
-        icon: userIcon,
-        draggable: true,
-      })
-        .addTo(map)
-        .on("dragend", () => {
-          const pos = userMarker.getLatLng();
-          onPinChange({ lat: pos.lat, lng: pos.lng });
-        });
-
+      // Pin = map center, so the radius circle anchors there too. It moves
+      // automatically every time we re-center the map.
       const radiusCircle = L.circle([userPin.lat, userPin.lng], {
         radius: radius * MILE_IN_METERS,
         color: "#0a776a",
@@ -72,8 +65,21 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
 
       const restaurantLayer = L.layerGroup().addTo(map);
 
+      map.on("move", () => {
+        const c = map.getCenter();
+        radiusCircle.setLatLng([c.lat, c.lng]);
+      });
+
+      map.on("moveend", () => {
+        if (programmaticPanRef.current) {
+          programmaticPanRef.current = false;
+          return;
+        }
+        const c = map.getCenter();
+        onPinChangeRef.current({ lat: c.lat, lng: c.lng });
+      });
+
       mapRef.current = map;
-      userMarkerRef.current = userMarker;
       radiusCircleRef.current = radiusCircle;
       restaurantLayerRef.current = restaurantLayer;
     });
@@ -82,17 +88,24 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
       cancelled = true;
       mapRef.current?.remove();
       mapRef.current = null;
-      userMarkerRef.current = null;
       radiusCircleRef.current = null;
       restaurantLayerRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keep the user marker + circle in sync with state
+  // External userPin updates (Recenter on me, geolocation grant) pan the map.
+  // Skip if the map is already centered there — that's the round-trip from our
+  // own moveend handler and panning again would loop.
   useEffect(() => {
-    userMarkerRef.current?.setLatLng([userPin.lat, userPin.lng]);
-    radiusCircleRef.current?.setLatLng([userPin.lat, userPin.lng]);
+    const map = mapRef.current;
+    if (!map) return;
+    const c = map.getCenter();
+    if (Math.abs(c.lat - userPin.lat) < 1e-6 && Math.abs(c.lng - userPin.lng) < 1e-6) {
+      return;
+    }
+    programmaticPanRef.current = true;
+    map.setView([userPin.lat, userPin.lng], map.getZoom(), { animate: true });
   }, [userPin]);
 
   useEffect(() => {
@@ -121,5 +134,21 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
     });
   }, [restaurants, userPin, radius]);
 
-  return <div ref={containerRef} className="h-[55vh] w-full" />;
+  return (
+    <div className="relative h-[55vh] w-full">
+      <div ref={containerRef} className="h-full w-full" />
+      {/* User pin = map center. Rendered as a fixed overlay rather than a
+          Leaflet marker so it can never drift from center; pointer-events-none
+          so map drag still works underneath it. z-[1000] sits above Leaflet's
+          popup pane (700). */}
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 z-[1000] -translate-x-1/2 -translate-y-1/2"
+        aria-hidden="true"
+      >
+        <div className="idkyp-pin-user-wrap">
+          <div className="idkyp-pin-user" />
+        </div>
+      </div>
+    </div>
+  );
 }
