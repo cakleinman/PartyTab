@@ -1,4 +1,7 @@
-import type { LatLng } from "./types";
+import type { LatLng, OpeningPeriod } from "./types";
+
+const MINUTES_IN_DAY = 24 * 60;
+const MINUTES_IN_WEEK = 7 * MINUTES_IN_DAY;
 
 const EARTH_RADIUS_MILES = 3958.756;
 
@@ -16,6 +19,31 @@ export function estDriveMinutes(miles: number): number {
   if (miles < 2) return Math.max(1, Math.ceil(miles * 3));
   if (miles < 5) return Math.ceil(miles * 2);
   return Math.ceil(miles * 1.7);
+}
+
+/**
+ * Is the restaurant open at `date` per its Places `periods`? Returns `null`
+ * when periods are missing (caller decides how to treat unknown).
+ *
+ * Each period is an open→close interval anchored to weekdays 0 (Sun) – 6 (Sat).
+ * A close on a later day (Sat→Sun overnight) wraps the 0–10080 week-minute axis.
+ * A single period with no `close` means 24-hour service.
+ */
+export function isOpenAt(periods: OpeningPeriod[] | null, date: Date): boolean | null {
+  if (!periods || periods.length === 0) return null;
+  if (periods.length === 1 && !periods[0].close) return true;
+
+  const target = date.getDay() * MINUTES_IN_DAY + date.getHours() * 60 + date.getMinutes();
+  for (const p of periods) {
+    if (!p.close) continue;
+    const open = p.open.day * MINUTES_IN_DAY + p.open.hour * 60 + p.open.minute;
+    const closeRaw = p.close.day * MINUTES_IN_DAY + p.close.hour * 60 + p.close.minute;
+    // Sat→Sun overnight: Places encodes close.day < open.day, so add a full week.
+    const close = closeRaw >= open ? closeRaw : closeRaw + MINUTES_IN_WEEK;
+    if (target >= open && target < close) return true;
+    if (target + MINUTES_IN_WEEK >= open && target + MINUTES_IN_WEEK < close) return true;
+  }
+  return false;
 }
 
 export function inferCuisine(types: string[]): string {

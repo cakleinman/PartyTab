@@ -30,6 +30,7 @@ const restaurant = (overrides: Partial<Restaurant> = {}): Restaurant => ({
   photo: "",
   photos: [],
   hours: null,
+  periods: null,
   openNow: null,
   realReviews: null,
   website: true,
@@ -76,6 +77,64 @@ describe("matchesFilters", () => {
     expect(
       matchesFilters(restaurant({ openNow: false }), { ...baseFilters, whenMode: "custom" }),
     ).toBe(true);
+  });
+
+  it("falls back to periods when openNow is null in 'now' mode (open case)", () => {
+    // Wed 19:00 (target weekday=3, hour=19)
+    const wedEvening = new Date(2026, 4, 27, 19, 0, 0);
+    const r = restaurant({
+      openNow: null,
+      periods: [
+        { open: { day: 3, hour: 9, minute: 0 }, close: { day: 3, hour: 22, minute: 0 } },
+      ],
+    });
+    expect(matchesFilters(r, baseFilters, wedEvening)).toBe(true);
+  });
+
+  it("drops closed places when openNow is null and periods say closed (now mode)", () => {
+    // Wed 04:00 — outside the 9-22 window
+    const wedDawn = new Date(2026, 4, 27, 4, 0, 0);
+    const r = restaurant({
+      openNow: null,
+      periods: [
+        { open: { day: 3, hour: 9, minute: 0 }, close: { day: 3, hour: 22, minute: 0 } },
+      ],
+    });
+    expect(matchesFilters(r, baseFilters, wedDawn)).toBe(false);
+  });
+
+  it("keeps openNow=null + periods=null in 'now' mode (unknown stays in pool)", () => {
+    expect(matchesFilters(restaurant({ openNow: null, periods: null }), baseFilters)).toBe(true);
+  });
+
+  it("applies isOpenAt at the custom day+hour when whenMode='custom'", () => {
+    // "Today" = Wed (weekday=3). dayOffset=2 → Fri. Period says Fri 11-14.
+    const today = new Date(2026, 4, 27, 10, 0, 0); // Wed 10am
+    const customFilters: Filters = {
+      ...baseFilters,
+      whenMode: "custom",
+      day: "2",
+      hour: "12",
+    };
+    const r = restaurant({
+      periods: [
+        { open: { day: 5, hour: 11, minute: 0 }, close: { day: 5, hour: 14, minute: 0 } },
+      ],
+    });
+    expect(matchesFilters(r, customFilters, today)).toBe(true);
+
+    const closedAtThat = restaurant({
+      periods: [
+        { open: { day: 5, hour: 17, minute: 0 }, close: { day: 5, hour: 22, minute: 0 } },
+      ],
+    });
+    expect(matchesFilters(closedAtThat, customFilters, today)).toBe(false);
+  });
+
+  it("keeps places with null periods when whenMode='custom' (unknown passes through)", () => {
+    const today = new Date(2026, 4, 27, 10, 0, 0);
+    const customFilters: Filters = { ...baseFilters, whenMode: "custom", day: "0", hour: "12" };
+    expect(matchesFilters(restaurant({ periods: null }), customFilters, today)).toBe(true);
   });
 });
 

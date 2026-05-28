@@ -108,7 +108,48 @@ describe("adaptPlace", () => {
     );
     expect(r.openNow).toBeNull();
     expect(r.hours).toBeNull();
+    expect(r.periods).toBeNull();
     expect(r.websiteUrl).toBeNull();
     expect(r.website).toBe(false);
+  });
+
+  it("adapts Places regularOpeningHours.periods into structured intervals", () => {
+    const r = adaptPlace(
+      {
+        id: "pl_007",
+        displayName: { text: "Hours Place" },
+        location: { latitude: 40.7, longitude: -74.0 },
+        types: ["restaurant"],
+        regularOpeningHours: {
+          periods: [
+            { open: { day: 1, hour: 9, minute: 0 }, close: { day: 1, hour: 22, minute: 30 } },
+            { open: { day: 6, hour: 22, minute: 0 }, close: { day: 0, hour: 2, minute: 0 } },
+          ],
+        },
+      },
+      center,
+      7,
+    );
+    expect(r.periods).toEqual([
+      { open: { day: 1, hour: 9, minute: 0 }, close: { day: 1, hour: 22, minute: 30 } },
+      { open: { day: 6, hour: 22, minute: 0 }, close: { day: 0, hour: 2, minute: 0 } },
+    ]);
+  });
+
+  it("preserves 24-hour periods (single open with no close)", () => {
+    const r = adaptPlace(
+      {
+        id: "pl_008",
+        displayName: { text: "24-Hour Diner" },
+        location: { latitude: 40.7, longitude: -74.0 },
+        types: ["diner"],
+        regularOpeningHours: {
+          periods: [{ open: { day: 0, hour: 0, minute: 0 } }],
+        },
+      },
+      center,
+      8,
+    );
+    expect(r.periods).toEqual([{ open: { day: 0, hour: 0, minute: 0 } }]);
   });
 });

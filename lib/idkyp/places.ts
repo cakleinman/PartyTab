@@ -1,4 +1,4 @@
-import type { LatLng, Restaurant } from "./types";
+import type { LatLng, OpeningPeriod, Restaurant } from "./types";
 import {
   distanceMiles,
   estDriveMinutes,
@@ -34,6 +34,7 @@ const PLACES_FIELD_MASK = [
   "places.userRatingCount",
   "places.priceLevel",
   "places.regularOpeningHours.weekdayDescriptions",
+  "places.regularOpeningHours.periods",
   "places.currentOpeningHours.openNow",
   "places.photos.name",
   "places.websiteUri",
@@ -187,11 +188,59 @@ type PlaceResponse = {
     | "PRICE_LEVEL_EXPENSIVE"
     | "PRICE_LEVEL_VERY_EXPENSIVE"
     | "PRICE_LEVEL_UNSPECIFIED";
-  regularOpeningHours?: { weekdayDescriptions?: string[] };
+  regularOpeningHours?: {
+    weekdayDescriptions?: string[];
+    periods?: {
+      open?: { day?: number; hour?: number; minute?: number };
+      close?: { day?: number; hour?: number; minute?: number };
+    }[];
+  };
   currentOpeningHours?: { openNow?: boolean };
   photos?: { name: string }[];
   websiteUri?: string;
 };
+
+function adaptPeriods(
+  raw: PlaceResponse["regularOpeningHours"] extends infer R
+    ? R extends { periods?: infer P }
+      ? P
+      : never
+    : never,
+): OpeningPeriod[] | null {
+  if (!raw || raw.length === 0) return null;
+  const out: OpeningPeriod[] = [];
+  for (const p of raw) {
+    if (
+      !p.open ||
+      typeof p.open.day !== "number" ||
+      typeof p.open.hour !== "number"
+    ) {
+      continue;
+    }
+    const open = {
+      day: p.open.day,
+      hour: p.open.hour,
+      minute: typeof p.open.minute === "number" ? p.open.minute : 0,
+    };
+    if (
+      !p.close ||
+      typeof p.close.day !== "number" ||
+      typeof p.close.hour !== "number"
+    ) {
+      out.push({ open });
+      continue;
+    }
+    out.push({
+      open,
+      close: {
+        day: p.close.day,
+        hour: p.close.hour,
+        minute: typeof p.close.minute === "number" ? p.close.minute : 0,
+      },
+    });
+  }
+  return out.length === 0 ? null : out;
+}
 
 const PRICE_LEVEL_MAP: Record<string, number> = {
   PRICE_LEVEL_FREE: 1,
@@ -224,6 +273,7 @@ export function adaptPlace(p: PlaceResponse, center: LatLng, id: number): Restau
     photo: PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant,
     photos: [PHOTO_BY_CUISINE[cuisine] ?? PHOTO_BY_CUISINE.Restaurant],
     hours: p.regularOpeningHours?.weekdayDescriptions ?? null,
+    periods: adaptPeriods(p.regularOpeningHours?.periods),
     openNow: typeof p.currentOpeningHours?.openNow === "boolean" ? p.currentOpeningHours.openNow : null,
     realReviews: null,
     website: Boolean(p.websiteUri),

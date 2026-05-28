@@ -17,6 +17,11 @@ export type LatLng = { lat: number; lng: number };
 
 export type RestaurantReview = { text: string; author: string };
 
+/** A single open→close interval from Places `regularOpeningHours.periods`.
+ *  `day` is 0 (Sunday) – 6 (Saturday). `close` omitted for 24-hour places. */
+export type OpeningPoint = { day: number; hour: number; minute: number };
+export type OpeningPeriod = { open: OpeningPoint; close?: OpeningPoint };
+
 export type Restaurant = {
   id: number;
   placeId: string;
@@ -38,6 +43,8 @@ export type Restaurant = {
   hours: string[] | null;
   /** Live open/closed status from Places currentOpeningHours; null if unknown */
   openNow: boolean | null;
+  /** Structured weekly schedule for `isOpenAt` checks; null if Places omitted it */
+  periods: OpeningPeriod[] | null;
   realReviews: RestaurantReview[] | null;
   website: boolean;
   websiteUrl: string | null;
