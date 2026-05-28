@@ -116,12 +116,20 @@ export async function fetchNearbyRestaurants(query: PlacesQuery): Promise<Places
       const photoNames = (allPlaces[i]?.photos ?? [])
         .slice(0, MAX_PHOTOS_PER_PLACE)
         .map((p) => p.name);
-      if (photoNames.length === 0) return r;
+      if (photoNames.length === 0) {
+        console.warn(`[idkyp] no Places photos for ${r.name} (${r.placeId})`);
+        return r;
+      }
       const resolved = await Promise.all(
         photoNames.map((n) => resolvePhotoUrl(n).catch(() => null)),
       );
       const urls = resolved.filter((u): u is string => Boolean(u));
-      if (urls.length === 0) return r;
+      if (urls.length === 0) {
+        console.warn(
+          `[idkyp] all ${photoNames.length} photo resolutions failed for ${r.name} (${r.placeId})`,
+        );
+        return r;
+      }
       return { ...r, photo: urls[0], photos: urls };
     }),
   );

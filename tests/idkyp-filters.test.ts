@@ -63,6 +63,20 @@ describe("matchesFilters", () => {
       }),
     ).toBe(false);
   });
+
+  it("excludes openNow=false places when whenMode='now'", () => {
+    expect(matchesFilters(restaurant({ openNow: false }), baseFilters)).toBe(false);
+  });
+
+  it("keeps openNow=null places when whenMode='now' (unknown hours)", () => {
+    expect(matchesFilters(restaurant({ openNow: null }), baseFilters)).toBe(true);
+  });
+
+  it("does NOT apply openNow filter when whenMode='custom'", () => {
+    expect(
+      matchesFilters(restaurant({ openNow: false }), { ...baseFilters, whenMode: "custom" }),
+    ).toBe(true);
+  });
 });
 
 describe("applyFilters", () => {
