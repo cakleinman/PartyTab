@@ -53,7 +53,8 @@ export function FiltersScreen({
     return Array.from(set).sort();
   }, [allRestaurants, filters]);
 
-  const tooFew = matchCount < 6;
+  const warn = matchCount < 6 || matchCount > 20;
+  const hint = countHint(matchCount);
   const quotaExhausted =
     quota !== null && !quota.unlimited && (quota.remaining ?? 0) <= 0;
   const canStart = matchCount >= 3 && !quotaExhausted;
@@ -78,7 +79,7 @@ export function FiltersScreen({
       <div className="rounded-2xl border border-sand-200 bg-white p-6 text-center">
         <p
           className={`text-5xl font-semibold tracking-tight ${
-            tooFew ? "text-orange-600" : "text-ink-900"
+            warn ? "text-orange-600" : "text-ink-900"
           }`}
         >
           {matchCount}
@@ -86,6 +87,15 @@ export function FiltersScreen({
         <p className="mt-1 text-sm text-ink-500">
           {matchCount === 1 ? "place" : "places"} match your filters
         </p>
+        {hint && (
+          <p
+            className={`mt-1 text-xs ${
+              warn ? "text-orange-600" : "text-ink-400"
+            }`}
+          >
+            {hint}
+          </p>
+        )}
         {matchCount < 3 && (
           <button
             type="button"
@@ -204,7 +214,11 @@ export function FiltersScreen({
                 : "cursor-not-allowed bg-sand-100 text-ink-400"
             }`}
           >
-            Start eliminating →
+            {canStart
+              ? "Start eliminating →"
+              : matchCount === 0
+                ? "No matches"
+                : `Need 3, have ${matchCount}`}
           </button>
         )}
       </div>
@@ -243,6 +257,14 @@ function QuotaBanner({ quota }: { quota: Quota }) {
       )}
     </div>
   );
+}
+
+function countHint(count: number): string {
+  if (count === 0) return "no matches — loosen a filter";
+  if (count < 3) return `need at least 3 (have ${count})`;
+  if (count < 6) return "try loosening";
+  if (count > 20) return "this could take a while";
+  return "";
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
