@@ -218,7 +218,7 @@ export function MapScreen({
           far the form is scrolled, right next to the Continue CTA. Results
           refresh automatically when the pin or radius changes, so there's no
           separate "Search this area" button — failures retry via the banners. */}
-      <div className="sticky bottom-0 -mx-6 border-t border-sand-200 bg-sand-50/95 px-6 py-3 backdrop-blur">
+      <div className="sticky bottom-0 z-[1100] -mx-6 border-t border-sand-200 bg-sand-50/95 px-6 py-3 backdrop-blur">
         <div className="flex items-center justify-between gap-3">
           <p
             className={`text-sm font-medium ${tooFew ? "text-orange-700" : "text-ink-700"}`}
