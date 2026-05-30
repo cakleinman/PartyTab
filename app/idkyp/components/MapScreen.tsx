@@ -93,16 +93,26 @@ export function MapScreen({
             </span>
           )}
           <p
-            className={`rounded-full px-3 py-1 text-xs font-medium ${
-              tooFew ? "bg-orange-50 text-orange-700" : "bg-teal-50 text-teal-700"
+            className={`flex items-baseline gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium ring-1 ${
+              tooFew
+                ? "bg-orange-50 text-orange-700 ring-orange-200"
+                : "bg-teal-50 text-teal-700 ring-teal-200"
             }`}
+            aria-live="polite"
             title={`${matchingCount} ${countLabelSuffix}`}
           >
-            {loading
-              ? "Searching…"
-              : locating
-                ? "Locating…"
-                : `${matchingCount} ${matchingCount === 1 ? "place" : "places"} ${countLabelSuffix}`}
+            {loading ? (
+              "Searching…"
+            ) : locating ? (
+              "Locating…"
+            ) : (
+              <>
+                <span className="text-base font-bold leading-none">{matchingCount}</span>
+                <span>
+                  {matchingCount === 1 ? "place" : "places"} {countLabelSuffix}
+                </span>
+              </>
+            )}
           </p>
         </div>
       </div>
@@ -214,35 +224,23 @@ export function MapScreen({
         />
       </div>
 
-      {/* Sticky action bar keeps the live place count on screen no matter how
-          far the form is scrolled, right next to the Continue CTA. Results
-          refresh automatically when the pin or radius changes, so there's no
-          separate "Search this area" button — failures retry via the banners. */}
+      {/* Sticky action bar keeps Continue reachable without scrolling. The live
+          count lives in the map header pill; results refresh automatically on
+          pin/radius change, so there's no Search button — failures retry via
+          the banners. */}
       <div className="sticky bottom-0 z-[1100] -mx-6 border-t border-sand-200 bg-sand-50/95 px-6 py-3 backdrop-blur">
-        <div className="flex items-center justify-between gap-3">
-          <p
-            className={`text-sm font-medium ${tooFew ? "text-orange-700" : "text-ink-700"}`}
-            aria-live="polite"
-          >
-            {loading
-              ? "Searching…"
-              : locating
-                ? "Locating…"
-                : `${matchingCount} ${matchingCount === 1 ? "place" : "places"} ${countLabelSuffix}`}
-          </p>
-          <button
-            type="button"
-            onClick={onContinue}
-            disabled={!canContinue}
-            className={`rounded-full px-6 py-3 text-sm font-medium transition ${
-              canContinue
-                ? "bg-teal-600 text-white hover:bg-teal-700"
-                : "cursor-not-allowed bg-sand-100 text-ink-400"
-            }`}
-          >
-            Continue →
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onContinue}
+          disabled={!canContinue}
+          className={`w-full rounded-full px-6 py-3 text-sm font-medium transition ${
+            canContinue
+              ? "bg-teal-600 text-white hover:bg-teal-700"
+              : "cursor-not-allowed bg-sand-100 text-ink-400"
+          }`}
+        >
+          Continue →
+        </button>
       </div>
     </div>
   );
