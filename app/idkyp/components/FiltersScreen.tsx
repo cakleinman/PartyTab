@@ -63,7 +63,10 @@ export function FiltersScreen({
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 
   return (
-    <div className="animate-fade-in-up space-y-6">
+    // No animate-fade-in-up wrapper here: that animation ends on
+    // transform: translateY(0) (fill-mode forwards), and a lingering transform
+    // on an ancestor breaks position: sticky for the count header below.
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <button
           type="button"
@@ -76,35 +79,36 @@ export function FiltersScreen({
         <span className="w-12" />
       </div>
 
-      <div className="rounded-2xl border border-sand-200 bg-white p-6 text-center">
-        <p
-          className={`text-5xl font-semibold tracking-tight ${
-            warn ? "text-orange-600" : "text-ink-900"
-          }`}
-        >
-          {matchCount}
-        </p>
-        <p className="mt-1 text-sm text-ink-500">
-          {matchCount === 1 ? "place" : "places"} match your filters
-        </p>
-        {hint && (
-          <p
-            className={`mt-1 text-xs ${
-              warn ? "text-orange-600" : "text-ink-400"
+      {/* Compact count pinned to the top of the viewport so the live match
+          total stays visible while the user scrolls the filter sections —
+          no more scrolling back up to check it. */}
+      <div className="sticky top-0 z-20 -mx-6 border-b border-sand-200 bg-sand-50/95 px-6 py-2.5 backdrop-blur">
+        <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-0.5 text-center">
+          <span
+            className={`text-2xl font-semibold leading-none ${
+              warn ? "text-orange-600" : "text-ink-900"
             }`}
           >
-            {hint}
-          </p>
-        )}
-        {matchCount < 3 && (
-          <button
-            type="button"
-            onClick={() => onChange(defaultFilters())}
-            className="mt-3 text-xs font-medium text-teal-700 underline"
-          >
-            Reset filters
-          </button>
-        )}
+            {matchCount}
+          </span>
+          <span className="text-sm text-ink-500">
+            {matchCount === 1 ? "place" : "places"} match your filters
+          </span>
+          {hint && (
+            <span className={`text-xs ${warn ? "text-orange-600" : "text-ink-400"}`}>
+              · {hint}
+            </span>
+          )}
+          {matchCount < 3 && (
+            <button
+              type="button"
+              onClick={() => onChange(defaultFilters())}
+              className="text-xs font-medium text-teal-700 underline"
+            >
+              Reset filters
+            </button>
+          )}
+        </div>
       </div>
 
       {quota && !quota.unlimited && (
