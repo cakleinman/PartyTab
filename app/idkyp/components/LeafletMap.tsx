@@ -65,6 +65,10 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
 
       const restaurantLayer = L.layerGroup().addTo(map);
 
+      // Frame the whole radius circle on first paint instead of a fixed zoom.
+      programmaticPanRef.current = true;
+      map.fitBounds(radiusCircle.getBounds(), { padding: [24, 24], maxZoom: 16, animate: false });
+
       map.on("move", () => {
         const c = map.getCenter();
         radiusCircle.setLatLng([c.lat, c.lng]);
@@ -108,8 +112,16 @@ export function LeafletMap({ userPin, restaurants, radius, onPinChange }: Props)
     map.setView([userPin.lat, userPin.lng], map.getZoom(), { animate: true });
   }, [userPin]);
 
+  // Resize the radius circle and reframe the map so the whole circle stays in
+  // view — widening the radius zooms out, narrowing zooms back in. Guard the
+  // programmatic move so the resulting moveend isn't echoed back as a pin drag.
   useEffect(() => {
-    radiusCircleRef.current?.setRadius(radius * MILE_IN_METERS);
+    const map = mapRef.current;
+    const circle = radiusCircleRef.current;
+    if (!map || !circle) return;
+    circle.setRadius(radius * MILE_IN_METERS);
+    programmaticPanRef.current = true;
+    map.fitBounds(circle.getBounds(), { padding: [24, 24], maxZoom: 16, animate: true });
   }, [radius]);
 
   // Redraw restaurant markers when restaurants or radius/pin changes

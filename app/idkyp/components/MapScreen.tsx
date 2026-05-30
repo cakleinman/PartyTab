@@ -113,8 +113,7 @@ export function MapScreen({
             {geoStatus === "denied"
               ? "Location access denied"
               : "Couldn’t get your location"}{" "}
-            — drag the pin to your area, then tap{" "}
-            <em className="font-medium text-ink-900">Search this area</em>.
+            — drag the pin to your area and results refresh automatically.
           </p>
           <details className="mt-2 text-xs">
             <summary className="cursor-pointer font-medium text-teal-700">
@@ -151,9 +150,9 @@ export function MapScreen({
 
       {!loading && !errorMessage && !locating && restaurants.length === 0 && geoStatus !== "unknown" && (
         <div className="rounded-2xl border border-sand-200 bg-sand-50 p-3 text-sm text-ink-500">
-          No restaurants found here. Try moving the pin or widening the radius, then{" "}
+          No restaurants found here. Try moving the pin or widening the radius, or{" "}
           <button type="button" onClick={onSearchHere} className="font-medium text-teal-700 underline">
-            Search this area
+            search again
           </button>
           .
         </div>
@@ -215,27 +214,35 @@ export function MapScreen({
         />
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
-        <button
-          type="button"
-          onClick={onSearchHere}
-          disabled={loading || locating}
-          className="rounded-full border border-sand-200 bg-white px-5 py-3 text-sm font-medium text-ink-900 transition hover:bg-sand-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loading ? "Searching…" : "Search this area"}
-        </button>
-        <button
-          type="button"
-          onClick={onContinue}
-          disabled={!canContinue}
-          className={`rounded-full px-5 py-3 text-sm font-medium transition ${
-            canContinue
-              ? "bg-teal-600 text-white hover:bg-teal-700"
-              : "cursor-not-allowed bg-sand-100 text-ink-400"
-          }`}
-        >
-          Continue →
-        </button>
+      {/* Sticky action bar keeps the live place count on screen no matter how
+          far the form is scrolled, right next to the Continue CTA. Results
+          refresh automatically when the pin or radius changes, so there's no
+          separate "Search this area" button — failures retry via the banners. */}
+      <div className="sticky bottom-0 -mx-6 border-t border-sand-200 bg-sand-50/95 px-6 py-3 backdrop-blur">
+        <div className="flex items-center justify-between gap-3">
+          <p
+            className={`text-sm font-medium ${tooFew ? "text-orange-700" : "text-ink-700"}`}
+            aria-live="polite"
+          >
+            {loading
+              ? "Searching…"
+              : locating
+                ? "Locating…"
+                : `${matchingCount} ${matchingCount === 1 ? "place" : "places"} ${countLabelSuffix}`}
+          </p>
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={!canContinue}
+            className={`rounded-full px-6 py-3 text-sm font-medium transition ${
+              canContinue
+                ? "bg-teal-600 text-white hover:bg-teal-700"
+                : "cursor-not-allowed bg-sand-100 text-ink-400"
+            }`}
+          >
+            Continue →
+          </button>
+        </div>
       </div>
     </div>
   );
