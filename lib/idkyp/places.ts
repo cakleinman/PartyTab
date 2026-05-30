@@ -114,11 +114,16 @@ export async function fetchNearbyRestaurants(query: PlacesQuery): Promise<Places
   // placeholder already populated by adaptPlace().
   const restaurants = await Promise.all(
     draft.map(async (r, i) => {
-      const photoNames = (allPlaces[i]?.photos ?? [])
+      let photoNames = (allPlaces[i]?.photos ?? [])
         .slice(0, MAX_PHOTOS_PER_PLACE)
         .map((p) => p.name);
+      // Text Search frequently omits photos that Place Details returns in full.
+      // Fall back to a per-place Details lookup before giving up on real photos.
       if (photoNames.length === 0) {
-        console.warn(`[idkyp] no Places photos for ${r.name} (${r.placeId})`);
+        photoNames = (await fetchPlacePhotoNames(r.placeId)).slice(0, MAX_PHOTOS_PER_PLACE);
+      }
+      if (photoNames.length === 0) {
+        console.warn(`[idkyp] no Places photos for ${r.name} (${r.placeId}) after details fallback`);
         return r;
       }
       const resolved = await Promise.all(
@@ -151,6 +156,27 @@ function filterToRadius(list: Restaurant[], query: PlacesQuery): Restaurant[] {
       };
     })
     .filter((r) => r.distance <= query.radiusMiles);
+}
+
+/**
+ * Fetch photo resource names for a single place via Place Details. Text Search
+ * often returns no `photos` array even when a place has photos; the Details
+ * endpoint returns the canonical list. Best-effort — returns [] on any failure.
+ */
+async function fetchPlacePhotoNames(placeId: string): Promise<string[]> {
+  try {
+    const res = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+      headers: {
+        "X-Goog-Api-Key": process.env.GOOGLE_PLACES_API_KEY!,
+        "X-Goog-FieldMask": "photos.name",
+      },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { photos?: { name: string }[] };
+    return (data.photos ?? []).map((p) => p.name);
+  } catch {
+    return [];
+  }
 }
 
 /**
