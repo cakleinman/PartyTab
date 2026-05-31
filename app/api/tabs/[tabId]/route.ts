@@ -57,6 +57,7 @@ export async function GET(
         confirmedTotalCents,
         estimateCount,
         yourNetCents: userNet,
+        yourParticipantId: participant.id,
         isCreator: tab.createdByUserId === user.id,
         hasProFeatures,
       },

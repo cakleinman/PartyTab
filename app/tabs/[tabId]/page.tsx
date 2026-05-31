@@ -15,6 +15,7 @@ type TabDetail = {
   endDate: string | null;
   totalSpentCents: number;
   yourNetCents: number;
+  yourParticipantId: string;
   isCreator: boolean;
   estimatedTotalCents: number;
   confirmedTotalCents: number;
@@ -39,6 +40,8 @@ type ExpenseSummary = {
 };
 
 type Acknowledgement = {
+  fromParticipantId: string;
+  toParticipantId: string;
   status: "PENDING" | "ACKNOWLEDGED";
 };
 
@@ -111,6 +114,17 @@ export default function TabDashboard() {
   if (error || !tab) {
     return <p className="text-sm text-ink-500">{error ?? "Tab not found."}</p>;
   }
+
+  // Personal settlement state: which transfers involve me, and are they all confirmed?
+  const myTransfers = acknowledgements.filter(
+    (ack) =>
+      ack.fromParticipantId === tab.yourParticipantId ||
+      ack.toParticipantId === tab.yourParticipantId,
+  );
+  const youAreSettled =
+    myTransfers.length > 0 && myTransfers.every((ack) => ack.status === "ACKNOWLEDGED");
+  // Are you the one who owed (paid out) or the one being paid?
+  const youWerePayer = myTransfers.some((ack) => ack.fromParticipantId === tab.yourParticipantId);
 
   return (
     <div className="space-y-8">
@@ -202,13 +216,25 @@ export default function TabDashboard() {
                       ? "Everyone's squared away."
                       : `${confirmedCount} of ${totalTransfers} payments confirmed`}
                   </p>
+                  {!isComplete && youAreSettled && (
+                    <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600">
+                      <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path
+                          fillRule="evenodd"
+                          d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.6a1 1 0 0 1-1.42.006l-3.5-3.5a1 1 0 1 1 1.414-1.414l2.79 2.79 6.796-6.886a1 1 0 0 1 1.414-.006Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      You&apos;re all settled — just waiting on others.
+                    </p>
+                  )}
                 </div>
               </div>
               <a
                 href={`/tabs/${tabId}/settlement`}
                 className="btn-primary rounded-full px-6 py-3 text-sm font-semibold text-center"
               >
-                {isComplete ? "View details" : "Settle up"}
+                {isComplete || youAreSettled ? "View settlement" : "Settle up"}
               </a>
             </div>
           </div>
@@ -229,7 +255,25 @@ export default function TabDashboard() {
         </div>
         <div className="rounded-3xl border border-sand-200 bg-white/80 p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-ink-500">Your net</p>
-          {tab.yourNetCents === 0 ? (
+          {youAreSettled ? (
+            <>
+              <p className="mt-2 inline-flex items-center gap-1.5 text-2xl font-semibold text-green-600">
+                <svg className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fillRule="evenodd"
+                    d="M16.704 5.29a1 1 0 0 1 .006 1.414l-7.5 7.6a1 1 0 0 1-1.42.006l-3.5-3.5a1 1 0 1 1 1.414-1.414l2.79 2.79 6.796-6.886a1 1 0 0 1 1.414-.006Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Settled
+              </p>
+              <p className="mt-1 text-sm text-ink-500">
+                {youWerePayer
+                  ? "Your payment's confirmed — you're cleared."
+                  : "Everyone's paid you back."}
+              </p>
+            </>
+          ) : tab.yourNetCents === 0 ? (
             <>
               <p className="mt-2 text-2xl font-semibold">Even</p>
               <p className="mt-1 text-sm text-ink-500">You&apos;re all squared up.</p>
