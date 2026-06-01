@@ -8,7 +8,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "Splitting Grocery Bills with Roommates: A Survival Guide | PartyTab",
   description:
-    "Rent is easy to split. Groceries? That&apos;s where roommate tensions brew. Learn the hybrid system, tracking tips, and how to handle common flash points.",
+    "Rent is easy to split. Groceries? That's where roommate tensions brew. Learn the hybrid system, tracking tips, and how to handle common flash points.",
   keywords: [
     "split groceries roommates",
     "share grocery bill fairly",

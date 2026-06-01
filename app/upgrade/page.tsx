@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import UpgradeClient from "./UpgradeClient";
+import { ProPlanJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -24,5 +25,10 @@ export const metadata: Metadata = {
 };
 
 export default function UpgradePage() {
-  return <UpgradeClient />;
+  return (
+    <>
+      <ProPlanJsonLd />
+      <UpgradeClient />
+    </>
+  );
 }

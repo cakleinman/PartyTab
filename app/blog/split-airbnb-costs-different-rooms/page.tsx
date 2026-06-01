@@ -19,14 +19,14 @@ export const metadata: Metadata = {
     openGraph: {
         type: "article",
         title: "How to Split Airbnb Costs Fairly When Rooms Are Different Sizes",
-        description: "4 proven methods for splitting rental costs when rooms aren&apos;t equal.",
+        description: "4 proven methods for splitting rental costs when rooms aren't equal.",
         url: "https://partytab.app/blog/split-airbnb-costs-different-rooms",
         images: OG_IMAGE,
     },
     twitter: {
         card: "summary_large_image",
         title: "How to Split Airbnb Costs Fairly When Rooms Are Different Sizes",
-        description: "4 proven methods for splitting rental costs when rooms aren&apos;t equal.",
+        description: "4 proven methods for splitting rental costs when rooms aren't equal.",
         images: TWITTER_IMAGE,
     },
     alternates: {

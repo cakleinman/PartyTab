@@ -8,7 +8,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 export const metadata: Metadata = {
   title: "How to Split a Costco Run with Friends | PartyTab",
   description:
-    "Costco&apos;s prices are unbeatable — but the quantities are designed for families. Learn how to split a bulk shopping run with friends and keep the savings.",
+    "Costco's prices are unbeatable — but the quantities are designed for families. Learn how to split a bulk shopping run with friends and keep the savings.",
   keywords: [
     "split costco bill friends",
     "how to divide costco haul",

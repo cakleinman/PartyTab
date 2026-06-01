@@ -8,7 +8,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 export const metadata: Metadata = {
   title: "The Hidden Cost of \"I'll Get This One\": Why Round-Robin Paying Fails | PartyTab",
   description:
-    "&quot;I&apos;ll get this one, you get the next.&quot; Sounds fair — until meal costs vary wildly, memory fails, and someone ends up $200 behind. Here&apos;s why taking turns paying almost never works out evenly.",
+    "\"I'll get this one, you get the next.\" Sounds fair — until meal costs vary wildly, memory fails, and someone ends up $200 behind. Here's why taking turns paying almost never works out evenly.",
   keywords: [
     "taking turns paying doesn't work",
     "round robin paying friends",

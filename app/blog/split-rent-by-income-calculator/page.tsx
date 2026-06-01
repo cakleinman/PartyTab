@@ -8,7 +8,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 export const metadata: Metadata = {
   title: "How to Split Rent Fairly Based on Income (With Calculator Logic) | PartyTab",
   description:
-    "You make $80k. Your partner makes $50k. Splitting rent 50/50 isn&apos;t fair. Learn how to split rent proportionally based on income with step-by-step examples.",
+    "You make $80k. Your partner makes $50k. Splitting rent 50/50 isn't fair. Learn how to split rent proportionally based on income with step-by-step examples.",
   keywords: [
     "split rent based on income",
     "income based rent calculator",

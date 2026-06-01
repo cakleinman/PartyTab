@@ -8,7 +8,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 export const metadata: Metadata = {
   title: "How to Split Wedding Costs Between Families (Without a Fight) | PartyTab",
   description:
-    "The old &quot;bride&apos;s family pays for everything&quot; rule is dead. Here are 5 modern approaches to splitting wedding expenses between families, plus how to handle unequal contributions without drama.",
+    "The old \"bride's family pays for everything\" rule is dead. Here are 5 modern approaches to splitting wedding expenses between families, plus how to handle unequal contributions without drama.",
   keywords: [
     "split wedding costs families",
     "who pays for wedding modern",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     type: "article",
     title: "How to Split Wedding Costs Between Families (Without a Fight)",
     description:
-      "The old &quot;bride&apos;s family pays for everything&quot; rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
+      "The old \"bride's family pays for everything\" rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
     url: "https://partytab.app/blog/split-wedding-costs-families",
     images: OG_IMAGE,
   },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "How to Split Wedding Costs Between Families (Without a Fight)",
     description:
-      "The old &quot;bride&apos;s family pays for everything&quot; rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
+      "The old \"bride's family pays for everything\" rule is dead. Here are 5 modern approaches to splitting wedding expenses between families.",
     images: TWITTER_IMAGE,
   },
   alternates: {

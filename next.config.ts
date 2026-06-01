@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
         destination: "/blog/feed.xml",
         permanent: true,
       },
+      // Consolidate the www host onto the bare apex (one canonical host).
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.partytab.app" }],
+        destination: "https://partytab.app/:path*",
+        permanent: true,
+      },
     ];
   },
   async headers() {

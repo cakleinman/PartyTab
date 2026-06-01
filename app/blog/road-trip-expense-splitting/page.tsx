@@ -8,7 +8,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 export const metadata: Metadata = {
   title: "The Complete Guide to Splitting Road Trip Expenses | PartyTab",
   description:
-    "Gas, tolls, food, hotels — road trip expenses add up fast. Here&apos;s how to split costs fairly among passengers, decide if the driver should pay less, and settle up before you get home.",
+    "Gas, tolls, food, hotels — road trip expenses add up fast. Here's how to split costs fairly among passengers, decide if the driver should pay less, and settle up before you get home.",
   keywords: [
     "split road trip costs",
     "road trip expense sharing",
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     type: "article",
     title: "The Complete Guide to Splitting Road Trip Expenses",
     description:
-      "Gas, tolls, food, hotels — road trip expenses add up fast. Here&apos;s how to split costs fairly and settle up before you get home.",
+      "Gas, tolls, food, hotels — road trip expenses add up fast. Here's how to split costs fairly and settle up before you get home.",
     url: "https://partytab.app/blog/road-trip-expense-splitting",
     images: OG_IMAGE,
   },
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The Complete Guide to Splitting Road Trip Expenses",
     description:
-      "Gas, tolls, food, hotels — road trip expenses add up fast. Here&apos;s how to split costs fairly and settle up before you get home.",
+      "Gas, tolls, food, hotels — road trip expenses add up fast. Here's how to split costs fairly and settle up before you get home.",
     images: TWITTER_IMAGE,
   },
   alternates: {
