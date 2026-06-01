@@ -25,6 +25,7 @@ export async function GET() {
 ## Key Pages
 
 - [Home](${BASE}): Landing page with interactive demo and FAQ
+- [About](${BASE}/about): What PartyTab is, who's behind it, and what we stand for
 - [How It Works](${BASE}/how-it-works): 5-step guide to splitting expenses with PartyTab
 - [Upgrade to Pro](${BASE}/upgrade): Plan comparison — Free vs Pro features and pricing
 - [PartyTab vs Splitwise](${BASE}/compare/splitwise): Feature-by-feature comparison with decision guide

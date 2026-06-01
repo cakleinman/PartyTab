@@ -42,6 +42,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: "monthly",
             priority: 0.7,
         },
+        {
+            url: `${baseUrl}/about`,
+            lastModified: new Date("2026-06-01"),
+            changeFrequency: "yearly",
+            priority: 0.5,
+        },
         // Use case landing pages
         {
             url: `${baseUrl}/use-cases`,
