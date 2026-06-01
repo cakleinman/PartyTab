@@ -4,7 +4,7 @@ import { ProPlanJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Upgrade to PartyTab Pro | Receipt Scanning & Payment Reminders",
+  title: "PartyTab Pro — Receipt Scanning & Payment Reminders",
   description: "Compare PartyTab plans. Free bill splitting for everyone, or upgrade to Pro for AI receipt scanning, item-level claiming, and automated payment reminders.",
   openGraph: {
     title: "Upgrade to PartyTab Pro | Receipt Scanning & Payment Reminders",

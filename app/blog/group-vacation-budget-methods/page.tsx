@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "Budgeting for a Group Vacation: The \"Envelope\" Method vs. Apps | PartyTab",
+    title: "Group Vacation Budget: Envelope vs. Apps | PartyTab",
     description:
         "Should you collect money upfront or track-and-settle later? Compare the envelope method vs. expense tracking apps for group trips.",
     keywords: [

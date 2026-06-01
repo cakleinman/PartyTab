@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "Ski Trip Budget: How to Split Costs With Your Crew | PartyTab",
+    title: "Ski Trip Budget Guide: Splitting Costs | PartyTab",
     description:
         "Planning a ski weekend with friends? Here's how to budget for lodging, lift tickets, rentals, and après-ski—plus fair ways to split the costs.",
     keywords: [

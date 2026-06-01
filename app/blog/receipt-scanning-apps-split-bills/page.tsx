@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title: "Top 5 Receipt Scanning Apps That Split Bills by Item | PartyTab",
+  title: "Top 5 Receipt Scanning Apps for Splitting Bills | PartyTab",
   description:
     "Compare the best receipt scanning apps for itemized bill splitting. AI-powered OCR, item-level claiming, and automatic tax/tip calculation reviewed.",
   keywords: [

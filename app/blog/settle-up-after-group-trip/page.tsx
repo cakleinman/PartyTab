@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "How to Settle Up After a Group Trip (Without 50 Venmo Transactions) | PartyTab",
+    title: "How to Settle Up After a Group Trip | PartyTab",
     description:
         "Minimize group payments and settle vacation expenses the smart way. Learn the greedy algorithm for settling up with fewer transactions.",
     keywords: [

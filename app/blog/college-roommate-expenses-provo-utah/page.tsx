@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "The BYU & UVU Student's Guide to Splitting Roommate Expenses in Provo | PartyTab",
+    title: "Provo Roommate Expenses: BYU & UVU Guide | PartyTab",
     description:
         "Real Provo prices, cleaning check fines, WinCo grocery runs, and utility splitting for BYU and UVU students. A practical guide to managing shared expenses in college apartments.",
     keywords: [

@@ -6,7 +6,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "How to Split Wedding Costs Between Families (Without a Fight) | PartyTab",
+  title: "How to Split Wedding Costs Between Families | PartyTab",
   description:
     "The old \"bride's family pays for everything\" rule is dead. Here are 5 modern approaches to splitting wedding expenses between families, plus how to handle unequal contributions without drama.",
   keywords: [

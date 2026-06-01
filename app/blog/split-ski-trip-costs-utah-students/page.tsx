@@ -6,7 +6,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "How to Split a Ski Day Trip from Provo (Without Losing Friends) | PartyTab",
+    title: "How to Split Ski Day Trip Costs from Provo | PartyTab",
     description:
         "Real drive times, lift ticket prices, and gas costs for skiing from Provo. Sundance, Brighton, Park City, and more—plus how to split the 4 expenses that cause arguments.",
     keywords: [

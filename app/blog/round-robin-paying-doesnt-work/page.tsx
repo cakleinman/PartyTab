@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title: "The Hidden Cost of \"I'll Get This One\": Why Round-Robin Paying Fails | PartyTab",
+  title: "Why Round-Robin Paying Never Works Out | PartyTab",
   description:
     "\"I'll get this one, you get the next.\" Sounds fair — until meal costs vary wildly, memory fails, and someone ends up $200 behind. Here's why taking turns paying almost never works out evenly.",
   keywords: [

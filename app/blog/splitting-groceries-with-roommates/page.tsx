@@ -6,7 +6,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Splitting Grocery Bills with Roommates: A Survival Guide | PartyTab",
+  title: "Splitting Grocery Bills With Roommates | PartyTab",
   description:
     "Rent is easy to split. Groceries? That's where roommate tensions brew. Learn the hybrid system, tracking tips, and how to handle common flash points.",
   keywords: [

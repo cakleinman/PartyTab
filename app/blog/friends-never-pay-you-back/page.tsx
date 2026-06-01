@@ -6,8 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title:
-    "Why 30% of Borrowed Money is Never Repaid (And How to Stop Being a Statistic) | PartyTab",
+  title: "Why 30% of Borrowed Money Is Never Repaid | PartyTab",
   description:
     "77% of Americans have lent money to a friend, but 32% never got it back. Dive into the brutal statistics and learn how to protect yourself when lending to friends.",
   keywords: [

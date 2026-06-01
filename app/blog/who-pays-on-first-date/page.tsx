@@ -6,7 +6,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "Dating and Money: Who Pays on the First Date in 2026? | PartyTab",
+    title: "Who Pays on the First Date? (2026) | PartyTab",
     description:
         "It's 2026 and we still can't agree on this one. Here's what the data says, what etiquette experts recommend, and how to handle it without making things weird.",
     keywords: [

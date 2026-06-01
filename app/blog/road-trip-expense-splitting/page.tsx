@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title: "The Complete Guide to Splitting Road Trip Expenses | PartyTab",
+  title: "How to Split Road Trip Expenses | PartyTab",
   description:
     "Gas, tolls, food, hotels — road trip expenses add up fast. Here's how to split costs fairly among passengers, decide if the driver should pay less, and settle up before you get home.",
   keywords: [

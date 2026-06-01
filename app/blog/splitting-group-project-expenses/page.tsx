@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "How to Split Group Project Expenses (School & Work) | PartyTab",
+    title: "How to Split Group Project Expenses | PartyTab",
     description:
         "Working on a group project with shared costs? Here's how to fairly split expenses for supplies, software, printing, and meals without team drama.",
     keywords: [

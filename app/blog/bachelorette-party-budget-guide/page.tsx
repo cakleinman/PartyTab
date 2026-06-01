@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "The Ultimate Bachelorette Party Budget Guide (2026) | PartyTab",
+    title: "Bachelorette Party Budget Guide (2026) | PartyTab",
     description:
         "Planning a bachelorette party? Here's how to budget for the bride tribe, split costs fairly, and throw an unforgettable celebration without breaking the bank.",
     keywords: [

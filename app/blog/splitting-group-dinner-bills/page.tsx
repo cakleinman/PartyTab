@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "How to Split a Group Dinner Bill Without the Awkwardness | PartyTab",
+    title: "How to Split a Group Dinner Bill | PartyTab",
     description:
         "6 ways to split a restaurant bill fairly: equal split, itemized, apps, and more. Plus how to handle the friend who always orders the expensive steak.",
     keywords: [

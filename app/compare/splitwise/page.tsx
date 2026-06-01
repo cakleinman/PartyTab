@@ -4,7 +4,7 @@ import { FaqPageJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "PartyTab vs Splitwise - Best Bill Splitting App Comparison 2026",
+    title: "PartyTab vs Splitwise: Bill Splitting Compared (2026)",
     description:
         "Compare PartyTab and Splitwise: features, pricing, and ease of use. Find out which bill splitting app is right for you.",
     keywords: [

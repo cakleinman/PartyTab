@@ -6,7 +6,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Splitting a Birthday Dinner: Should the Birthday Person Pay? | PartyTab",
+  title: "Who Pays for a Birthday Dinner? | PartyTab",
   description:
     "The check arrives. It's your friend's birthday. Who pays? The answer depends on one thing: who planned it. Here's the etiquette guide for birthday dinners.",
   keywords: [

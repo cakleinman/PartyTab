@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "How to Split Airbnb Costs Fairly When Rooms Are Different Sizes | PartyTab",
+    title: "How to Split Airbnb Costs by Room Size | PartyTab",
     description:
         "Master bedroom vs pull-out couch? Here's how to split vacation rental costs fairly when rooms aren't equal—4 methods with real examples.",
     keywords: [

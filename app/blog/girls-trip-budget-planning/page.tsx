@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "Girls Trip Budget Planning: Split Costs & Avoid Drama | PartyTab",
+    title: "Girls Trip Budget Planning & Cost Splitting | PartyTab",
     description:
         "Planning a girls trip? Here's how to budget, split costs fairly, and keep everyone happy—from choosing the destination to settling up after.",
     keywords: [

@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "How to Split Holiday Expenses With Family (Without the Drama) | PartyTab",
+    title: "How to Split Holiday Expenses With Family | PartyTab",
     description:
         "Family holidays get expensive fast. Here's how to fairly split costs for Thanksgiving, Christmas, or family reunions without awkward money conversations.",
     keywords: [

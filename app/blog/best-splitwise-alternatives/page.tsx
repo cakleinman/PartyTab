@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "7 Best Splitwise Alternatives in 2026 (No Daily Limits) | PartyTab",
+    title: "7 Best Splitwise Alternatives in 2026 | PartyTab",
     description:
         "Frustrated by Splitwise's daily expense limits? Here are 7 free alternatives that let you split bills without restrictions.",
     keywords: [

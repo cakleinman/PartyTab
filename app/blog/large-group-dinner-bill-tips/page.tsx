@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title: "Large Group Dinners: How to Handle the Bill Without Chaos | PartyTab",
+  title: "Large Group Dinners: Handling the Bill | PartyTab",
   description:
     "Dinner with 12 friends was incredible — until the waiter drops one check. Here's how to split large group restaurant bills without post-dinner chaos.",
   keywords: [

@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title: "Is It Rude to Split the Bill Evenly? The 2026 Etiquette Guide | PartyTab",
+  title: "Is It Rude to Split the Bill Evenly? | PartyTab",
   description:
     "You ordered a salad. Your friend had steak and cocktails. Is it rude to split evenly? Here's what etiquette experts say about fair bill splitting in 2026.",
   keywords: [

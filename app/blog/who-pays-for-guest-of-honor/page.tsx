@@ -6,7 +6,7 @@ import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema"
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "Bachelor/ette Party Expenses: Who Pays for the Guest of Honor? | PartyTab",
+    title: "Who Pays for the Bachelor/ette Guest of Honor? | PartyTab",
     description:
         "The average bachelor/ette party costs $1,300-$1,500 per guest. Here's exactly what the group covers for the guest of honor and what they don't.",
     keywords: [

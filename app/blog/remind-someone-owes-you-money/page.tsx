@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-  title: "How to Remind Someone They Owe You Money (Copy-Paste Text Templates) | PartyTab",
+  title: "How to Remind Someone They Owe You Money | PartyTab",
   description:
     "Awkward asking friends for money back? Use these 8 proven text message templates to politely remind someone they owe you money without damaging the friendship.",
   keywords: [

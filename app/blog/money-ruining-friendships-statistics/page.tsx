@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "36% of Friends Split Up Over Money: How to Proof Your Friendships | PartyTab",
+    title: "36% of Friends Split Up Over Money | PartyTab",
     description:
         "Money is the fourth largest cause of friendship stress. Here's the data on how money destroys friendships—and how to prevent it from happening to you.",
     keywords: [

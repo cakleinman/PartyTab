@@ -6,7 +6,7 @@ import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 
 export const metadata: Metadata = {
-    title: "How to Split Rent Fairly When Rooms Aren't Equal (2026) | PartyTab",
+    title: "Split Rent Fairly When Rooms Aren't Equal | PartyTab",
     description:
         "The master bedroom shouldn't cost the same as the tiny room by the closet. Here are 5 fair methods to split rent when bedrooms differ in size, light, or amenities.",
     keywords: [

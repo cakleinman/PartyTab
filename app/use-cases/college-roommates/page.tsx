@@ -4,7 +4,7 @@ import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
-    title: "College Roommate Expense Splitter | BYU & UVU Students | PartyTab",
+    title: "College Roommate Expense Splitter (BYU/UVU) | PartyTab",
     description:
         "Split rent, utilities, groceries, and cleaning check fines with college roommates. Built for 4-6 person apartments. No app download.",
     keywords: [
