@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import UpgradeClient from "./UpgradeClient";
-import { ProPlanJsonLd } from "@/app/components/JsonLdSchema";
+import { ProPlanJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -28,6 +28,12 @@ export default function UpgradePage() {
   return (
     <>
       <ProPlanJsonLd />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: "https://partytab.app" },
+          { name: "Upgrade to Pro", url: "https://partytab.app/upgrade" },
+        ]}
+      />
       <UpgradeClient />
     </>
   );

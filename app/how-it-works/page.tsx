@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { HowToJsonLd, FaqPageJsonLd } from "@/app/components/JsonLdSchema";
+import { HowToJsonLd, FaqPageJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -100,6 +100,12 @@ const FEATURES = [
 export default function HowItWorksPage() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "How It Works", url: "https://partytab.app/how-it-works" },
+                ]}
+            />
             <HowToJsonLd
                 name="How to split group expenses with PartyTab"
                 description="Split group expenses for trips, dinners, and roommates in 5 simple steps — no app download required."

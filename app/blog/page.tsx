@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublishedPosts } from "./posts";
+import { BreadcrumbJsonLd, ItemListJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 // Revalidate daily so scheduled posts appear on their publish date
@@ -36,6 +37,18 @@ export default function BlogPage() {
 
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Blog", url: "https://partytab.app/blog" },
+                ]}
+            />
+            <ItemListJsonLd
+                items={publishedPosts.map((post) => ({
+                    name: post.title,
+                    url: `https://partytab.app/blog/${post.slug}`,
+                }))}
+            />
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>

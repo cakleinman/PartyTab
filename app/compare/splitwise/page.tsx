@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaqPageJsonLd } from "@/app/components/JsonLdSchema";
+import { FaqPageJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -111,6 +111,12 @@ function FeatureCell({ value }: { value: boolean | string }) {
 export default function CompareSplitwisePage() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "PartyTab vs Splitwise", url: "https://partytab.app/compare/splitwise" },
+                ]}
+            />
             {/* Breadcrumb */}
             <nav className="text-sm text-ink-500 mb-8">
                 <Link href="/" className="hover:text-teal-600">Home</Link>
@@ -291,6 +297,50 @@ export default function CompareSplitwisePage() {
                         </div>
                     </li>
                 </ul>
+            </div>
+
+            {/* The real difference */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold text-ink-900 mb-4">
+                    The Real Difference: Apps vs. a Shared Link
+                </h2>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Splitwise and PartyTab solve the same problem in fundamentally different
+                    ways. Splitwise is a full mobile app with accounts: everyone in the group
+                    downloads it, signs up, and adds each other as friends before you can split
+                    a single dinner. That model is powerful for people who track expenses
+                    constantly and want a running balance with every friend over years.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    PartyTab is built around a single shared link. One person starts a tab and
+                    sends the URL to the group chat; everyone else taps it and starts adding
+                    expenses&mdash;no download, no sign-up, no friend requests. That removes the
+                    biggest source of friction in group splitting: the one or two people who
+                    never get around to installing the app and quietly break the whole system.
+                </p>
+                <h3 className="text-xl font-semibold text-ink-900 mb-3">
+                    When PartyTab is the better choice
+                </h3>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Choose PartyTab for one-off and short-lived groups&mdash;a bachelor party, a
+                    ski weekend, a group dinner, a semester with roommates&mdash;where chasing
+                    everyone to install an app isn&apos;t worth it. It&apos;s free with no ads
+                    and no expense limits, the settlement math minimizes the number of payments,
+                    and anyone can join in seconds. Because there&apos;s no account required,
+                    it&apos;s also the easier sell to a group where not everyone is comfortable
+                    signing up for a finance app.
+                </p>
+                <h3 className="text-xl font-semibold text-ink-900 mb-3">
+                    When Splitwise might fit better
+                </h3>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    If you want a permanent app that tracks ongoing balances with the same people
+                    indefinitely, integrates directly with payment providers, and you don&apos;t
+                    mind everyone creating an account, Splitwise&apos;s longer track record and
+                    larger install base are real advantages. The trade-off is the friction of
+                    onboarding and, on the free tier, limits on how many expenses you can add per
+                    day.
+                </p>
             </div>
 
             {/* CTA */}

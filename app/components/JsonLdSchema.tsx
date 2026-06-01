@@ -303,6 +303,33 @@ export function FaqPageJsonLd({
 }
 
 /**
+ * ItemList JSON-LD — for index/collection pages (blog index, use-cases index).
+ */
+export function ItemListJsonLd({
+    items,
+}: {
+    items: { name: string; url: string }[];
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        itemListElement: items.map((item, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: item.name,
+            url: item.url,
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+    );
+}
+
+/**
  * BreadcrumbList JSON-LD — used on blog posts and use-case pages
  */
 export function BreadcrumbJsonLd({

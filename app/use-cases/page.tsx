@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BreadcrumbJsonLd, ItemListJsonLd } from "@/app/components/JsonLdSchema";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -73,6 +74,24 @@ const useCases = [
 export default function UseCasesPage() {
     return (
         <div className="max-w-4xl mx-auto py-8 px-4">
+            <BreadcrumbJsonLd
+                items={[
+                    { name: "Home", url: "https://partytab.app" },
+                    { name: "Use Cases", url: "https://partytab.app/use-cases" },
+                ]}
+            />
+            <ItemListJsonLd
+                items={useCases.map((uc) => ({
+                    name: uc.title,
+                    url: `https://partytab.app/use-cases/${uc.slug}`,
+                }))}
+            />
+            {/* Breadcrumb */}
+            <nav className="text-sm text-ink-500 mb-8">
+                <Link href="/" className="hover:text-teal-600">Home</Link>
+                <span className="mx-2">→</span>
+                <span className="text-ink-900">Use Cases</span>
+            </nav>
             {/* Hero */}
             <div className="text-center mb-16">
                 <h1 className="text-4xl sm:text-5xl font-bold text-ink-900 mb-4">
