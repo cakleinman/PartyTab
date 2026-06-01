@@ -12,9 +12,9 @@ export function AuthorBio() {
       <div>
         <p className="font-semibold text-ink-900">The PartyTab Team</p>
         <p className="text-sm text-ink-600 mt-1">
-          We build tools that make splitting expenses simple. Our team has
-          managed shared costs across hundreds of trips, dinners, and roommate
-          situations — and we write about what we&apos;ve learned.
+          PartyTab is an independent bill-splitting app. We write about
+          splitting expenses with friends — the awkward parts included — drawn
+          from building the app and using it ourselves.
         </p>
         <Link
           href="/how-it-works"
