@@ -556,7 +556,7 @@ export default function LandingPage() {
         <h2 className="text-2xl sm:text-3xl font-bold text-sand-50 mb-4">
           Start splitting expenses in seconds.
         </h2>
-        <p className="text-ink-500 mb-8 max-w-lg mx-auto text-sm sm:text-base">
+        <p className="text-ink-300 mb-8 max-w-lg mx-auto text-sm sm:text-base">
           Create a tab in seconds. App download optional.
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
