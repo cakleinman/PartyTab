@@ -370,9 +370,9 @@ export default function FriendsNeverPayBackPage() {
         </p>
 
         <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-          <h4 className="font-semibold text-teal-900 mb-2">
+          <h3 className="font-semibold text-teal-900 mb-2">
             Track Shared Expenses—Not IOUs
-          </h4>
+          </h3>
           <p className="text-teal-800 text-sm mb-4">
             PartyTab tracks who owes what in real time, so there are no forgotten debts or
             awkward conversations. Split expenses as they happen, settle up when you&apos;re
