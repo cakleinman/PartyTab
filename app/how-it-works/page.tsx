@@ -266,7 +266,7 @@ export default function HowItWorksPage() {
                 >
                     Start a PartyTab →
                 </Link>
-                <p className="text-sm text-ink-400 mt-3">Free forever. No credit card required.</p>
+                <p className="text-sm text-ink-300 mt-3">Free forever. No credit card required.</p>
             </div>
 
             {/* Related Articles */}

@@ -378,7 +378,7 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                     >
                         Create a Free Tab →
                     </Link>
-                    <p className="text-sm text-ink-400 mt-3">No app download. No account required.</p>
+                    <p className="text-sm text-ink-300 mt-3">No app download. No account required.</p>
                 </div>
             </div>
 

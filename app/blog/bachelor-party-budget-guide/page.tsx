@@ -468,7 +468,7 @@ export default function BachelorPartyBudgetGuidePage() {
                     >
                         Start Your Bachelor Party Tab →
                     </Link>
-                    <p className="text-sm text-ink-400 mt-3">Free. No app download needed.</p>
+                    <p className="text-sm text-ink-300 mt-3">Free. No app download needed.</p>
                 </div>
             </div>
 

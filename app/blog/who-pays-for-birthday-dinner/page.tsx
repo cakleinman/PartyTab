@@ -402,7 +402,7 @@ export default function WhoPaysBirthdayDinnerPage() {
           >
             Start a Tab — Free Forever
           </Link>
-          <p className="text-sm text-ink-400 mt-3">
+          <p className="text-sm text-ink-300 mt-3">
             No credit card required. Works on any device.
           </p>
         </div>
