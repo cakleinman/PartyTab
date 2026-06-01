@@ -1,7 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { FaqSection } from "@/app/components/FaqSection";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
+
+const FAQS = [
+    {
+        question: "Should you split a group dinner bill evenly or by item?",
+        answer: "It depends on how different the orders were. If everyone ate and drank roughly the same, an even split is fastest and fairest. But when one person had a $60 steak and three cocktails while another had a salad and water, splitting by item is the fair move. PartyTab supports both — split the whole bill evenly, or assign items to the people who ordered them.",
+    },
+    {
+        question: "How do you split tax and tip fairly?",
+        answer: "Distribute tax and tip in proportion to what each person ordered, not as a flat per-head charge. Someone whose food cost twice as much should cover twice the tax and tip. PartyTab does this automatically on a custom split, so you never have to do the percentage math at the table.",
+    },
+    {
+        question: "What's the polite way to ask everyone to pay their share?",
+        answer: "Share the tab link instead of chasing people one by one. A neutral, itemized breakdown everyone can see takes the awkwardness out of it — there's no debate about who owes what because the numbers are right there. A simple 'here's the tab, settle whenever' message does the rest.",
+    },
+    {
+        question: "How do you split a bill when one person paid the whole check?",
+        answer: "Log the full amount under whoever's card it went on, then split it across the group. PartyTab records that person as having paid and everyone else as owing their share, then nets it into the fewest transfers — so whoever fronted the check gets made whole quickly.",
+    },
+    {
+        question: "Can you split a restaurant bill without everyone downloading an app?",
+        answer: "Yes. PartyTab works in any browser. One person starts the tab and sends the link; everyone else opens it to see the split and pay their part — no app install and no account needed to join.",
+    },
+];
 
 export const metadata: Metadata = {
     title: "Group Dinner Bill Splitter | PartyTab",
@@ -199,6 +223,52 @@ export default function GroupDinnersPage() {
                     </li>
                 </ul>
             </div>
+
+            {/* Deep dive */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold text-ink-900 mb-4">
+                    How to Split a Group Dinner Bill Fairly
+                </h2>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    The check lands in the middle of the table and the energy shifts. Someone
+                    ordered the market-price fish and a bottle of wine; someone else had a bowl
+                    of soup. &ldquo;Let&apos;s just split it evenly&rdquo; is easy, but it quietly
+                    overcharges the light eaters every time&mdash;and over a regular friend group
+                    that adds up.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    There are two fair ways to handle it, and the right one depends on the table:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Even split</strong> when everyone
+                            ordered comparably and shared plates. One tap, done.
+                        </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Split by item</strong> when orders
+                            varied a lot. Assign each dish to whoever ordered it and let PartyTab
+                            spread tax and tip proportionally&mdash;so the soup-and-water guest
+                            isn&apos;t subsidizing the surf and turf.
+                        </p>
+                    </li>
+                </ul>
+                <h3 className="text-lg font-semibold text-ink-900 mb-3">A quick example</h3>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Five friends grab dinner and the bill is $200 before a 20% tip. Four of them
+                    ordered $30 entrées; the fifth had a $20 salad. An even split would charge
+                    everyone $48&mdash;but the salad eater really owes about $24 with tax and tip,
+                    while the others owe roughly $54 each. PartyTab works that out instantly and,
+                    because one person put it all on their card, nets it down to four small
+                    payments back to them rather than five people Venmo-ing in different amounts.
+                </p>
+            </div>
+
+            <FaqSection questions={FAQS} />
 
             {/* Bottom CTA */}
             <div className="text-center bg-ink-900 rounded-3xl p-8">

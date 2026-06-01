@@ -1,7 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { FaqSection } from "@/app/components/FaqSection";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
+
+const FAQS = [
+    {
+        question: "How do you split the cost of a ski cabin rental?",
+        answer: "Lodging is the one ski-trip cost that's almost always split evenly, since everyone uses the cabin equally. The fair tweaks are for sleeping arrangements — a private master might carry a small premium while someone on the pull-out couch pays a bit less. Set those shares once in PartyTab and the nightly rate divides automatically.",
+    },
+    {
+        question: "Should lift tickets be split evenly?",
+        answer: "No — lift tickets should be paid per person, because skiers buy different numbers of days and some of the group may not ski at all. Log each person's tickets individually rather than rolling them into a group pot, so the friend who skied one day isn't paying for someone else's three-day pass.",
+    },
+    {
+        question: "How do you handle people who rent gear versus bring their own?",
+        answer: "Charge rentals only to the people who rent. Gear is a personal cost, not a group one. In PartyTab you add the rental as an expense split among just those renters, so owners who brought their own skis don't subsidize anyone's rental package.",
+    },
+    {
+        question: "How do you split gas and driving costs for a ski trip?",
+        answer: "Split fuel among the people in each car, not the whole group, and consider having passengers chip in to the driver for wear and tear. Add the gas as an expense covering only that vehicle's riders, and PartyTab folds it into the final settlement alongside lodging and food.",
+    },
+    {
+        question: "Do beginners who only ski one day pay the same as everyone else?",
+        answer: "They shouldn't pay the same for skiing, but they still share the lodging and group meals. Split the cabin and shared food evenly, then bill lift tickets, lessons, and rentals per person. That way a beginner who skis a single day pays their fair share of the stay without covering everyone's full mountain costs.",
+    },
+];
 
 export const metadata: Metadata = {
     title: "Ski Trip Expense Splitter & Cost Calculator | PartyTab",
@@ -189,6 +213,53 @@ export default function SkiTripsPage() {
                     </li>
                 </ul>
             </div>
+
+            {/* Deep dive */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold text-ink-900 mb-4">
+                    How to Split Ski Trip Costs Fairly
+                </h2>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Ski trips are deceptively hard to settle because the costs split in opposite
+                    directions. The cabin is shared equally, but everything on the mountain is
+                    personal: one friend skis all three days on a season pass, another buys a
+                    single day ticket, a third never leaves the lodge, and two need full gear
+                    rentals. Split it all evenly and the lodge-sitter ends up funding everyone
+                    else&apos;s lift tickets.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    The fair approach is to sort costs into two buckets:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Split evenly:</strong> the cabin or
+                            condo, groceries, and any group dinners&mdash;costs everyone shares
+                            regardless of skill.
+                        </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Charge per person:</strong> lift
+                            tickets, rentals, lessons, and gas&mdash;split among only the people
+                            who used each one.
+                        </p>
+                    </li>
+                </ul>
+                <h3 className="text-lg font-semibold text-ink-900 mb-3">A quick example</h3>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Four friends rent a $600 cabin for the weekend ($150 each). Two buy $220
+                    two-day lift tickets, one buys a $120 single day, and one skips skiing
+                    entirely. Two of them add $90 gear rentals. Groceries run $160 split four
+                    ways. PartyTab keeps lodging and food even while billing tickets and rentals
+                    to the right people&mdash;then nets the whole weekend into a couple of
+                    transfers instead of a spreadsheet on the drive home.
+                </p>
+            </div>
+
+            <FaqSection questions={FAQS} />
 
             {/* Bottom CTA */}
             <div className="text-center bg-ink-900 rounded-3xl p-8">

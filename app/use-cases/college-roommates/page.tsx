@@ -1,7 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { FaqSection } from "@/app/components/FaqSection";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
+
+const FAQS = [
+    {
+        question: "How do you split bills among 4–6 college roommates?",
+        answer: "Use one shared tab for the whole apartment instead of a tangle of Venmo requests. Each roommate adds the bills they pay — rent, Rocky Mountain Power, internet, grocery runs — and PartyTab tracks everyone's share. With five or six people, the per-payment savings from its settlement math are huge: a month of bills that would be 20+ individual transfers collapses into a handful.",
+    },
+    {
+        question: "How should roommates handle cleaning check fines?",
+        answer: "Cleaning check fines should fall on whoever was responsible for the failed area, not the whole apartment, unless it was a shared space everyone neglected. Log the fine in PartyTab and split it only among the people on the hook — so the roommate who actually cleaned their zone isn't paying for someone else's miss.",
+    },
+    {
+        question: "What happens when a roommate sells their contract mid-semester?",
+        answer: "Settle that roommate up to their move-out date, then add the incoming person to the same tab with a fresh link. Because PartyTab needs no accounts and tracks each expense separately, mid-semester contract turnover — common in Provo and Orem — doesn't mean rebuilding your whole system.",
+    },
+    {
+        question: "How do you split a shared WinCo or Costco grocery run?",
+        answer: "Put genuinely shared staples (paper towels, dish soap, cooking basics) on the tab and split them among the roommates who use them; keep personal food off it. One person can pay at the register and add the shared portion to PartyTab, and everyone else's share is tracked automatically.",
+    },
+    {
+        question: "Is PartyTab free for students?",
+        answer: "Yes. PartyTab is free to use for splitting rent, utilities, and shared expenses, and it runs in your phone's browser with no app download or account required to join a tab. Pro features like AI receipt scanning are optional and not needed for everyday apartment splitting.",
+    },
+];
 
 export const metadata: Metadata = {
     title: "College Roommate Expense Splitter (BYU/UVU) | PartyTab",
@@ -279,6 +303,36 @@ export default function CollegeRoommatesPage() {
                     </li>
                 </ul>
             </div>
+
+            {/* Deep dive */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold text-ink-900 mb-4">
+                    Splitting a Provo Apartment: A Real Example
+                </h2>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Six roommates share a contracted apartment near campus. Rent is $560 each,
+                    but the bills are where it gets messy: one person&apos;s name is on Rocky
+                    Mountain Power, another set up the internet, and the weekly WinCo run rotates.
+                    Add a $30 cleaning-check fine that only the kitchen crew earned, and a
+                    mid-semester contract sale, and a group chat full of &ldquo;who do I Venmo?&rdquo;
+                    is guaranteed.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    On one tab, that whole month resolves cleanly. The power bill is credited to
+                    whoever paid it and split six ways; the internet the same; the $48 WinCo run
+                    splits among the five who eat the shared staples; the cleaning fine lands only
+                    on the two responsible. At the end of the month PartyTab tells each roommate
+                    the single number to send&mdash;and because it minimizes transfers, six people
+                    with a dozen mixed expenses settle in just a few payments instead of dozens.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    When someone sells their contract in the middle of the term, you square them
+                    up to their last day and drop the new roommate in with a link. No accounts, no
+                    spreadsheet, no awkward &ldquo;you still owe from October.&rdquo;
+                </p>
+            </div>
+
+            <FaqSection questions={FAQS} />
 
             {/* Bottom CTA */}
             <div className="text-center bg-ink-900 rounded-3xl p-8">

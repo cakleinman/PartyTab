@@ -1,7 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { FaqSection } from "@/app/components/FaqSection";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
+
+const FAQS = [
+    {
+        question: "How should roommates split rent when bedrooms are different sizes?",
+        answer: "When rooms aren't equal, splitting rent 50/50 rarely feels fair. Common approaches are by square footage, by room desirability (private bath, natural light, closet space), or a simple agreed premium for the larger room. Decide the percentages together once, then record each person's share in PartyTab so it's the same every month with no re-litigating.",
+    },
+    {
+        question: "How do you split utilities between roommates?",
+        answer: "Most households split utilities evenly because usage is hard to meter per person. The friction is usually that one roommate's name is on the bill and they front it every month. Log each bill in PartyTab as it arrives so the person who paid is credited and everyone else's share is tracked — no more fronting hundreds of dollars and hoping to be paid back.",
+    },
+    {
+        question: "What's the fairest way to handle shared groceries?",
+        answer: "Separate truly shared staples (paper towels, dish soap, cooking oil) from personal food. Put shared items on the tab and split them; keep personal groceries off it. PartyTab lets you split a single Costco or grocery run between just the roommates who use those items, so nobody pays for someone else's snacks.",
+    },
+    {
+        question: "How do you keep track of who paid which bill?",
+        answer: "Use one ongoing tab for the apartment instead of a notes app or memory. Every time someone covers rent, a utility, or a shared run, they add it. The running ledger shows exactly who has paid what, and the settlement view shows who owes whom at any moment.",
+    },
+    {
+        question: "What happens when a roommate moves out mid-month?",
+        answer: "Settle the tab up to their move-out date. Because PartyTab tracks every expense individually rather than a single lump sum, you can split shared costs only across the dates and people involved, square up the departing roommate, and keep the tab running for everyone who stays.",
+    },
+];
 
 export const metadata: Metadata = {
     title: "Roommate Bill Splitting App | PartyTab",
@@ -195,6 +219,61 @@ export default function RoommatesPage() {
                     </li>
                 </ul>
             </div>
+
+            {/* Deep dive */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold text-ink-900 mb-4">
+                    How to Split Rent, Utilities, and Shared Bills
+                </h2>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Living together is cheaper than living alone&mdash;until the money gets fuzzy.
+                    One roommate&apos;s name is on the electric bill, another always grabs the
+                    paper towels, and rent is &ldquo;close enough&rdquo; to even. Three months in,
+                    someone&apos;s keeping a running tally in their head and starting to feel taken
+                    advantage of. That resentment, not the dollars, is what actually strains the
+                    apartment.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    A shared tab fixes it by making the math visible to everyone:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Rent</strong> &mdash; set each
+                            person&apos;s share once (evenly, by room size, or by an agreed
+                            premium) and it stays consistent month to month.
+                        </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Utilities</strong> &mdash; whoever&apos;s
+                            name is on the bill logs it when it arrives and is credited for
+                            fronting it, so they aren&apos;t out of pocket waiting to be repaid.
+                        </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Shared supplies</strong> &mdash; split
+                            household staples between the roommates who use them, and leave
+                            personal groceries off the tab entirely.
+                        </p>
+                    </li>
+                </ul>
+                <h3 className="text-lg font-semibold text-ink-900 mb-3">A quick example</h3>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Three roommates share a $2,100 apartment. The biggest bedroom takes a $100
+                    premium, so shares are $800 / $700 / $600. Over the month, one covers the
+                    $150 electric bill, another buys $90 of shared supplies, and the third pays
+                    the $60 internet. Rather than reconciling four separate threads, PartyTab
+                    rolls rent and every shared cost into one ledger and tells each roommate the
+                    single amount to send at month&apos;s end.
+                </p>
+            </div>
+
+            <FaqSection questions={FAQS} />
 
             {/* Bottom CTA */}
             <div className="text-center bg-ink-900 rounded-3xl p-8">

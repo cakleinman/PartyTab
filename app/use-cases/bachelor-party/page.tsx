@@ -1,7 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+import { FaqSection } from "@/app/components/FaqSection";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
+
+const FAQS = [
+    {
+        question: "How do you split bachelor party costs fairly?",
+        answer: "Log every shared expense as it happens and split each one between only the people involved. Even splits work for the Airbnb and group meals, but activities like golf, a club table, or a fishing charter should be split among just the people who joined. PartyTab then nets everything down to the fewest possible payments instead of dozens of separate Venmo requests.",
+    },
+    {
+        question: "Should the groom pay for his own bachelor party?",
+        answer: "Usually not. The standard etiquette is that the group covers the groom's share of group costs — his lodging, dinners, and the main activity. In PartyTab you simply leave the groom off the splits for those expenses, and his portion is distributed across everyone else automatically.",
+    },
+    {
+        question: "What's the average cost of a bachelor party per person?",
+        answer: "A typical weekend runs $300–$900 per person depending on the destination. A local night out might be $150–$250, while a fly-out weekend to Vegas, Nashville, or Miami with lodging and activities often lands at $700–$1,200 once flights are included.",
+    },
+    {
+        question: "How do you handle people who only come for one night?",
+        answer: "Split each expense by who was actually there. If someone joins for Saturday only, include them on Saturday's dinner and bar tab but leave them off Friday's costs. Because PartyTab tracks splits per expense rather than dividing one grand total, part-time attendees only owe for what they were part of.",
+    },
+    {
+        question: "Does everyone need to download an app to chip in?",
+        answer: "No. PartyTab runs entirely in the browser. The organizer creates a tab and shares one link to the group chat — anyone can open it, see the running total, and add expenses without installing anything or creating an account.",
+    },
+];
 
 export const metadata: Metadata = {
     title: "Bachelor Party Expense Splitter | PartyTab",
@@ -210,6 +234,63 @@ export default function BachelorPartyPage() {
                     </li>
                 </ul>
             </div>
+
+            {/* Deep dive */}
+            <div className="mb-12">
+                <h2 className="text-2xl font-bold text-ink-900 mb-4">
+                    How to Split Bachelor Party Costs Fairly
+                </h2>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Bachelor parties break the &ldquo;just split everything evenly&rdquo; rule
+                    fast. One person fronts the Airbnb deposit months early, someone else
+                    covers the first night&apos;s bar tab, and half the group skips the $120
+                    golf round. By Sunday nobody remembers who paid for what&mdash;and the best
+                    man is quietly out $600.
+                </p>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Three things make a bachelor weekend messy to settle, and each has a simple
+                    fix:
+                </p>
+                <ul className="space-y-3 mb-6">
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Big upfront deposits.</strong> Log
+                            the Airbnb, party bus, and bottle service the moment they&apos;re
+                            booked, so the organizer isn&apos;t silently financing the trip for
+                            weeks.
+                        </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">Not everyone does everything.</strong>{" "}
+                            Split the steakhouse between the eight who went, not the two who
+                            stayed in. PartyTab lets you choose exactly who each expense covers.
+                        </p>
+                    </li>
+                    <li className="flex items-start gap-3">
+                        <span className="text-teal-600 mt-1">•</span>
+                        <p className="text-ink-600">
+                            <strong className="text-ink-900">The groom usually doesn&apos;t pay.</strong>{" "}
+                            Leave him off the splits and his share is spread across the rest of
+                            the group&mdash;no awkward side math.
+                        </p>
+                    </li>
+                </ul>
+                <h3 className="text-lg font-semibold text-ink-900 mb-3">A quick example</h3>
+                <p className="text-ink-600 leading-relaxed mb-4">
+                    Six guys spend a weekend away. The best man books a $900 Airbnb. Saturday
+                    dinner is $480 for all six. Five of them hit a club table for $600 (one
+                    headed back early), and the groom&apos;s share of everything is covered by
+                    the other five. Instead of everyone paying everyone, PartyTab calculates
+                    each person&apos;s net balance and produces two or three transfers that
+                    settle the whole weekend&mdash;so the best man gets paid back in minutes,
+                    not in a week of group-chat reminders.
+                </p>
+            </div>
+
+            <FaqSection questions={FAQS} />
 
             {/* Bottom CTA */}
             <div className="text-center bg-ink-900 rounded-3xl p-8">
