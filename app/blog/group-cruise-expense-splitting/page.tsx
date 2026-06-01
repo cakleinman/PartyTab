@@ -274,9 +274,9 @@ export default function GroupCruiseExpenseSplittingPage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Track cruise expenses with PartyTab
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Create a tab before you sail. Share the link to your cruise group
                         chat. Every time someone pays for something shared—excursion, lunch,

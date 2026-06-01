@@ -121,7 +121,7 @@ export default function GirlsTripBudgetPage() {
                 </p>
 
                 <div className="bg-sand-50 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-4">Typical Split</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">Typical Split</h3>
                     <div className="grid md:grid-cols-2 gap-4 text-sm">
                         <div>
                             <p className="font-medium text-ink-900 mb-2">✓ Usually Shared</p>
@@ -177,9 +177,9 @@ export default function GirlsTripBudgetPage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Perfect for girls trips
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         PartyTab lets everyone add expenses from their phone—no app
                         download needed. Share the link, and everyone can see who paid for

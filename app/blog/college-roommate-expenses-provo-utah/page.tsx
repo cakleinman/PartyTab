@@ -116,7 +116,7 @@ export default function CollegeRoommateExpensesProvoPage() {
                 </p>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-4">Monthly Costs Per Person (Provo/Orem)</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">Monthly Costs Per Person (Provo/Orem)</h3>
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-sand-200">
@@ -221,9 +221,9 @@ export default function CollegeRoommateExpensesProvoPage() {
                 </ul>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         A better approach
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-3">
                         Log the grocery trip as one expense on PartyTab, split among
                         everyone who shares the groceries. For mixed carts with personal

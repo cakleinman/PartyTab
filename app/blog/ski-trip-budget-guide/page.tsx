@@ -254,9 +254,9 @@ export default function SkiTripBudgetGuidePage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Perfect for ski trips
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Create a PartyTab, share the link, and everyone logs shared
                         expenses from their phone—even from the chairlift. At the end of

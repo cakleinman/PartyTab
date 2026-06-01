@@ -153,7 +153,7 @@ export default function BachelorettePartyBudgetGuidePage() {
                 </h2>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6 overflow-x-auto">
-                    <h4 className="font-semibold text-ink-900 mb-4">Sample: Austin Weekend (8 people, 2 nights)</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">Sample: Austin Weekend (8 people, 2 nights)</h3>
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-sand-200">
@@ -234,9 +234,9 @@ export default function BachelorettePartyBudgetGuidePage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Perfect for bachelorette groups
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         PartyTab works right in everyone&apos;s browser—no app downloads. Create
                         a tab, share the link to your group chat, and anyone can add

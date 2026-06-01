@@ -212,7 +212,7 @@ export default function BachelorPartyBudgetGuidePage() {
                 </p>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-4">The Standard Split</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">The Standard Split</h3>
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-sand-200">

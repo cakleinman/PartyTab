@@ -371,10 +371,10 @@ export default function SplitCostcoRunWithFriendsPage() {
         </p>
 
         <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-          <h4 className="font-semibold text-teal-900 mb-2">
+          <h3 className="font-semibold text-teal-900 mb-2">
             PartyTab makes post-trip splitting easy — log the receipt and
             divide items
-          </h4>
+          </h3>
           <p className="text-teal-800 text-sm mb-4">
             Scan the Costco receipt, mark which items are shared vs individual,
             and PartyTab calculates who owes what. No spreadsheet math, no

@@ -141,7 +141,7 @@ export default function SplittingHolidayExpensesFamilyPage() {
                 </p>
 
                 <div className="bg-sand-50 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-3">Example Per-Person Split</h4>
+                    <h3 className="font-semibold text-ink-900 mb-3">Example Per-Person Split</h3>
                     <p className="text-sm text-ink-700">
                         Grocery bill: $500<br />
                         Adults: 8 ($40/each)<br />
@@ -239,9 +239,9 @@ export default function SplittingHolidayExpensesFamilyPage() {
                 </ul>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Make it easy on everyone
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Create a PartyTab for your family gathering. Share the link, and
                         anyone can add expenses—no app download needed. Even the

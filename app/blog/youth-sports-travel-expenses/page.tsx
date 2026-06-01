@@ -124,7 +124,7 @@ export default function YouthSportsTravelExpensesPage() {
                 <p><strong>Common approaches:</strong></p>
 
                 <div className="bg-sand-50 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-3">Room Splitting Options</h4>
+                    <h3 className="font-semibold text-ink-900 mb-3">Room Splitting Options</h3>
                     <ul className="space-y-2 text-sm text-ink-700">
                         <li>
                             <strong>Split 50/50 by family:</strong> Simple. Each family pays
@@ -162,7 +162,7 @@ export default function YouthSportsTravelExpensesPage() {
                 </p>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-3">Quick Gas Math</h4>
+                    <h3 className="font-semibold text-ink-900 mb-3">Quick Gas Math</h3>
                     <p className="text-sm text-ink-700">
                         Round trip: 200 miles<br />
                         Rate: $0.67/mile<br />
@@ -232,9 +232,9 @@ export default function YouthSportsTravelExpensesPage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Perfect for travel teams
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Create a PartyTab for your team. Share the link in the parent
                         group chat. Anyone can add expenses (hotel, gas, snacks) from

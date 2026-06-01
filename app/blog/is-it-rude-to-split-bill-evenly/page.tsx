@@ -302,9 +302,9 @@ export default function IsItRudeToSplitBillEvenlyPage() {
         </p>
 
         <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-          <h4 className="font-semibold text-teal-900 mb-2">
+          <h3 className="font-semibold text-teal-900 mb-2">
             Split Bills Fairly — Without the Awkwardness
-          </h4>
+          </h3>
           <p className="text-teal-800 text-sm mb-4">
             PartyTab&apos;s AI-powered receipt scanner reads your bill in seconds. Everyone
             claims their items, and the app calculates exactly who owes what — including tax

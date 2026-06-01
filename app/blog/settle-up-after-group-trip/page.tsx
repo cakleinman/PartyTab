@@ -284,9 +284,9 @@ export default function SettleUpAfterGroupTripPage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Settle up the smart way
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         PartyTab calculates the minimum number of payments needed—no spreadsheet
                         required. Everyone logs expenses during the trip, then at the end you

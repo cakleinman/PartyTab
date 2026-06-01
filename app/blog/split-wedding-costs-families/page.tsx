@@ -342,9 +342,9 @@ export default function SplitWeddingCostsPage() {
         </p>
 
         <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-          <h4 className="font-semibold text-teal-900 mb-2">
+          <h3 className="font-semibold text-teal-900 mb-2">
             Track wedding expenses across families
-          </h4>
+          </h3>
           <p className="text-teal-800 text-sm mb-4">
             PartyTab keeps a running tab of who paid for what vendor, what&apos;s still owed, and
             how much each family has contributed. Free to use, no app download needed.

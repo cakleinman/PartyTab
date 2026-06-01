@@ -205,9 +205,9 @@ export default function WhoPaysBirthdayDinnerPage() {
         </p>
 
         <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-          <h4 className="font-semibold text-teal-900 mb-2">
+          <h3 className="font-semibold text-teal-900 mb-2">
             Birthday Splits Made Simple
-          </h4>
+          </h3>
           <p className="text-teal-800 text-sm mb-4">
             PartyTab makes birthday dinners easy. Scan the receipt, add everyone except the
             birthday person as participants, and the app automatically splits their meal

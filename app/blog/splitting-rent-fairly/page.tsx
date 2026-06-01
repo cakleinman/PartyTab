@@ -106,7 +106,7 @@ export default function SplittingRentFairlyPage() {
                 </p>
 
                 <div className="bg-sand-50 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-3">Example</h4>
+                    <h3 className="font-semibold text-ink-900 mb-3">Example</h3>
                     <p className="text-sm text-ink-700 mb-4">
                         Total rent: $3,000/month<br />
                         Room A: 200 sq ft (40%)<br />
@@ -161,7 +161,7 @@ export default function SplittingRentFairlyPage() {
                 </p>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-4">Sample Point Values</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">Sample Point Values</h3>
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-sand-200">
@@ -258,9 +258,9 @@ export default function SplittingRentFairlyPage() {
                 </p>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 Track roommate expenses with PartyTab
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Create a tab for your household, share the link, and everyone logs
                         expenses as they happen. At the end of the month, settle up with

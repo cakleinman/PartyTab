@@ -111,7 +111,7 @@ export default function SplitSkiTripCostsUtahPage() {
                 </p>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-4">Day Trip Options from Provo</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">Day Trip Options from Provo</h3>
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-sand-200">
@@ -267,7 +267,7 @@ export default function SplitSkiTripCostsUtahPage() {
                 </h2>
 
                 <div className="bg-white border border-sand-200 rounded-2xl p-6 my-6">
-                    <h4 className="font-semibold text-ink-900 mb-4">Sundance Day Trip Budget</h4>
+                    <h3 className="font-semibold text-ink-900 mb-4">Sundance Day Trip Budget</h3>
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-sand-200">
@@ -346,9 +346,9 @@ export default function SplitSkiTripCostsUtahPage() {
                 </ol>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         Track ski day expenses with PartyTab
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Create a tab, share the link, log shared expenses as they happen.
                         Settle up on the drive home. No app download needed.

@@ -188,9 +188,9 @@ export default function SplittingGroupDinnerBillsPage() {
                 </ul>
 
                 <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-                    <h4 className="font-semibold text-teal-900 mb-2">
+                    <h3 className="font-semibold text-teal-900 mb-2">
                         📱 PartyTab handles this perfectly
-                    </h4>
+                    </h3>
                     <p className="text-teal-800 text-sm mb-4">
                         Add the dinner expense, tag who participated, and PartyTab calculates
                         who owes who. Works for one-off dinners or entire trips. No app

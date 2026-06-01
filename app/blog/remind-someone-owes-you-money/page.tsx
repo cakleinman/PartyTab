@@ -420,9 +420,9 @@ export default function RemindSomeoneOwesMoneyPage() {
         </p>
 
         <div className="bg-teal-50 border border-teal-200 rounded-2xl p-6 my-8">
-          <h4 className="font-semibold text-teal-900 mb-2">
+          <h3 className="font-semibold text-teal-900 mb-2">
             Let PartyTab Handle the Awkward Conversations
-          </h4>
+          </h3>
           <p className="text-teal-800 text-sm mb-4">
             PartyTab tracks shared expenses in real time and sends automated payment reminders
             (Pro feature) so you never have to chase friends for money. Free to start, no app
