@@ -322,6 +322,15 @@ export default function SplittingGroupDinnerBillsPage() {
                         </p>
                     </Link>
                     <Link
+                        href="/blog/large-group-dinner-bill-tips"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Tips</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            Handling the Bill for Large Group Dinners
+                        </p>
+                    </Link>
+                    <Link
                         href="/blog/splitting-rent-fairly"
                         className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
                     >

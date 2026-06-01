@@ -427,6 +427,17 @@ export default function LargeGroupDinnerBillTipsPage() {
               The simple rule for splitting birthday celebration bills.
             </p>
           </Link>
+          <Link
+            href="/blog/splitting-group-dinner-bills"
+            className="block p-4 border border-sand-200 rounded-xl hover:border-teal-300 hover:bg-teal-50/30 transition-colors"
+          >
+            <h4 className="font-semibold text-ink-900 mb-1">
+              How to Split a Group Dinner Bill
+            </h4>
+            <p className="text-sm text-ink-600">
+              Six fair approaches for everyday group dinners — the general guide.
+            </p>
+          </Link>
         </div>
       </div>
     </article>

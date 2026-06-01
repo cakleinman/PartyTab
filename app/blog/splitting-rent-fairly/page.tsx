@@ -336,6 +336,15 @@ export default function SplittingRentFairlyPage() {
                         </p>
                     </Link>
                     <Link
+                        href="/blog/split-rent-by-income-calculator"
+                        className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
+                    >
+                        <span className="text-sm text-teal-600 font-medium">Guide</span>
+                        <p className="font-medium text-ink-900 mt-1">
+                            Splitting Rent by Income (Not 50/50)
+                        </p>
+                    </Link>
+                    <Link
                         href="/blog/avoid-losing-friends-over-money"
                         className="block p-4 bg-sand-50 rounded-xl hover:bg-sand-100 transition-colors"
                     >
