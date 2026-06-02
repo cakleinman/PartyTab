@@ -2,8 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { SourceLink } from "@/app/components/SourceLink";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
+// Primary sources — each verified to state the cited figure (checked 2026-06-02).
+const SRC = {
+    lendingTree2025: "https://www.lendingtree.com/credit-cards/study/friends-money-report/",
+    bread2024:
+        "https://newsroom.breadfinancial.com/from-friends-to-foes-financial-incompatibility-study",
+    creditKarma2023:
+        "https://www.creditkarma.com/about/commentary/gen-z-and-millennials-are-losing-friends-over-money-study-finds",
+};
 
 export const metadata: Metadata = {
     title: "36% of Friends Split Up Over Money | PartyTab",
@@ -131,16 +141,13 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                 </h3>
                 <ul className="list-disc pl-6 space-y-2">
                     <li>
-                        <strong>36% of Americans have lost a friendship over money</strong> (LendingTree, 2025)
+                        <strong>36% of Americans have had a friendship end over money</strong> (<SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
                     </li>
                     <li>
-                        <strong>21% of adults have ended a friendship over money</strong> (Bread Financial, 2024)
+                        <strong>21% have lost a friendship over money</strong> (<SourceLink href={SRC.bread2024}>Bread Financial, 2024</SourceLink>)
                     </li>
                     <li>
-                        <strong>77% would end a friendship over an unpaid $500 loan</strong> (Bank of America)
-                    </li>
-                    <li>
-                        <strong>40% would end a friendship over an unpaid $100 loan</strong> (Bank of America)
+                        <strong>47% wouldn&apos;t lend their best friend $500</strong> (<SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
                     </li>
                 </ul>
 
@@ -149,13 +156,13 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                 </h3>
                 <ul className="list-disc pl-6 space-y-2">
                     <li>
-                        <strong>32% of people who lent money to friends never got it back</strong>
+                        <strong>32% of people who lent money to a friend never got it back</strong> (<SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
                     </li>
                     <li>
-                        <strong>30% of borrowers never repaid the loan</strong>
+                        <strong>30% of borrowers admit they never repaid a friend</strong> (<SourceLink href={SRC.bread2024}>Bread Financial, 2024</SourceLink>)
                     </li>
                     <li>
-                        <strong>40% of Americans have avoided a friend who owes them money</strong> rather than asking for it back
+                        <strong>33% say repeated borrowing without repayment is a top driver of friendship tension</strong> (<SourceLink href={SRC.bread2024}>Bread Financial, 2024</SourceLink>)
                     </li>
                 </ul>
 
@@ -164,13 +171,13 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                 </h3>
                 <ul className="list-disc pl-6 space-y-2">
                     <li>
-                        <strong>74% of millennials break their budgets to socialize with friends</strong>
+                        <strong>74% of millennials broke their budgets to socialize with friends</strong> (<SourceLink href={SRC.bread2024}>Bread Financial, 2024</SourceLink>)
                     </li>
                     <li>
-                        <strong>47% of Gen Z and millennials have considered ending friendships</strong> over incompatible spending habits
+                        <strong>47% of Gen Z have considered ending a friendship</strong> over a friend&apos;s spending habits (<SourceLink href={SRC.creditKarma2023}>Intuit Credit Karma, 2023</SourceLink>)
                     </li>
                     <li>
-                        <strong>33% have lied about being in a better financial situation</strong> than they actually are
+                        <strong>33% have lied about being in a better financial situation</strong> than they actually are (<SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
                     </li>
                 </ul>
 
@@ -192,7 +199,7 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                     This is the big one. Someone needs money, you lend it, and suddenly the friendship dynamic shifts. You&apos;re no longer equals—you&apos;re creditor and debtor.
                 </p>
                 <p>
-                    The stats are brutal: nearly one in three people who lend money to friends never get it back. And here&apos;s the kicker—40% of people <em>avoid the friend who owes them</em> rather than asking for repayment.
+                    The stats are brutal: nearly one in three people who lend money to friends never get it back. And rather than ask for repayment, many people simply <em>avoid the friend who owes them</em>.
                 </p>
                 <p>
                     Avoidance is poison. You can&apos;t ghost someone slowly and expect the friendship to survive.
@@ -224,7 +231,7 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                 <div className="bg-amber-50 border-l-4 border-amber-400 p-4 my-6">
                     <p className="text-amber-800 font-medium mb-1">💡 The stat that should scare you</p>
                     <p className="text-amber-700 text-sm">
-                        40% of Americans have AVOIDED a friend who owes them money rather than asking for it back. Avoidance kills friendships slowly. Once you start avoiding someone, the friendship is already over—you just haven&apos;t admitted it yet.
+                        Many people quietly avoid a friend who owes them money rather than asking for it back. Avoidance kills friendships slowly. Once you start avoiding someone, the friendship is already over—you just haven&apos;t admitted it yet.
                     </p>
                 </div>
 
@@ -309,7 +316,7 @@ export default function MoneyRuiningFriendshipsStatisticsPage() {
                     The reason people avoid friends who owe them money is because asking feels uncomfortable. Remove the discomfort by using a shared expense tracker that does the reminding for you.
                 </p>
                 <p>
-                    When the app sends the reminder, it&apos;s not you being petty—it&apos;s just logistics. This single shift prevents the avoidance spiral that kills 40% of lending-based friendships.
+                    When the app sends the reminder, it&apos;s not you being petty—it&apos;s just logistics. This single shift prevents the avoidance spiral that quietly ends so many lending-based friendships.
                 </p>
 
                 <h3 className="text-xl font-semibold text-ink-900 mt-8 mb-3">

@@ -2,8 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthorBio } from "@/app/components/AuthorBio";
+import { SourceLink } from "@/app/components/SourceLink";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/lib/seo";
 import { BlogPostJsonLd, BreadcrumbJsonLd } from "@/app/components/JsonLdSchema";
+
+// Primary sources — each verified to state the cited figure (checked 2026-06-02).
+const SRC = {
+  lendingTree2025: "https://www.lendingtree.com/credit-cards/study/friends-money-report/",
+  bread2024:
+    "https://newsroom.breadfinancial.com/from-friends-to-foes-financial-incompatibility-study",
+};
 
 export const metadata: Metadata = {
   title: "Why 30% of Borrowed Money Is Never Repaid | PartyTab",
@@ -89,10 +97,10 @@ export default function FriendsNeverPayBackPage() {
         </p>
 
         <p className="text-lg text-ink-700 leading-relaxed">
-          You&apos;re not alone. According to multiple studies, 77% of Americans have lent
-          money to a friend or family member. Of those, 32% never got their money back. And
-          perhaps most telling: 30% of borrowers admit they&apos;ve never repaid money they
-          borrowed from someone close to them.
+          You&apos;re not alone. According to LendingTree, 77% of Americans have lent
+          money to a friend — and 32% never got it back. And perhaps most telling:
+          Bread Financial found 30% of borrowers admit they&apos;ve never repaid money
+          they borrowed from someone close to them.
         </p>
 
         <p className="text-lg text-ink-700 leading-relaxed">
@@ -111,26 +119,24 @@ export default function FriendsNeverPayBackPage() {
 
         <ul className="list-disc pl-6 space-y-2 text-lg text-ink-700">
           <li>
-            <strong>77% of Americans</strong> have lent money to a friend or family member
-            (LendingTree, 2024)
+            <strong>77% of Americans</strong> have lent money to a friend (
+            <SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
           </li>
           <li>
-            <strong>32% of lenders</strong> never got their money back (Bank of America, 2023)
+            <strong>32% of those lenders</strong> never got their money back (
+            <SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
           </li>
           <li>
-            <strong>30% of borrowers</strong> admit they&apos;ve never repaid money they
-            borrowed (Bread Financial, 2022)
+            <strong>30% of borrowers</strong> admit they&apos;ve never repaid a friend (
+            <SourceLink href={SRC.bread2024}>Bread Financial, 2024</SourceLink>)
           </li>
           <li>
-            <strong>36% lost friendships</strong> over unpaid loans (LendingTree, 2024)
+            <strong>36% have had a friendship end</strong> over money (
+            <SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
           </li>
           <li>
-            <strong>77% would end a friendship</strong> over $500 or less (Bread Financial,
-            2022)
-          </li>
-          <li>
-            <strong>47% wouldn&apos;t lend their best friend $500</strong>—even in an
-            emergency (Bank of America, 2023)
+            <strong>47% wouldn&apos;t lend their best friend $500</strong> (
+            <SourceLink href={SRC.lendingTree2025}>LendingTree, 2025</SourceLink>)
           </li>
         </ul>
 
@@ -140,11 +146,6 @@ export default function FriendsNeverPayBackPage() {
           pervasive this problem is.
         </p>
 
-        <p className="text-lg text-ink-700 leading-relaxed">
-          The average amount lent? $600. Not a life-changing sum for most people, but enough
-          to sting when it never comes back. And according to LendingTree, the average person
-          who&apos;s been stiffed has lost $520 from unpaid loans over their lifetime.
-        </p>
 
         <p className="text-lg text-ink-700 leading-relaxed">
           Translation: if you&apos;re a generous person who helps friends in need, you&apos;re
