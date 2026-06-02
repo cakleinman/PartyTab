@@ -122,10 +122,11 @@ export default function AboutPage() {
             <div className="mb-10">
                 <h2 className="text-2xl font-bold text-ink-900 mb-4">Who&apos;s behind it</h2>
                 <p className="text-ink-600 leading-relaxed mb-4">
-                    PartyTab is an independent project, not a big company. It was built to
-                    fix a problem its maker kept running into — being the person stuck doing
-                    the end-of-trip math by hand — and it&apos;s improved continuously based on
-                    how real groups use it. We write about what we learn on the{" "}
+                    PartyTab is made by the PartyTab team — an independent project, not a big
+                    company. We built it to fix a problem we kept running into — being the
+                    person stuck doing the end-of-trip math by hand — and we improve it
+                    continuously based on how real groups use it. We write about what we learn
+                    on the{" "}
                     <Link href="/blog" className="text-teal-600 hover:text-teal-700">
                         blog
                     </Link>
