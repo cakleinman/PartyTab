@@ -66,3 +66,9 @@ marketing/**/*.mov
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Claude Code transient lock
+.claude/scheduled_tasks.lock
+
+# Local SEO audit working docs — not for the public repo
+/seo-audit/
