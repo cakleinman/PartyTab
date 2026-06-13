@@ -24,6 +24,82 @@ const MAX_PAGES = 3; // Places Text Search caps at 60 results across 3 pages
 const PHOTO_MAX_HEIGHT_PX = 800;
 const MAX_PHOTOS_PER_PLACE = 3;
 
+// The New Places API emits transient 429 RESOURCE_EXHAUSTED / 5xx UNAVAILABLE
+// and recommends exponential backoff. Without it, a single hiccup turns the
+// whole search into a user-facing "HTTP 503" (see app/api/idkyp/places/route.ts).
+const TRANSIENT_HTTP_STATUSES = new Set([429, 500, 502, 503, 504]);
+const PLACES_MAX_ATTEMPTS = 3; // 1 initial + 2 retries
+const PLACES_BASE_BACKOFF_MS = 400;
+const PLACES_MAX_BACKOFF_MS = 4000;
+
+export function isTransientPlacesStatus(status: number): boolean {
+  return TRANSIENT_HTTP_STATUSES.has(status);
+}
+
+/**
+ * Parse a `Retry-After` header (delta-seconds or HTTP-date) into milliseconds,
+ * clamped to [0, PLACES_MAX_BACKOFF_MS]. Returns null when absent/unparseable
+ * so the caller falls back to computed backoff.
+ */
+export function parseRetryAfterMs(header: string | null, nowMs: number): number | null {
+  if (!header) return null;
+  const trimmed = header.trim();
+  if (/^\d+$/.test(trimmed)) {
+    return Math.min(Number(trimmed) * 1000, PLACES_MAX_BACKOFF_MS);
+  }
+  const dateMs = Date.parse(trimmed);
+  if (Number.isFinite(dateMs)) {
+    return Math.max(0, Math.min(dateMs - nowMs, PLACES_MAX_BACKOFF_MS));
+  }
+  return null;
+}
+
+/** Exponential backoff with full jitter, capped. Pure given `rand` (0..1). */
+export function backoffDelayMs(attempt: number, rand: number = Math.random()): number {
+  const exp = Math.min(PLACES_BASE_BACKOFF_MS * 2 ** attempt, PLACES_MAX_BACKOFF_MS);
+  return Math.round(exp * (0.5 + rand * 0.5)); // jitter across 50–100% of the window
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * fetch() wrapper that retries transient upstream failures (network errors and
+ * 429/5xx) with exponential backoff, honoring `Retry-After` when present.
+ * Non-transient responses (e.g. 400/403) and the final attempt return as-is so
+ * the caller's existing error handling reports the real status.
+ */
+async function fetchPlacesWithRetry(url: string, init: RequestInit): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < PLACES_MAX_ATTEMPTS; attempt++) {
+    const isLast = attempt === PLACES_MAX_ATTEMPTS - 1;
+    try {
+      const res = await fetch(url, init);
+      if (res.ok || !isTransientPlacesStatus(res.status) || isLast) return res;
+      const wait =
+        parseRetryAfterMs(res.headers.get("retry-after"), Date.now()) ?? backoffDelayMs(attempt);
+      console.warn(
+        `[idkyp] Places ${res.status}, retrying in ${wait}ms (attempt ${attempt + 1}/${PLACES_MAX_ATTEMPTS})`,
+      );
+      await sleep(wait);
+    } catch (e) {
+      // Network/DNS/abort error — retry unless this was the last attempt.
+      lastError = e;
+      if (isLast) throw e;
+      const wait = backoffDelayMs(attempt);
+      console.warn(
+        `[idkyp] Places fetch error, retrying in ${wait}ms (attempt ${attempt + 1}/${PLACES_MAX_ATTEMPTS}): ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+      await sleep(wait);
+    }
+  }
+  // Unreachable: the loop either returns or throws on the last attempt.
+  throw lastError instanceof Error ? lastError : new Error("Places request failed");
+}
+
 const PLACES_FIELD_MASK = [
   "places.id",
   "places.displayName",
@@ -74,7 +150,7 @@ export async function fetchNearbyRestaurants(query: PlacesQuery): Promise<Places
     };
     if (pageToken) requestBody.pageToken = pageToken;
 
-    const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+    const res = await fetchPlacesWithRetry("https://places.googleapis.com/v1/places:searchText", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

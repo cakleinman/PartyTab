@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { adaptPlace } from "../lib/idkyp/places";
+import {
+  adaptPlace,
+  backoffDelayMs,
+  isTransientPlacesStatus,
+  parseRetryAfterMs,
+} from "../lib/idkyp/places";
 import type { LatLng } from "../lib/idkyp/types";
 
 const center: LatLng = { lat: 40.7128, lng: -74.006 };
@@ -151,5 +156,66 @@ describe("adaptPlace", () => {
       8,
     );
     expect(r.periods).toEqual([{ open: { day: 0, hour: 0, minute: 0 } }]);
+  });
+});
+
+describe("isTransientPlacesStatus", () => {
+  it("treats 429 and 5xx as transient (retryable)", () => {
+    for (const s of [429, 500, 502, 503, 504]) {
+      expect(isTransientPlacesStatus(s)).toBe(true);
+    }
+  });
+
+  it("treats client/auth errors as permanent (not retried)", () => {
+    for (const s of [400, 401, 403, 404, 200]) {
+      expect(isTransientPlacesStatus(s)).toBe(false);
+    }
+  });
+});
+
+describe("parseRetryAfterMs", () => {
+  const now = 1_000_000_000_000;
+
+  it("returns null when the header is absent", () => {
+    expect(parseRetryAfterMs(null, now)).toBeNull();
+  });
+
+  it("parses delta-seconds form", () => {
+    expect(parseRetryAfterMs("2", now)).toBe(2000);
+  });
+
+  it("parses HTTP-date form relative to now", () => {
+    const header = new Date(now + 3000).toUTCString();
+    expect(parseRetryAfterMs(header, now)).toBe(3000);
+  });
+
+  it("clamps absurdly large waits to the cap", () => {
+    expect(parseRetryAfterMs("9999", now)).toBe(4000);
+  });
+
+  it("never returns negative for a past HTTP-date", () => {
+    const header = new Date(now - 5000).toUTCString();
+    expect(parseRetryAfterMs(header, now)).toBe(0);
+  });
+
+  it("returns null for unparseable values", () => {
+    expect(parseRetryAfterMs("soon", now)).toBeNull();
+  });
+});
+
+describe("backoffDelayMs", () => {
+  it("grows exponentially across attempts (jitter pinned to max)", () => {
+    expect(backoffDelayMs(0, 1)).toBe(400);
+    expect(backoffDelayMs(1, 1)).toBe(800);
+    expect(backoffDelayMs(2, 1)).toBe(1600);
+  });
+
+  it("applies at least 50% of the window (jitter pinned to min)", () => {
+    expect(backoffDelayMs(0, 0)).toBe(200);
+    expect(backoffDelayMs(1, 0)).toBe(400);
+  });
+
+  it("caps the exponential growth", () => {
+    expect(backoffDelayMs(10, 1)).toBe(4000);
   });
 });
