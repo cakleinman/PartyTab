@@ -49,20 +49,20 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@playwright/test": "^1.58.1",
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^20",
+    "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/web-push": "^3.6.4",
-    "eslint": "^9",
-    "eslint-config-next": "16.1.6",
-    "prettier": "^3.6.2",
+    "eslint": "^10",
+    "eslint-config-next": "16.2.9",
+    "prettier": "^3.8.4",
     "tailwindcss": "^4",
-    "tsx": "^4.19.2",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
+    "tsx": "^4.22.4",
+    "typescript": "^6",
+    "vitest": "^4.1.9"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-arm64-gnu": "^4.57.1"
